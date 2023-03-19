@@ -1,0 +1,164 @@
+const express = require('express');
+ var cors = require('cors');
+ //let adminControllers = require('./controllers/adminControllers');
+ //const sms = require('./successfull-add-sms');
+ const bodyParser = require('body-parser');
+ //const cron =require('node-cron');
+ const connection = require('./config/database');
+ const adminRoute = require('./routes/admin');
+ const memberRoute = require('./routes/create-member');
+ const miningpartnerRoute = require('./routes/create-mining-partner');
+
+ const memberLoginRoute = require('./routes/member-login');
+ const memberPortalProfileDetailsRoute = require('./routes/fetch-member');
+ const miningPartnerLoginRoute = require('./routes/mining-partner-login');
+ const miningPortalProfileDetailsRoute = require('./routes/fetch-mining-partner-details');
+
+ const partnerBankDetailsRoute = require('./routes/partner_bank_details');
+ const fetchPartnerBankDetails = require('./routes/fetch-partner-bank-details');
+
+ const memberBankDetailsRoute = require('./routes/member-bank-details');
+ const fetchMemberBankDetails = require('./routes/fetch-member-bank-details');
+
+ const updateMemberData = require('./routes/member-data-update');
+ const updateMemberBankData = require('./routes/member-bank-data-update');
+
+ const updatePartnerData = require('./routes/partner-data-update');
+
+ const fetchMemberRefferalid = require('./routes/member-refferali-id');
+ const fetchPartnerRefferalid = require('./routes/partner-refferal-id');
+
+ const fetchMemberMyteam = require('./routes/member-myteam');
+ const fetchPartnerMyteam = require('./routes/partner-myteam');
+
+ const fetchPartnerWallet = require('./routes/partner-wallet');
+ const fetchMemebrMyteamFromPartner = require('./routes/fetch-member-myteam-details-from-partner');
+
+ //const updatePartnerWallet = require('./routes/update-partner-wallet');
+ const fetchMiningPartnerWallet = require('./routes/fetch-mining-partner-wallet');
+
+ const fetchPartnerWalletDailyHistory = require('./routes/fetch-partner-wallet-daily-history');
+ const fetchAllPartnerTotalWalletAmountFromAdmin = require("./routes/fetch-All-partner-wallet-total-amount-from-admin")
+
+ const fetchSumOfAllPartnerLiquidity = require('./routes/fetch-sum-of-all-partner-liquidity');
+
+ const fetchAllActivePartnerOnly = require('./routes/fetch-all-active-partner-only');
+
+ const FetchPartnerWithdrawalRequestToAdmin = require('./routes/partner-withdrawal-request-to-admin');
+ const approvePartnerWithdrawalRequest = require('./routes/approve-partner-withdrawal-request');
+
+ const fecthPartnerApproveWithdrawalHistory = require('./routes/fetch-partner-approve-withdrawal-history');
+ const fecthPartnerApproveWithdrawalHistoryForPartner = require('./routes/fetch-partner-approve-withdrawal-history-for-partner');
+
+ const fetchSumOfPartnerAllWithdrawal = require('./routes/fetch-sum-of-partner-all-withdrawal');
+
+ const fetchMemberWalletDailyHistory = require('./routes/fetch-member-wallet-daily-history');
+ const fetchSumOfMemberWalletForMonth = require('./routes/fetch-sum-of-member-wallet');
+ const fetchSumOfMemberWalletOfMonthForAdmin = require('./routes/fetch-sum-of-member-wallet-amount-for-admin');
+ const fetchSumOfMemberWalletOfMonth = require('./routes/fetch-sum-of-member-wallet-of-one-month');
+ const memberWithdrawalRequestToAdmin = require('./routes/member-withdrawal-request-to-admin');
+ const approveMemberWithdrawalRequest = require('./routes/approve-member-withdrawal-request');
+ const fetchMemberApproveWithdrawalHistoryForMember = require('./routes/fetch-member-approve_withdrawal-history-for-member');
+ const fetchMemberApproveWithdrawalHistoryForAdmin = require('./routes/fetch-member-approve-withdrawal-history-for-admin');
+ const fetchSumOfMemberTotalWithdrawal = require('./routes/fetch-sum-of-member-total-withdrawal');
+ const fetchPartnerWithdrawalRequestForPartner = require('./routes/fetch-partner-withdrawal-request-for-partner');
+ const fetchMemberWithdrawalRequest = require('./routes/fetch-member-withdrawal-request');
+ const fetchMemberProfileDetailsFromAdmin = require('./routes/fetch-member-profile-details-from-admin');
+ const updateMemberProfileDetailsFromAdmin = require('./routes/update-member-profile-details-from-admin');
+ const fetchMiningPartnerProfileDetailsFromAdmin = require('./routes/fetch-mining-partner-profile-details-from-admin');
+ const updateMiningPartnerProfileDetailsFromAdmin = require('./routes/update-mining-partner-profile-details-from-admin');
+ const memberSignup = require('./routes/member-signup');
+ const partnerSignup = require('./routes/partner-signup');
+ const perdayPartnerWalletAmount = require('./routes/perday-partner-wallet-amount');
+ const fetchAllPendingPartnerOnly = require('./routes/fetch-All-Pending-Partner-Only');
+ 
+ const forgetPasswordMember = require('./routes/forget-password-member');
+ const verifyOtp = require('./routes/veryfiy-otp-member');
+ const memberRegeneratePassword = require('./routes/member-regenerate-password');
+
+ const partnerForgetPassword = require('./routes/partner-forget-password');
+ const verifyOtpPartner = require('./routes/verify-otp-partner');
+ const partnerRegeneratePassword = require('./routes/partner-Regenerate-Password');
+ const isPartnerActiveManualFromAdmin = require('./routes/ispartner-active-manual-from-admin');
+ const doActivatePartnerManualFromAdmin = require('./routes/doactivate-partner-manual-from-admin');
+ const perdayAmountTransferToPartnerManual = require('./routes/perday-amount-transfer-to-partner-manaul');
+ const particularPerdayPartnerWithdrawalRequestFromAdmin = require('./routes/particular-partner-withdrawal-request-from-admin');
+ const particularPartnerApprovedWithdrawalHistoryFromAdmin = require('./routes/particular-partner-approved-withdrawal-history-from-admin');
+ const fetchLastPaymentDate = require('./routes/fetch-last-payment-date');
+
+
+
+
+
+
+ const app = express();
+ 
+ app.use(bodyParser.json());
+ app.use(cors());
+ app.use(express.urlencoded({extended:true}));
+ app.use(express.json());
+ app.use('/admin',adminRoute);
+ app.use('/admin',memberRoute);
+ app.use('/admin',miningpartnerRoute);
+ app.use('/member',memberLoginRoute);
+ app.use('/member',memberPortalProfileDetailsRoute);
+ app.use('/mining',miningPartnerLoginRoute);
+ app.use('/mining',miningPortalProfileDetailsRoute);
+ app.use('/mining',partnerBankDetailsRoute);
+ app.use('/mining',fetchPartnerBankDetails);
+ app.use('/member',memberBankDetailsRoute);
+ app.use('/member',fetchMemberBankDetails);
+ app.use('/member',updateMemberData);
+ app.use('/member',updateMemberBankData);
+ app.use('/mining',updatePartnerData);
+ app.use('/member',fetchMemberRefferalid);
+ app.use('/mining',fetchPartnerRefferalid);
+ app.use('/member',fetchMemberMyteam);
+ app.use('/mining',fetchPartnerMyteam);
+ app.use('/mining',fetchPartnerWallet);
+ app.use('/member',fetchMemebrMyteamFromPartner);
+ //app.use('/mining',updatePartnerWallet);
+ app.use('/mining',fetchMiningPartnerWallet);
+ app.use('/mining',fetchPartnerWalletDailyHistory);
+ app.use('/admin',fetchAllPartnerTotalWalletAmountFromAdmin);
+ app.use('/admin',fetchSumOfAllPartnerLiquidity);
+ app.use('/admin',fetchAllActivePartnerOnly);
+ app.use('/admin',FetchPartnerWithdrawalRequestToAdmin);
+ app.use('/admin',approvePartnerWithdrawalRequest);
+ app.use('/admin',fecthPartnerApproveWithdrawalHistory);
+ app.use('/mining',fecthPartnerApproveWithdrawalHistoryForPartner);
+ app.use('/mining',fetchSumOfPartnerAllWithdrawal);
+ app.use('/member',fetchMemberWalletDailyHistory);
+ app.use('/member',fetchSumOfMemberWalletForMonth);
+ app.use('/admin',fetchSumOfMemberWalletOfMonthForAdmin);
+ app.use('/member',fetchSumOfMemberWalletOfMonth);
+ app.use('/admin',memberWithdrawalRequestToAdmin);
+ app.use('/admin',approveMemberWithdrawalRequest);
+ app.use('/member',fetchMemberApproveWithdrawalHistoryForMember);
+ app.use('/admin',fetchMemberApproveWithdrawalHistoryForAdmin);
+ app.use('/member',fetchSumOfMemberTotalWithdrawal);
+ app.use('/mining',fetchPartnerWithdrawalRequestForPartner);
+ app.use('/member',fetchMemberWithdrawalRequest);
+ app.use('/admin',fetchMemberProfileDetailsFromAdmin);
+ app.use('/admin',updateMemberProfileDetailsFromAdmin);
+ app.use('/admin',fetchMiningPartnerProfileDetailsFromAdmin);
+ app.use('/admin',updateMiningPartnerProfileDetailsFromAdmin);
+ app.use('/signup',memberSignup);
+ app.use('/signup',partnerSignup);
+ app.use('/mining',perdayPartnerWalletAmount);
+ app.use('/admin',fetchAllPendingPartnerOnly);
+ app.use('/member',forgetPasswordMember);
+ app.use('/member',verifyOtp);
+ app.use('/member',memberRegeneratePassword);
+ app.use('/mining',partnerForgetPassword);
+ app.use('/mining',verifyOtpPartner);
+ app.use('/mining',partnerRegeneratePassword);
+ app.use('/admin',isPartnerActiveManualFromAdmin);
+ app.use('/admin',doActivatePartnerManualFromAdmin);
+ app.use('/admin',perdayAmountTransferToPartnerManual);
+ app.use('/admin',particularPerdayPartnerWithdrawalRequestFromAdmin);
+ app.use('/admin',particularPartnerApprovedWithdrawalHistoryFromAdmin);
+ app.use('/admin',fetchLastPaymentDate);
+ 
+module.exports = app;
+
