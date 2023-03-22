@@ -11,7 +11,7 @@ const client = require("twilio")(accountSid, authToken);
 
 // hash compare password
 
-exports.memberLogin = (req, res, next) => {
+exports.memberLogin = (req, res) => {
     const member = req.body;
    let query = "select m_userid, m_password,reffer_id from create_member where m_userid=?";
     connection.query(query, [member.m_userid], (err, results) => {
@@ -80,7 +80,7 @@ exports.memberLogin = (req, res, next) => {
 
 
 //Fetch Member Details
-exports.fetchMemberDetails = (req, res, next) => {
+exports.fetchMemberDetails = (req, res) => {
     const memberId = req.body;
     let query = "select *from create_member where m_userid = ?";
     connection.query(query, [memberId.m_userid], (err, results) => {
@@ -96,7 +96,7 @@ exports.fetchMemberDetails = (req, res, next) => {
 }
 
 // Add member Bank Details
-exports.addMemberBankDetails = (req, res, next) => {
+exports.addMemberBankDetails = (req, res) => {
     let bank = req.body;
    let query = "insert into member_bank_details(user_id,holder_name,account_no,ifsc_code,branch_name,bank_name)  values (?,?,?,?,?,?)";
     connection.query(query, [bank.user_id, bank.holder_name, bank.account_no, bank.ifsc_code, bank.branch_name, bank.bank_name], (err, results) => {
@@ -112,7 +112,7 @@ exports.addMemberBankDetails = (req, res, next) => {
 }
 
 //Fetch Member Bank Details 
-exports.fetchMemberBankDetails = (req, res, next) => {
+exports.fetchMemberBankDetails = (req, res) => {
     const memberId = req.body;
    let query = "select * from member_bank_details where user_id = ?";
     connection.query(query, [memberId.user_id], (err, results) => {
@@ -129,7 +129,7 @@ exports.fetchMemberBankDetails = (req, res, next) => {
 
 // update-member-data
 
-exports.memberDataUpdate = (req, res, next) => {
+exports.memberDataUpdate = (req, res) => {
     let member = req.body;
    let query = "update  create_member set m_name=?, m_phone=?, m_add=?,m_email=?,m_state=?,m_dob=?,m_quali=?,m_gender=? where m_userid=? ";
     connection.query(query, [member.m_name, member.m_phone, member.m_add, member.m_email, member.m_state, member.m_dob, member.m_quali, member.m_gender, member.m_userid], (err, results) => {
@@ -144,7 +144,7 @@ exports.memberDataUpdate = (req, res, next) => {
 }
 
 //Member Bank data Update
-exports.memberBankDataUpdate = (req, res, next) => {
+exports.memberBankDataUpdate = (req, res) => {
     let member = req.body;
    let query = "update  member_bank_details set holder_name=?, account_no=?, ifsc_code=?,branch_name=?,bank_name=? where user_id=? ";
     connection.query(query, [member.holder_name, member.account_no, member.ifsc_code,
@@ -161,7 +161,7 @@ exports.memberBankDataUpdate = (req, res, next) => {
 
 // Fetch Member Refferal ID
 
-exports.fetchMemberRefferalId = (req, res, next) => {
+exports.fetchMemberRefferalId = (req, res) => {
     const memberid = req.body;
     let  query = "select reffer_id from create_member where m_userid = ?";
     connection.query(query, [memberid.m_userid], (err, results) => {
@@ -178,7 +178,7 @@ exports.fetchMemberRefferalId = (req, res, next) => {
 
 //fetch Member MyTeam
 
-exports.fetchMemberMyTeam = (req, res, next) => {
+exports.fetchMemberMyTeam = (req, res) => {
     const memberId = req.body;
    let query = "select m_name,m_userid,m_doj from create_member where m_refferid = ?";
     connection.query(query, [memberId.m_refferid], (err, results) => {
@@ -195,7 +195,7 @@ exports.fetchMemberMyTeam = (req, res, next) => {
 
 // fetch-member-myteam-details-from-partner
 
-exports.fetchMemberMyteamDetailsFromPartner = (req, res, next) => {
+exports.fetchMemberMyteamDetailsFromPartner = (req, res) => {
     const memberId = req.body;
    let query = "select p_name,p_userid,p_dop from mining_partner  join create_member on mining_partner.p_reffered_id = create_member.reffer_id ";
     connection.query(query, [memberId.reffer_id], (err, results) => {
@@ -212,7 +212,7 @@ exports.fetchMemberMyteamDetailsFromPartner = (req, res, next) => {
 
 // fetch-member-wallet-daily-history
 
-exports.fetchMemberWalletDailyHistory = (req, res, next) => {
+exports.fetchMemberWalletDailyHistory = (req, res) => {
     const memberId = req.body;
    let query = "select * from member_wallet_history where m_userid = ?";
     connection.query(query, [memberId.m_userid], (err, results) => {
@@ -229,7 +229,7 @@ exports.fetchMemberWalletDailyHistory = (req, res, next) => {
 
 //fetch-sum-of-member-wallet-for-month
 
-exports.fetchSumOfMemberWalletForMonth = (req, res, next) => {
+exports.fetchSumOfMemberWalletForMonth = (req, res) => {
     const memberId = req.body;
    let query = "select * from member_withdrawal where m_userid = ?";
     connection.query(query, [memberId.m_userid], (err, results) => {
@@ -247,7 +247,7 @@ exports.fetchSumOfMemberWalletForMonth = (req, res, next) => {
 
 //fetch-sum-of-member-wallet-of-month
 
-exports.fetchSumOfMemberWalletOfMonth = (req, res, next) => {
+exports.fetchSumOfMemberWalletOfMonth = (req, res) => {
     const memberId = req.body;
    let query = "select sum(added_wallet) as sumOfMemberWallet  from create_member where m_userid =?";
     connection.query(query, [memberId.m_userid], (err, results) => {
@@ -264,7 +264,7 @@ exports.fetchSumOfMemberWalletOfMonth = (req, res, next) => {
 
 //fetch-member-approve-withdrawal-history-for-member
 
-exports.fetchMemberApproveWithdrawalHistoryForMember = (req, res, next) => {
+exports.fetchMemberApproveWithdrawalHistoryForMember = (req, res) => {
     const memberId = req.body;
    let query = "select * from member_withdrawal_history where m_userid = ? ";
     connection.query(query, [memberId.m_userid], (err, results) => {
@@ -281,7 +281,7 @@ exports.fetchMemberApproveWithdrawalHistoryForMember = (req, res, next) => {
 
 //fetch-sum-of-member-total-withdrawal-for-member
 
-exports.fetchSumOfMemberTotalWithdrawalForMember = (req, res, next) => {
+exports.fetchSumOfMemberTotalWithdrawalForMember = (req, res) => {
     const memberId = req.body;
    let query = "select sum(member_wallet) as sumOfMemberWallet from  member_withdrawal_history where m_userid = ? ";
     connection.query(query, [memberId.m_userid], (err, results) => {
@@ -298,7 +298,7 @@ exports.fetchSumOfMemberTotalWithdrawalForMember = (req, res, next) => {
 
 //fetch-member-withdrawal-request
 
-exports.fetchMemberWithdrawalRequest = (req, res, next) => {
+exports.fetchMemberWithdrawalRequest = (req, res) => {
     const memberId = req.body;
    let query = "select * from member_withdrawal where m_userid = ? ";
     connection.query(query, [memberId.m_userid], (err, results) => {

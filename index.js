@@ -85,6 +85,8 @@ const express = require('express');
  const particularPerdayPartnerWithdrawalRequestFromAdmin = require('./routes/particular-partner-withdrawal-request-from-admin');
  const particularPartnerApprovedWithdrawalHistoryFromAdmin = require('./routes/particular-partner-approved-withdrawal-history-from-admin');
  const fetchLastPaymentDate = require('./routes/fetch-last-payment-date');
+ const partnerRefferalPerDayWalletHistory = require('./routes/partner-refferal-perday-wallet-history');
+
 
 
 
@@ -159,6 +161,7 @@ const express = require('express');
  app.use('/admin',particularPerdayPartnerWithdrawalRequestFromAdmin);
  app.use('/admin',particularPartnerApprovedWithdrawalHistoryFromAdmin);
  app.use('/admin',fetchLastPaymentDate);
+ app.use('/mining',partnerRefferalPerDayWalletHistory);
  
 module.exports = app;
 

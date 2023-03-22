@@ -41,7 +41,7 @@ require('dotenv').config();
 
 // partner hash password login
 
-exports.miningPartnerLogin = (req, res, next) => {
+exports.miningPartnerLogin = (req, res) => {
     const mining = req.body;
     let query = "select p_userid, p_password,p_refferal_id,p_liquidity,partner_wallet,partner_status from mining_partner where p_userid=?";
     connection.query(query, [mining.p_userid], (err, results) => {
@@ -78,7 +78,7 @@ exports.miningPartnerLogin = (req, res, next) => {
 
 
 // Fetch Mining Profile Details 
-exports.miningPartnerProfileDetails = (req, res, next) => {
+exports.miningPartnerProfileDetails = (req, res) => {
     const partnerId = req.body;
     query = "select *from mining_partner where p_userid = ?";
     connection.query(query, [partnerId.p_userid], (err, results) => {
@@ -95,7 +95,7 @@ exports.miningPartnerProfileDetails = (req, res, next) => {
 
 // Add Partner Bank Details 
 
-exports.addPartnerBankBetails = (req, res, next) => {
+exports.addPartnerBankBetails = (req, res) => {
     let bank = req.body;
     query = "insert into bank_details(user_id,holder_name,account_no,ifsc_code,branch_name,bank_name)  values (?,?,?,?,?,?)";
     connection.query(query, [bank.user_id, bank.holder_name, bank.account_no, bank.ifsc_code, bank.branch_name, bank.bank_name], (err, results) => {
@@ -112,7 +112,7 @@ exports.addPartnerBankBetails = (req, res, next) => {
 
 //fetch-partner-bank-details
 
-exports.fetchPartnerBankDetails = (req, res, next) => {
+exports.fetchPartnerBankDetails = (req, res) => {
     const partnerId = req.body;
     query = "select * from bank_details where user_id = ?";
     connection.query(query, [partnerId.user_id], (err, results) => {
@@ -129,7 +129,7 @@ exports.fetchPartnerBankDetails = (req, res, next) => {
 
 // update-partner-data
 
-exports.updatePartnerData = (req, res, next) => {
+exports.updatePartnerData = (req, res) => {
     let partner = req.body;
     query = "update mining_partner set p_name=?, p_phone=?, p_aadhar=?,p_email=?,p_address=?,p_state=?,p_nominee_name=?,p_nominee_aadhar=?,p_nominee_phone=?,p_dob=? where p_userid=? ";
     connection.query(query, [partner.p_name, partner.p_phone, partner.p_aadhar, partner.p_email
@@ -149,7 +149,7 @@ exports.updatePartnerData = (req, res, next) => {
 
 // fetch-partner-refferal-id
 
-exports.fetchPartnerRefferalId = (req, res, next) => {
+exports.fetchPartnerRefferalId = (req, res) => {
     const partnerid = req.body;
     query = "select p_refferal_id from mining_partner where p_userid = ?";
     connection.query(query, [partnerid.p_userid], (err, results) => {
@@ -166,7 +166,7 @@ exports.fetchPartnerRefferalId = (req, res, next) => {
 
 //  fetch-partner-myteam-details
 
-exports.fetchPartnerMyteamDetails = (req, res, next) => {
+exports.fetchPartnerMyteamDetails = (req, res) => {
     const partnerId = req.body;
     query = "select p_name,p_userid,p_dop from mining_partner where p_reffered_id = ?";
     connection.query(query, [partnerId.p_reffered_id], (err, results) => {
@@ -710,7 +710,7 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
 }
 
 
-exports.fetchMiningPartnerTotalWallet = (req, res, next) => {
+exports.fetchMiningPartnerTotalWallet = (req, res) => {
     const partnerId = req.body;
     query = "select partner_wallet, wallet_update_date from mining_partner where p_userid = ?";
     connection.query(query, [partnerId.p_userid], (err, results) => {
@@ -727,7 +727,7 @@ exports.fetchMiningPartnerTotalWallet = (req, res, next) => {
 
 // fetch-partner-wallet-daily-history
 
-exports.fetchPartnerWalletDailyHistory = (req, res, next) => {
+exports.fetchPartnerWalletDailyHistory = (req, res) => {
     const partnerId = req.body;
     query = "select * from partner_wallet_history where p_userid = ?";
     connection.query(query, [partnerId.p_userid], (err, results) => {
@@ -744,7 +744,7 @@ exports.fetchPartnerWalletDailyHistory = (req, res, next) => {
 
 // fetch-partner-approve-withdrawal-history-for-partner
 
-exports.fetchPartnerApproveWithdrawalHistoryForPartner = (req, res, next) => {
+exports.fetchPartnerApproveWithdrawalHistoryForPartner = (req, res) => {
     const partnerId = req.body;
     query = "select * from partner_withdrawal_history where p_userid = ? ";
     connection.query(query, [partnerId.p_userid], (err, results) => {
@@ -761,7 +761,7 @@ exports.fetchPartnerApproveWithdrawalHistoryForPartner = (req, res, next) => {
 
 // fetch-sum-of-partner-all-withdrawal
 
-exports.fetchSumOfPartnerAllWithdrawal = (req, res, next) => {
+exports.fetchSumOfPartnerAllWithdrawal = (req, res) => {
     const partnerId = req.body;
     query = "select sum(partner_wallet) as sumOfPartnerWallet  from partner_withdrawal_history where p_userid = ?";
     connection.query(query, [partnerId.p_userid], (err, results) => {
@@ -778,7 +778,7 @@ exports.fetchSumOfPartnerAllWithdrawal = (req, res, next) => {
 
 // fetch-partner-withdrawal-request-for-partner
 
-exports.fetchPartnerWithdrawalRequestForPartner = (req, res, next) => {
+exports.fetchPartnerWithdrawalRequestForPartner = (req, res) => {
     const partnerId = req.body;
     query = "select * from partner_withdrawal where p_userid = ?";
     connection.query(query, [partnerId.p_userid], (err, results) => {
@@ -796,7 +796,7 @@ exports.fetchPartnerWithdrawalRequestForPartner = (req, res, next) => {
 
 // perday-partner-wallet-amount
 
-exports.perdayPartnerWalletAmount = (req, res, next) => {
+exports.perdayPartnerWalletAmount = (req, res) => {
     let partnerId = req.body;
     let query = "select  perday_partner_wallet_amount,wallet_update_date from mining_partner where p_userid = ?";
     connection.query(query, [partnerId.p_userid], (err, results) => {
@@ -929,4 +929,20 @@ exports.partnerRegeneratePassword = (req, res) => {
 
 
 
+}
+
+// partner-refferal-perday-wallet-history
+exports.partnerRefferalPerDayWalletHistory = (req,res) =>{
+    let partnerId = req.body;
+    let query = "select * from partner_reffer_wallet_history where p_userid = ?";
+    connection.query(query, [partnerId.p_userid], (err, results) => {
+        if (!err) {
+            return res.status(200).json({
+                message: "Fetched Perday Refferal Wallet amount successfully",
+                data: results
+            });
+        } else {
+            return res.status(500).json(err);
+        }
+    });
 }

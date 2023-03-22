@@ -64,6 +64,12 @@ exports.memberSignup = (req, res, next) => {
 
 exports.partnerSignup = (req, res, next) => {
     let partner = req.body;
+    if(!partner.p_reffered_id || !partner.p_name || !partner.p_aadhar || !partner.p_phone || !partner.p_email || !partner.p_address || !partner.p_state || ! partner.p_dob || !partner.p_nominee_name 
+        || !partner.p_nominee_aadhar || !partner.p_nominee_phone || !partner.p_dop || !partner.p_liquidity || !partner.terms || !partner.p_userid || !partner.p_password || !partner.p_refferal_id){
+            return res.status(422).json({
+                message:"Please Fill all Details"
+            });
+        }
     let selectquery = "select * from mining_partner where p_userid = ?";
     connection.query(selectquery, [partner.p_userid], (err, results) => {
         if (!err) {
@@ -84,7 +90,7 @@ exports.partnerSignup = (req, res, next) => {
                     partner.terms, partner.p_userid, hash, partner.p_refferal_id], (err, results) => {
                         if (!err) {
 
-                            sms(partner.p_phone, { "type": 'Partner', "userid": partner.p_userid, "password": password })
+                            // sms(partner.p_phone, { "type": 'Partner', "userid": partner.p_userid, "password": password })
                             return res.status(200).json({
                                 message: "mining partner added successfully"
                             });
