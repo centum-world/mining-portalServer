@@ -14,7 +14,7 @@ module.exports = function email(to,amount)
         from: process.env.FROM_EMAIL,
         to: to,
         subject: 'Grettings From CENTUM WORLD',
-        text: `Your Withdrawal request is approved of an Amount of - ${amount.withdrawalAmount}` 
+        text: `Your Withdrawal request is approved of an Amount of Rs:- ${amount.withdrawalAmount}` 
       };
       
       transporter.sendMail(mailOptions, function(error, info){
