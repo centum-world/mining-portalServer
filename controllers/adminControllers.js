@@ -704,6 +704,34 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
 
                             if (status) {
 
+                                
+                                if (month_count === 12 || month_count > 12) {
+
+                                    let updatequery = "update mining_partner set partner_status= ? where p_userid = ?";
+                                    connection.query(updatequery, [partner_status = 0, partnerid.p_userid], (err, results) => {
+
+                                        console.log("close", '754 ')
+
+                                        try {
+                                            if (!err) {
+
+                                                return res.status(400).json({
+                                                    message: "Your Plan has been expired "
+                                                })
+
+                                            } else {
+
+                                                return res.status(400).json({
+                                                    message: "Something Went wrong 2"
+                                                })
+                                            }
+                                        } catch (error) {
+                                            return error;
+                                        }
+
+                                    })
+                                }
+
                                 if (partner_count === 30 || partner_count > 30) {
 
                                     let insertquery = "insert into partner_withdrawal (partner_wallet,request_date,p_userid) values (?,?,?)";
@@ -744,34 +772,6 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                     })
 
                                 } /// 30 days condition
-
-
-                                if (month_count === 12 || month_count > 12) {
-
-                                    let updatequery = "update mining_partner set partner_status= ? where p_userid = ?";
-                                    connection.query(updatequery, [partner_status = 0, partnerid.p_userid], (err, results) => {
-
-
-
-                                        try {
-                                            if (!err) {
-
-                                                return res.status(400).json({
-                                                    message: "Your Plan has been expired "
-                                                })
-
-                                            } else {
-
-                                                return res.status(400).json({
-                                                    message: "Something Went wrong 2"
-                                                })
-                                            }
-                                        } catch (error) {
-                                            return error;
-                                        }
-
-                                    })
-                                }
 
                                 let selectquery1 = "select month_count, p_phone from mining_partner where p_userid = ?";
                                 connection.query(selectquery1, [partnerid.p_userid], (err, results) => {
@@ -1120,6 +1120,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                 });
 
                                             }
+
                                         }
                                     } catch (error) {
                                         return res.status(400).json({
