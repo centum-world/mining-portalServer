@@ -230,7 +230,7 @@ exports.fetchAllActivePartnerOnly = (req, res) => {
 
 exports.fetchPartnerWithdrawalRequestToAdmin = (req, res) => {
     //const partnerId = req.body;
-    let query = "select p_userid,partner_wallet,request_date from partner_withdrawal ";
+    let query = "select p_userid,partner_wallet,request_date,id from partner_withdrawal ";
     connection.query(query, (err, results) => {
         if (!err) {
             return res.status(200).json({
@@ -247,14 +247,15 @@ exports.fetchPartnerWithdrawalRequestToAdmin = (req, res) => {
 
 exports.approvePartnerWithdrawalRequest = (req, res) => {
     let partnerId = req.body;
-    let query = "select partner_wallet,request_date from partner_withdrawal where p_userid = ? ";
-    connection.query(query, [partnerId.p_userid], (err, results) => {
+    console.log(partnerId.id,'250');
+    let query = "select partner_wallet,request_date,id from partner_withdrawal where id = ? ";
+    connection.query(query, [partnerId.id], (err, results) => {
         if (!err) {
             //console.log(res);
             //console.log(results);
 
             let partner_wallet = results[0]?.partner_wallet;
-            //console.log(partner_wallet,'hiii');
+            let id = results[0]?.id;
             let request_date = results[0]?.request_date;
             let approve_date = new Date();
             let insertquery = "insert into partner_withdrawal_history (partner_wallet,request_date,approve_date,p_userid) values (?,?,?,?)";
@@ -287,8 +288,8 @@ exports.approvePartnerWithdrawalRequest = (req, res) => {
                         })
 
 
-                        let deletequery = "delete from partner_withdrawal where p_userid = ?";
-                        connection.query(deletequery, [partnerId.p_userid], (err, results) => {
+                        let deletequery = "delete from partner_withdrawal where id = ?";
+                        connection.query(deletequery, [partnerId.id], (err, results) => {
 
                             if (!err) {
                                 return res.status(200).json({
@@ -353,7 +354,7 @@ exports.fetchSumOfMemberWalletForMonthForAdmin = (req, res) => {
 
 exports.fetchMemberWithdrawalRequestToAdmin = (req, res) => {
     //const partnerId = req.body;
-    let query = "select DISTINCT m_userid,member_wallet,request_date from member_withdrawal ";
+    let query = "select  m_userid,member_wallet,request_date,id from member_withdrawal ";
     connection.query(query, (err, results) => {
         if (!err) {
             return res.status(200).json({
@@ -476,8 +477,9 @@ exports.updateMiningPartnerProfileDetailsFromAdmin = (req, res) => {
 
 exports.approveMemberWithdrawalRequest = (req, res) => {
     let memberId = req.body;
-    let query = "select member_wallet,request_date from member_withdrawal where m_userid = ? ";
-    connection.query(query, [memberId.m_userid], (err, results) => {
+    console.log(memberId.id,'480');
+    let query = "select member_wallet,request_date from member_withdrawal where id = ? ";
+    connection.query(query, [memberId.id], (err, results) => {
 
 
         if (!err) {
@@ -515,8 +517,8 @@ exports.approveMemberWithdrawalRequest = (req, res) => {
 
                         });
 
-                        let deletequery = "delete from member_withdrawal where m_userid = ?";
-                        connection.query(deletequery, [memberId.m_userid], (err, results) => {
+                        let deletequery = "delete from member_withdrawal where id = ?";
+                        connection.query(deletequery, [memberId.id], (err, results) => {
 
                             try {
                                 if (!err) {
@@ -1154,7 +1156,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
 // particularPerdayPartnerWithdrawalRequestFromAdmin 
 exports.particularPerdayPartnerWithdrawalRequestFromAdmin = (req, res) => {
     let partnerid = req.body;
-    let query = "select partner_wallet,request_date from partner_withdrawal where p_userid =? ";
+    let query = "select partner_wallet,request_date,id from partner_withdrawal where p_userid =? ";
     connection.query(query, [partnerid.p_userid], (err, results) => {
         if (!err) {
             return res.status(200).json({
