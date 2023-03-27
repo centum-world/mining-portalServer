@@ -90,7 +90,7 @@ exports.partnerSignup = (req, res, next) => {
                     partner.terms, partner.p_userid, hash, partner.p_refferal_id], (err, results) => {
                         if (!err) {
 
-                            // sms(partner.p_phone, { "type": 'Partner', "userid": partner.p_userid, "password": password })
+                             sms(partner.p_phone, { "type": 'Partner', "userid": partner.p_userid, "password": password })
                             return res.status(200).json({
                                 message: "mining partner added successfully"
                             });

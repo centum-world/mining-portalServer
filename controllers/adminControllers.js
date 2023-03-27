@@ -5,6 +5,7 @@ const withdrawalSms = require('../utils/partner-month-approve-amount-sms');
 const memberWithdrawalSms = require('../utils/member-month-approve-amount-sms')
 const walletSms = require('../utils/wallet-amount-sms');
 const memberWalletSms = require('../utils/member-wallet-amount-sms');
+const doPartnerActivateSms = require('../utils/partner-activate-sms');
 require('dotenv').config();
 const accountSid = process.env.ACCOUNT_SID
 const authToken = process.env.TWILIO_AUTH_TOKEN
@@ -68,7 +69,7 @@ exports.createMember = (req, res) => {
                             if (!err) {
 
 
-                                //sms(member.m_phone, { "type": 'Member', "userid": member.m_userid, "password": password })
+                                sms(member.m_phone, { "type": 'Member', "userid": member.m_userid, "password": password })
 
 
                                 return res.status(200).json({
@@ -134,7 +135,7 @@ exports.createMiningPartner = (req, res) => {
                     partner.terms, partner.p_userid, hash, partner.p_refferal_id], (err, results) => {
                         if (!err) {
 
-                            //sms(partner.p_phone, { "type": 'Partner', "userid": partner.p_userid, "password": password })
+                            sms(partner.p_phone, { "type": 'Partner', "userid": partner.p_userid, "password": password })
                             return res.status(200).json({
                                 message: "mining partner added successfully"
                             });
@@ -272,7 +273,7 @@ exports.approvePartnerWithdrawalRequest = (req, res) => {
                                     partnerEmail = results[0]?.p_email;
                                     partnerPhone = results[0]?.p_phone;
                                     console.log(partnerPhone, '270');
-                                    // withdrawalSms(partnerPhone, { "type": 'Partner', "userid": partnerId.p_userid, "amount": partner_wallet })
+                                     withdrawalSms(partnerPhone, { "type": 'Partner', "userid": partnerId.p_userid, "amount": partner_wallet })
 
                                     email(partnerEmail, { "withdrawalAmount": partner_wallet })
                                 }
@@ -613,6 +614,14 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
     let query = "update mining_partner set partner_status=? where p_userid=? ";
     connection.query(query, [partner_status = 1, partnerid.p_userid], (err, results) => {
         if (!err) {
+            let selectquery = " select p_liquidity,p_phone from mining_partner where p_userid = ?";
+            connection.query(selectquery,[partnerid.p_userid],(err,results) =>{
+                let liquidity = results[0]?.p_liquidity;
+                let phone = results[0]?.p_phone;
+                console.log(liquidity,phone,'621');
+                doPartnerActivateSms(phone, {"liquidity": liquidity })
+
+            });
             return res.status(200).json({
                 message: "Mining Partner Liquiditity Paid successfully"
             });
@@ -636,10 +645,9 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
 
 
     const partnerid = req.body;
-    console.log(partnerid.perDayAmounReal, '637');
+    
     var date = new Date(partnerid.partnerdate)
     var entrydate = date.toLocaleDateString();
-    console.log(entrydate);
 
     if (!partnerid.partnerdate || partnerid.perDayAmounReal === undefined) {
         return res.status(422).json({
@@ -671,8 +679,6 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
     });
 
 
-    console.log('hii', '669')
-
 
     let query = "select partner_wallet,p_reffered_id,partner_status, p_liquidity,partner_count,login_counter from mining_partner where p_userid = ?";
     connection.query(query, [partnerid.p_userid], (err, results) => {
@@ -697,9 +703,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                             let month_count = results[0].month_count;
                             let partner_count = results[0].partner_count;
                             //let walletAmount = (liquidity / 20000);
-                            // if(liquidity === 600000){
-
-                            // }
+                            
                             partner_count = partner_count + 1;
                             partner_wallet = partner_wallet + partnerid.perDayAmounReal;
                             let request_date = new Date();
@@ -712,7 +716,6 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                     let updatequery = "update mining_partner set partner_status= ? where p_userid = ?";
                                     connection.query(updatequery, [partner_status = 0, partnerid.p_userid], (err, results) => {
 
-                                        console.log("close", '754 ')
 
                                         try {
                                             if (!err) {
@@ -796,10 +799,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                 partner_wallet = partner_wallet + 0;
                                                                 partnerid.perDayAmounReal = 0;
                                                             }
-                                                            // if (partnerid.perDayAmounReal != 0) {
-                                                            //     partner_wallet = partner_wallet +partnerid.perDayAmounReal ;
-
-                                                            // }
+                        
 
                                                             let insertquery = "insert into partner_wallet_history (walletAmount,wallet_update_date,p_userid) values (?,?,?)";
                                                             connection.query(insertquery, [partnerid.perDayAmounReal, partnerid.partnerdate, partnerid.p_userid], (err, results) => {
@@ -807,7 +807,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                 try {
                                                                     if (!err) {
 
-                                                                        // walletSms(p_phone, { "type": 'Partner', "userid": partnerid.p_userid, "amount": partnerid.perDayAmounReal });
+                                                                         walletSms(p_phone, { "type": 'Partner', "userid": partnerid.p_userid, "amount": partnerid.perDayAmounReal });
 
                                                                         let selectquery = "select p_reffered_id from mining_partner where p_userid= ?";
                                                                         connection.query(selectquery, [partnerid.p_userid], (err, results) => {
@@ -864,7 +864,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                                                                                 // return res.status(200).json({
                                                                                                                                 //     message: "Mining Partner Updated Successfully"
                                                                                                                                 // })
-                                                                                                                                console.log(reffer_p_userid, '823');
+                                                                                                                                
                                                                                                                                 let insertquery = "insert into partner_reffer_wallet_history ( reffer_p_userid,wallet_amount,date,p_userid) values (?,?,?,?)";
                                                                                                                                 connection.query(insertquery, [reffer_p_userid, walletAmount, partnerid.partnerdate, p_userid], (err, results) => {
 
@@ -975,7 +975,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                                                                 let m_userid = results[0].m_userid;
                                                                                                                 let memberPhone = results[0].m_phone;
                                                                                                                 let walletAmount = 375;
-                                                                                                                console.log(member_count, '964');
+                                                                                                            
                                                                                                                 let memberdate_query = "select * from member_wallet_history where m_userid = ? ";
                                                                                                                 connection.query(memberdate_query, [m_userid], (err, results) => {
                                                                                                                     // console.log(results[0]?.wallet_update_date,'1033');
@@ -1049,11 +1049,11 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                                                                     if (!err) {
                                                                                                                         if (partnerid.perDayAmounReal === 0) {
 
-                                                                                                                            // memberWalletSms(memberPhone, { "type": 'Member', "userid": m_userid, "amount": partnerid.perDayAmounReal })
+                                                                                                                             memberWalletSms(memberPhone, { "type": 'Member', "userid": m_userid, "amount": partnerid.perDayAmounReal })
 
                                                                                                                         }
                                                                                                                         if (partnerid.perDayAmounReal != 0) {
-                                                                                                                            // memberWalletSms(memberPhone, { "type": 'Member', "userid": m_userid, "amount": walletAmount })
+                                                                                                                             memberWalletSms(memberPhone, { "type": 'Member', "userid": m_userid, "amount": walletAmount })
 
                                                                                                                         }
 
