@@ -11,7 +11,7 @@ module.exports = function sms(to, credential) {
 
 
     client.messages
-        .create({ body: `Your ${credential.type} ID:-  ${credential.userid} and Password:- ${credential.password} Link:-${"https://www.centumworld.com/"}`, from: "+19788181810", to: to })
+        .create({ body: `Your ${credential.type} ID:-  ${credential.userid} and Password:- ${credential.password} Link:-${"https://www.centumworld.com/"}`, from: "+14406353895", to: to })
         .then((e) => {
           
         })
