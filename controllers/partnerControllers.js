@@ -946,3 +946,29 @@ exports.partnerRefferalPerDayWalletHistory = (req,res) =>{
         }
     });
 }
+
+// isPartnerActiveFromPartner
+exports.isPartnerActiveFromPartner = (req,res) =>{
+    let partnerid = req.body;
+
+    let query = "SELECT p_liquidity,p_dop,month_count,partner_status,p_name,partner_count from mining_partner where p_userid = ? ";
+    connection.query(query, [partnerid.p_userid], (err, results) => {
+
+        try {
+            if (!err) {
+
+                // let approve_date = results[0]?.approve_date;
+                // console.log(approve_date);
+                return res.status(200).json({
+                    message: "Fetched Partner Status Successfully ",
+                    data: results
+                });
+            } else {
+                return res.status(500).json(err);
+            }
+        } catch (error) {
+            return res.error;
+        }
+
+    });
+}

@@ -581,7 +581,7 @@ exports.fetchAllPendingPartnerOnly = (req, res) => {
 exports.isPartnerActiveManualFromAdmin = (req, res) => {
     let partnerid = req.body;
 
-    let query = "SELECT p_liquidity,p_dop,month_count,partner_status from mining_partner where p_userid = ? ";
+    let query = "SELECT p_liquidity,p_dop,month_count,partner_status,p_name from mining_partner where p_userid = ? ";
     connection.query(query, [partnerid.p_userid], (err, results) => {
 
         try {
