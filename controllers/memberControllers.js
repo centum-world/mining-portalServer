@@ -249,7 +249,7 @@ exports.fetchSumOfMemberWalletForMonth = (req, res) => {
 
 exports.fetchSumOfMemberWalletOfMonth = (req, res) => {
     const memberId = req.body;
-   let query = "select sum(added_wallet) as sumOfMemberWallet  from create_member where m_userid =?";
+   let query = "select sum(member_wallet) as sumOfMemberWallet  from  member_reffer_wallet_history where m_userid =?";
     connection.query(query, [memberId.m_userid], (err, results) => {
         if (!err) {
             return res.status(200).json({
@@ -266,7 +266,7 @@ exports.fetchSumOfMemberWalletOfMonth = (req, res) => {
 
 exports.fetchMemberApproveWithdrawalHistoryForMember = (req, res) => {
     const memberId = req.body;
-   let query = "select * from member_withdrawal_history where m_userid = ? ";
+   let query = "select * from member_reffer_withdrawal_history where m_userid = ? ";
     connection.query(query, [memberId.m_userid], (err, results) => {
         if (!err) {
             return res.status(200).json({
@@ -283,11 +283,11 @@ exports.fetchMemberApproveWithdrawalHistoryForMember = (req, res) => {
 
 exports.fetchSumOfMemberTotalWithdrawalForMember = (req, res) => {
     const memberId = req.body;
-   let query = "select sum(member_wallet) as sumOfMemberWallet from  member_withdrawal_history where m_userid = ? ";
+   let query = "select sum(member_wallet) as sumOfMemberWallet from  member_reffer_withdrawal_history where m_userid = ? ";
     connection.query(query, [memberId.m_userid], (err, results) => {
         if (!err) {
             return res.status(200).json({
-                message: "Fetched Sum of Withdrawal Amount  successfully",
+                message: "Fetched Sum of Member Withdrawal Amount successfully",
                 data: results
             });
         } else {
@@ -300,7 +300,7 @@ exports.fetchSumOfMemberTotalWithdrawalForMember = (req, res) => {
 
 exports.fetchMemberWithdrawalRequest = (req, res) => {
     const memberId = req.body;
-   let query = "select * from member_withdrawal where m_userid = ? ";
+   let query = "select * from member_reffer_withdrawal where m_userid = ? ";
     connection.query(query, [memberId.m_userid], (err, results) => {
         if (!err) {
             return res.status(200).json({
@@ -435,4 +435,45 @@ exports.memberRegeneratePassword = (req, res) => {
 
 
 
+}
+
+// fetchRefferalPartnerDetailsFromMember
+exports.fetchRefferalPartnerDetailsFromMember = (req,res) =>{
+
+    let partnerid = req.body;
+
+    let query = "SELECT p_liquidity,p_dop,month_count,partner_status,p_name,partner_count from mining_partner where p_userid = ? ";
+    connection.query(query, [partnerid.p_userid], (err, results) => {
+
+        try {
+            if (!err) {
+                return res.status(200).json({
+                    message: "Fetched Partner Status Successfully ",
+                    data: results
+                });
+            } else {
+                return res.status(500).json(err);
+            }
+        } catch (error) {
+            return res.error;
+        }
+
+    });
+}
+
+// fetchMemberLastPayout
+exports.fetchMemberLastPayout = (req,res) =>{
+
+    const memberId = req.body;
+    let query = "select * from member_reffer_withdrawal_history where reffer_p_userid = ? ";
+     connection.query(query, [memberId.m_userid], (err, results) => {
+         if (!err) {
+             return res.status(200).json({
+                 message: "Fetched Member Last payout successfully",
+                 data: results
+             });
+         } else {
+             return res.status(500).json(err);
+         }
+     });
 }

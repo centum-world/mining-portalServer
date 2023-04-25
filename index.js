@@ -87,6 +87,25 @@ const express = require('express');
  const fetchLastPaymentDate = require('./routes/fetch-last-payment-date');
  const partnerRefferalPerDayWalletHistory = require('./routes/partner-refferal-perday-wallet-history');
  const isPartnerActiveFromPartner = require('./routes/isPartner-active-from-partner');
+ const approveRefferPartnerWithdrawalRequest = require('./routes/approve-reffer-partner-withdrawal-request');
+ const fetchPartnerRefferalWithdrawalRequest = require('./routes/fetch-partner-refferal-withdrawal-request');
+ const fetchPartnerRefferalApproveWithdrawal = require('./routes/fetch-partner-refferal-approve-withdrawal');
+ const fetchPartnerRefferalWithdrawalHistoryFromPartner = require('./routes/fetch-partner-refferal-withdrawal-history-from-partner');
+ const fetchMemberRefferWithdrawalRequestFromAdmin = require('./routes/fetch-member-reffer-withdrawal-request-from-admin');
+ const approveMemberRefferWithdrawalRequest = require('./routes/approve-member-reffer-withdrawal-request');
+ const fetchMemberRefferApproveWithdrawalHostoryFromAdmin = require('./routes/fetch-member-reffer-approve-withdrawal-history-from-admin');
+ const fetchRefferalPartnerDetailsFromMember = require('./routes/fetch-refferal-partner-details-from-member');
+ const fetchMemberLastPayout = require('./routes/fetch-member-last-payout');
+ const fetchRefferPartnerWithdrawalRequest = require('./routes/fetch-reffer-partner-withdrawal-request');
+ const fetchRefferPartnerWithdrawalSuccessHistory = require('./routes/fetch-reffer-partner-withdrawal-success-history');
+
+
+
+
+
+
+
+
 
 
 
@@ -163,6 +182,17 @@ const express = require('express');
  app.use('/admin',fetchLastPaymentDate);
  app.use('/mining',partnerRefferalPerDayWalletHistory);
  app.use('/mining',isPartnerActiveFromPartner);
+ app.use('/admin',approveRefferPartnerWithdrawalRequest);
+ app.use('/admin',fetchPartnerRefferalWithdrawalRequest);
+ app.use('/admin',fetchPartnerRefferalApproveWithdrawal);
+ app.use('/mining',fetchPartnerRefferalWithdrawalHistoryFromPartner);
+ app.use('/admin',fetchMemberRefferWithdrawalRequestFromAdmin);
+ app.use('/admin',approveMemberRefferWithdrawalRequest);
+ app.use('/admin',fetchMemberRefferApproveWithdrawalHostoryFromAdmin);
+ app.use('/member',fetchRefferalPartnerDetailsFromMember);
+ app.use('/member',fetchMemberLastPayout);
+ app.use('/mining',fetchRefferPartnerWithdrawalRequest);
+ app.use('/mining',fetchRefferPartnerWithdrawalSuccessHistory);
  
 module.exports = app;
 

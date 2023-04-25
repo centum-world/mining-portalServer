@@ -6,8 +6,9 @@ const forgetpasswordSms = require('../utils/forget-password-otp');
 const sms = require('../utils/successfull-add-sms');
 const walletSms = require('../utils/wallet-amount-sms');
 const memberWalletSms = require('../utils/member-wallet-amount-sms');
-
 require('dotenv').config();
+
+
 // mining Partner Login
 
 // exports.miningPartnerLogin = (req, res, next) => {
@@ -369,7 +370,7 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                                                                         try {
                                                                             if (!err) {
 
-                                                                                    console.log(p_phone,'369');
+                                                                                console.log(p_phone, '369');
                                                                                 // walletSms(p_phone, { "type": 'Partner', "userid": partnerid.p_userid, "amount": walletAmount })
 
                                                                                 // console.log("14")
@@ -602,7 +603,7 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                                                     let m_userid = results[0].m_userid;
                                                     let memberPhone = results[0].m_phone;
 
-                                                    console.log(member_wallet, member_count, m_userid,memberPhone, '605');
+                                                    console.log(member_wallet, member_count, m_userid, memberPhone, '605');
                                                     let walletAmount = 5;
                                                     added_wallet = added_wallet + (5 * activePartnerCount);
                                                     console.log(member_wallet, '557');
@@ -643,7 +644,7 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
 
 
                                                         if (!err) {
-                                                            
+
                                                             //  memberWalletSms(memberPhone, { "type": 'Member', "userid":m_userid, "amount": walletAmount })
 
                                                             let perday_member_wallet_amount = walletAmount;
@@ -675,13 +676,13 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
 
                                             });
                                         }
-                                    } 
+                                    }
                                     // else {
                                     //     console.log('681');
                                     //     return res.status(400).json({
-                                            
+
                                     //         message: "Your Plan has been expired"
-                                           
+
                                     //     })
                                     // }
 
@@ -712,13 +713,27 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
 
 exports.fetchMiningPartnerTotalWallet = (req, res) => {
     const partnerId = req.body;
-    query = "select partner_wallet, wallet_update_date from mining_partner where p_userid = ?";
+    let firstWalletAmount = 0;
+    let refferWalletAmount = 0;
+    query = "select partner_wallet from mining_partner where p_userid = ?";
     connection.query(query, [partnerId.p_userid], (err, results) => {
         if (!err) {
-            return res.status(200).json({
-                message: "Fetched Mining Partner Wallet data successfully",
-                data: results
-            });
+            firstWalletAmount = results[0]?.partner_wallet;
+
+            let selectqueryforaddingwallet = "select sum(partner_wallet) as addedWalletOfRefferal from  partner_reffer_wallet where p_userid = ?";
+            connection.query(selectqueryforaddingwallet, [partnerId.p_userid], (err, results) => {
+
+                if(!err){
+                    refferWalletAmount = results[0].addedWalletOfRefferal;
+                    let TotalWalletOfPartner = firstWalletAmount + refferWalletAmount;
+                    //console.log(TotalWalletOfPartner, '730');
+                    
+                    return res.status(200).json({
+                        message:"Sum of Partner Total Wallet Fetched",
+                        results:TotalWalletOfPartner
+                    })
+                }
+            })
         } else {
             return res.status(500).json(err);
         }
@@ -763,13 +778,32 @@ exports.fetchPartnerApproveWithdrawalHistoryForPartner = (req, res) => {
 
 exports.fetchSumOfPartnerAllWithdrawal = (req, res) => {
     const partnerId = req.body;
+    let myWithdrawalAmount = 0;
+    let myRefferalWithdrawalAmount = 0;
     query = "select sum(partner_wallet) as sumOfPartnerWallet  from partner_withdrawal_history where p_userid = ?";
     connection.query(query, [partnerId.p_userid], (err, results) => {
         if (!err) {
-            return res.status(200).json({
-                message: "Fetched Sum Of Partner All Withdrawal successfully",
-                data: results
-            });
+            myWithdrawalAmount = results[0]?.sumOfPartnerWallet;
+            
+            // return res.status(200).json({
+            //     message: "Fetched Sum Of Partner All Withdrawal successfully",
+            //     data: results
+            // });
+            let selectqueryforaddingpartnerwithdrawal = "select sum(partner_wallet) as sumOfPartnerWalletReffer from partner_reffer_withdrawal_history where p_userid = ?";
+            connection.query(selectqueryforaddingpartnerwithdrawal,[partnerId.p_userid],(err,results) =>{
+                    
+                if(!err){
+                    myRefferalWithdrawalAmount = results[0]?.sumOfPartnerWalletReffer;
+                    //console.log(myRefferalWithdrawalAmount,'797');
+                    let totalWithdrawalOfPartner = myWithdrawalAmount + myRefferalWithdrawalAmount;
+                       
+                    return res.status(200).json({
+                        message:"Sum Of Partner All withdrawal successfull",
+                        results:totalWithdrawalOfPartner
+                    })
+
+                }
+            })
         } else {
             return res.status(500).json(err);
         }
@@ -884,9 +918,9 @@ exports.verifyOtpPartner = (req, res) => {
 exports.partnerRegeneratePassword = (req, res) => {
     const partnerId = req.body;
     const password = partnerId.p_password;
-    if(!partnerId.p_userid || !partnerId.p_password){
-       
-        return res.status(400).json({message:"Field Missing"}) 
+    if (!partnerId.p_userid || !partnerId.p_password) {
+
+        return res.status(400).json({ message: "Field Missing" })
     }
     selectquery = "select p_phone from mining_partner where p_userid = ?"
     connection.query(selectquery, [partnerId.p_userid], (err, result) => {
@@ -932,7 +966,7 @@ exports.partnerRegeneratePassword = (req, res) => {
 }
 
 // partner-refferal-perday-wallet-history
-exports.partnerRefferalPerDayWalletHistory = (req,res) =>{
+exports.partnerRefferalPerDayWalletHistory = (req, res) => {
     let partnerId = req.body;
     let query = "select * from partner_reffer_wallet_history where p_userid = ?";
     connection.query(query, [partnerId.p_userid], (err, results) => {
@@ -948,7 +982,7 @@ exports.partnerRefferalPerDayWalletHistory = (req,res) =>{
 }
 
 // isPartnerActiveFromPartner
-exports.isPartnerActiveFromPartner = (req,res) =>{
+exports.isPartnerActiveFromPartner = (req, res) => {
     let partnerid = req.body;
 
     let query = "SELECT p_liquidity,p_dop,month_count,partner_status,p_name,partner_count from mining_partner where p_userid = ? ";
@@ -970,5 +1004,54 @@ exports.isPartnerActiveFromPartner = (req,res) =>{
             return res.error;
         }
 
+    });
+}
+
+// fetchPartnerRefferalWithdrawalHistoryFromPartner
+exports.fetchPartnerRefferalWithdrawalHistoryFromPartner = (req, res) => {
+
+    const partnerId = req.body;
+    query = "select * from partner_reffer_withdrawal_history where reffer_p_userid = ?";
+    connection.query(query, [partnerId.p_userid], (err, results) => {
+        if (!err) {
+            return res.status(200).json({
+                message: "Fetched Partner Refferal Withdrawal History successfully",
+                data: results
+            });
+        } else {
+            return res.status(500).json(err);
+        }
+    });
+}
+
+// fetchRefferPartnerWithdrawalRequest
+exports.fetchRefferPartnerWithdrawalRequest = (req,res) =>{
+    const partnerId = req.body;
+    query = "select * from partner_reffer_withdrawal where p_userid = ?";
+    connection.query(query, [partnerId.p_userid], (err, results) => {
+        if (!err) {
+            return res.status(200).json({
+                message: "Fetched Reffer Partner Withdrawal Request",
+                data: results
+            });
+        } else {
+            return res.status(500).json(err);
+        }
+    });
+}
+
+// fetchRefferPartnerWithdrawalSuccessHistory
+exports.fetchRefferPartnerWithdrawalSuccessHistory = (req,res) =>{
+    const partnerId = req.body;
+    query = "select * from partner_reffer_withdrawal_history where p_userid = ?";
+    connection.query(query, [partnerId.p_userid], (err, results) => {
+        if (!err) {
+            return res.status(200).json({
+                message: "Fetched Reffer Partner Withdrawal history",
+                data: results
+            });
+        } else {
+            return res.status(500).json(err);
+        }
     });
 }
