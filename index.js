@@ -98,6 +98,16 @@ const express = require('express');
  const fetchMemberLastPayout = require('./routes/fetch-member-last-payout');
  const fetchRefferPartnerWithdrawalRequest = require('./routes/fetch-reffer-partner-withdrawal-request');
  const fetchRefferPartnerWithdrawalSuccessHistory = require('./routes/fetch-reffer-partner-withdrawal-success-history');
+ const uploadPartnershipBond = require('./routes/upload-partnership-bond');
+ const helpAndSupport = require('./routes/help-and-support');
+ const fetchHelpAndSupportQuery = require('./routes/fetch-help-and-support-query');
+ const fetchParticularHelpAndSupportQuery = require('./routes/fetch-particular-help-And-support-query');
+ const accountsPaidWithdrawal = require('./routes/accounts-paid-withdrawal-admin');
+ const fetchLiquidityForMemberSummary = require('./routes/fetch-Liquidity-for-member-summary');
+
+
+
+
 
 
 
@@ -193,6 +203,12 @@ const express = require('express');
  app.use('/member',fetchMemberLastPayout);
  app.use('/mining',fetchRefferPartnerWithdrawalRequest);
  app.use('/mining',fetchRefferPartnerWithdrawalSuccessHistory);
+ app.use('/admin',uploadPartnershipBond);
+ app.use('/mining',helpAndSupport);
+ app.use('/admin',fetchHelpAndSupportQuery);
+ app.use('/admin',fetchParticularHelpAndSupportQuery);
+ app.use('/admin',accountsPaidWithdrawal);
+ app.use('/member',fetchLiquidityForMemberSummary);
  
 module.exports = app;
 

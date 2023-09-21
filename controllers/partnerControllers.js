@@ -6,6 +6,7 @@ const forgetpasswordSms = require('../utils/forget-password-otp');
 const sms = require('../utils/successfull-add-sms');
 const walletSms = require('../utils/wallet-amount-sms');
 const memberWalletSms = require('../utils/member-wallet-amount-sms');
+
 require('dotenv').config();
 
 
@@ -723,14 +724,14 @@ exports.fetchMiningPartnerTotalWallet = (req, res) => {
             let selectqueryforaddingwallet = "select sum(partner_wallet) as addedWalletOfRefferal from  partner_reffer_wallet where p_userid = ?";
             connection.query(selectqueryforaddingwallet, [partnerId.p_userid], (err, results) => {
 
-                if(!err){
+                if (!err) {
                     refferWalletAmount = results[0].addedWalletOfRefferal;
                     let TotalWalletOfPartner = firstWalletAmount + refferWalletAmount;
                     //console.log(TotalWalletOfPartner, '730');
-                    
+
                     return res.status(200).json({
-                        message:"Sum of Partner Total Wallet Fetched",
-                        results:TotalWalletOfPartner
+                        message: "Sum of Partner Total Wallet Fetched",
+                        results: TotalWalletOfPartner
                     })
                 }
             })
@@ -784,22 +785,22 @@ exports.fetchSumOfPartnerAllWithdrawal = (req, res) => {
     connection.query(query, [partnerId.p_userid], (err, results) => {
         if (!err) {
             myWithdrawalAmount = results[0]?.sumOfPartnerWallet;
-            
+
             // return res.status(200).json({
             //     message: "Fetched Sum Of Partner All Withdrawal successfully",
             //     data: results
             // });
             let selectqueryforaddingpartnerwithdrawal = "select sum(partner_wallet) as sumOfPartnerWalletReffer from partner_reffer_withdrawal_history where p_userid = ?";
-            connection.query(selectqueryforaddingpartnerwithdrawal,[partnerId.p_userid],(err,results) =>{
-                    
-                if(!err){
+            connection.query(selectqueryforaddingpartnerwithdrawal, [partnerId.p_userid], (err, results) => {
+
+                if (!err) {
                     myRefferalWithdrawalAmount = results[0]?.sumOfPartnerWalletReffer;
                     //console.log(myRefferalWithdrawalAmount,'797');
                     let totalWithdrawalOfPartner = myWithdrawalAmount + myRefferalWithdrawalAmount;
-                       
+
                     return res.status(200).json({
-                        message:"Sum Of Partner All withdrawal successfull",
-                        results:totalWithdrawalOfPartner
+                        message: "Sum Of Partner All withdrawal successfull",
+                        results: totalWithdrawalOfPartner
                     })
 
                 }
@@ -1025,7 +1026,7 @@ exports.fetchPartnerRefferalWithdrawalHistoryFromPartner = (req, res) => {
 }
 
 // fetchRefferPartnerWithdrawalRequest
-exports.fetchRefferPartnerWithdrawalRequest = (req,res) =>{
+exports.fetchRefferPartnerWithdrawalRequest = (req, res) => {
     const partnerId = req.body;
     query = "select * from partner_reffer_withdrawal where p_userid = ?";
     connection.query(query, [partnerId.p_userid], (err, results) => {
@@ -1041,7 +1042,7 @@ exports.fetchRefferPartnerWithdrawalRequest = (req,res) =>{
 }
 
 // fetchRefferPartnerWithdrawalSuccessHistory
-exports.fetchRefferPartnerWithdrawalSuccessHistory = (req,res) =>{
+exports.fetchRefferPartnerWithdrawalSuccessHistory = (req, res) => {
     const partnerId = req.body;
     query = "select * from partner_reffer_withdrawal_history where p_userid = ?";
     connection.query(query, [partnerId.p_userid], (err, results) => {
@@ -1054,4 +1055,27 @@ exports.fetchRefferPartnerWithdrawalSuccessHistory = (req,res) =>{
             return res.status(500).json(err);
         }
     });
+}
+
+// helpAndSupport
+exports.helpAndSupport = (req, res) => {
+    const partnerId = req.body;
+    let query = req.body.query;
+    let p_userid = req.body.p_userid;
+    console.log(query, p_userid);
+    let queryDate = new Date();
+    let helpAndSupportQuery = "insert into help_and_support (query,query_date,p_userid) values(?,?,?) ";
+    connection.query(helpAndSupportQuery ,[query, queryDate, p_userid], (err, results) => {
+        if (!err) {
+            return res.status(201).json({
+                message: "Query submitted!"
+            })
+        }
+        else {
+            return res.status(500).json({
+                message: "Not submit!"
+            })
+        }
+    })
+
 }

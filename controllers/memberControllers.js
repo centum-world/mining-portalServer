@@ -477,3 +477,19 @@ exports.fetchMemberLastPayout = (req,res) =>{
          }
      });
 }
+
+// fetchLiquidityForMemberSummary
+exports.fetchLiquidityForMemberSummary = (req,res) =>{
+    const memberId = req.body;
+    let query = "select p_liquidity from mining_partner where p_userid = ? ";
+     connection.query(query, [memberId.p_userid], (err, results) => {
+         if (!err) {
+             return res.status(200).json({
+                 message: "Fetched Partner Liquidity successfully",
+                 data: results
+             });
+         } else {
+             return res.status(500).json(err);
+         }
+     });
+}

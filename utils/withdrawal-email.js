@@ -12,12 +12,14 @@ module.exports = function email(to,amount)
 {
     let serviceCharge = (amount.withdrawalAmount*5)/100;
     let payaybleAmount = (amount.withdrawalAmount-serviceCharge);
+    let userid = amount.userId;
+    console.log(userid,'16');
 
     mailOptions = {
         from: process.env.FROM_EMAIL,
         to: to,
         subject: 'Grettings From CENTUM WORLD',
-        text: `Your Withdrawal request is approved of an Amount of Rs:- ${amount.withdrawalAmount} , Service Charge Rs:- ${serviceCharge} And Payable Amount is Rs:- ${payaybleAmount}` 
+        text: `${userid} Your Withdrawal request is approved of an Amount of Rs:- ${amount.withdrawalAmount} , Service Charge Rs:- ${serviceCharge} And Payable Amount is Rs:- ${payaybleAmount}` 
       };
       
       transporter.sendMail(mailOptions, function(error, info){
