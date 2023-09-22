@@ -105,6 +105,8 @@ const express = require('express');
  const accountsPaidWithdrawal = require('./routes/accounts-paid-withdrawal-admin');
  const fetchLiquidityForMemberSummary = require('./routes/fetch-Liquidity-for-member-summary');
  const createSHO = require('./routes/create-sho')
+ const createFranchise= require('./routes/create-franchise')
+ const loginSHO = require('./routes/login-sho')
 
 
 
@@ -211,6 +213,8 @@ const express = require('express');
  app.use('/admin',accountsPaidWithdrawal);
  app.use('/member',fetchLiquidityForMemberSummary);
  app.use('/admin', createSHO)
+ app.use('/admin', createFranchise)
+ app.use('/state', loginSHO)
  
 module.exports = app;
 

@@ -17,6 +17,7 @@ function verifyToken(req, res, next) {
     return next();
 }
 
+
 module.exports = {
     checkAuth: verifyToken
 }
