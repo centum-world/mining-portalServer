@@ -104,6 +104,7 @@ const express = require('express');
  const fetchParticularHelpAndSupportQuery = require('./routes/fetch-particular-help-And-support-query');
  const accountsPaidWithdrawal = require('./routes/accounts-paid-withdrawal-admin');
  const fetchLiquidityForMemberSummary = require('./routes/fetch-Liquidity-for-member-summary');
+ const createSHO = require('./routes/create-sho')
 
 
 
@@ -209,6 +210,7 @@ const express = require('express');
  app.use('/admin',fetchParticularHelpAndSupportQuery);
  app.use('/admin',accountsPaidWithdrawal);
  app.use('/member',fetchLiquidityForMemberSummary);
+ app.use('/admin', createSHO)
  
 module.exports = app;
 

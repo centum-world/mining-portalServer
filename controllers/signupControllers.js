@@ -7,6 +7,8 @@ const client = require("twilio")(accountSid, authToken);
 const connection = require('../config/database');
 const bcrypt = require('bcrypt');
 
+const {queryAsync} = require('../utils/utility')
+
 
 // member Signup
 
@@ -322,3 +324,117 @@ exports.partnerSignup = (req, res, next) => {
     // });
 
 }
+
+//create sho
+exports.createSHO = async (req, res) => {
+    const {
+      fname,
+      lname,
+      phone,
+      email,
+      gender,
+      password,
+      stateHandlerId,
+      selectedState,
+      referredId,
+    } = req.body;
+  
+    console.log("files", req.files["adharCard"]);
+  
+    // Check if any required fields are missing
+    const requiredFields = [
+      "fname",
+      "lname",
+      "email",
+      "phone",
+      "password",
+      "gender",
+      "stateHandlerId",
+      "selectedState",
+      "referredId"
+    ];
+    const missingFields = requiredFields.filter((field) => !req.body[field]);
+  
+    if(missingFields.length>0){
+      return res.status(422).json({message: `Please fill all details: ${missingFields.join(", ")}`,
+    })
+    }
+  
+    try {
+      //hash passowrd
+  
+      const hashedPassword = await bcrypt.hash(password, 10)
+  
+  
+      // Check if stateHandlerId already exists
+      const checkStateHandlerQuery =
+        "SELECT stateHandlerId FROM create_SHO WHERE stateHandlerId = ?";
+      const existingStateHandler = await queryAsync(checkStateHandlerQuery, [
+        stateHandlerId,
+      ]);
+  
+      if (existingStateHandler.length > 0) {
+        return res.status(400).json({
+          message: "State Handler Id already exists. Please choose a unique ID.",
+        });
+      }
+  
+      const adharCardFile = req.files["adharCard"][0];
+      const panCardFile = req.files["panCard"][0]; // Get an array of PAN card files
+  
+      if (!adharCardFile|| adharCardFile.length === 0) {
+        return res
+          .status(400)
+          .json({ message: "Aadhar card files are missing." });
+      }
+      if (!panCardFile || panCardFile.length === 0) {
+        return res.status(400).json({ message: "PAN card files are missing." });
+      }
+  
+       const adharCard = adharCardFile.location;
+       const panCard = panCardFile.location;
+  
+       
+   
+  
+      // Insert data into the database
+      const insertStateHandlerQuery = `
+      INSERT INTO create_SHO (fname, lname, phone, email, gender, password, stateHandlerId, selectedState, referredId, adharCard, panCard)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+  
+      await queryAsync(insertStateHandlerQuery, [
+        fname,
+        lname,
+        phone,
+        email,
+        gender,
+        hashedPassword, // Use the hashed password here
+        stateHandlerId,
+        selectedState,
+        referredId,
+        adharCard,
+        panCard,
+      ]);
+      return res.status(200).json({
+        message: "State Handler created successfully",
+        data: {
+          fname,
+          lname,
+          phone,
+          email,
+          gender,
+          stateHandlerId,
+          selectedState,
+          referredId,
+          adharCard, // Store Aadhar card URL in response
+          panCard,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      return res
+        .status(500)
+        .json({ message: "Database Error", error: error.message });
+    }
+  };
