@@ -25,7 +25,7 @@ exports.adminLogin = (req, res) => {
             if (results.length <= 0 || results[0].password != admin.password) {
                 return res.status(401).json({ message: "Incorrect username or password" });
             } else if (results[0].password == admin.password) {
-                const response = { user_id: results[0].user_id }
+                const response = { user_id: results[0].user_id , role: "admin"}
                 const accessToken = jwt.sign(response, process.env.ACCESS_TOKEN, { expiresIn: '8h' })
                 res.status(200).json({
                     token: accessToken,

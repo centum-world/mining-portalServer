@@ -3,7 +3,9 @@ const router = express.Router();
 const upload  = require("../utils/aws"); // Import Multer upload middleware
 
 const { createSHO } = require("../controllers/signupControllers");
+const { isAuthenticated, authorizeRole } = require("../middleware/checkAuth");
 
-router.post("/create-sho",  upload.fields([{ name: 'adharCard' }, {name: "panCard"}]), createSHO);
+router.post("/create-sho",  upload.fields([{ name: 'adharCard' }, {name: "panCard"}]), isAuthenticated,authorizeRole(["admin", "state"]),createSHO);
 
 module.exports = router;
+//route

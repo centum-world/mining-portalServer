@@ -22,7 +22,7 @@ exports.memberLogin = (req, res) => {
                 bcrypt.compare(member.m_password, results[0].m_password, function (err, result) {
                     if (result) {
                         console.log("success");
-                        const response = { m_userid: results[0].m_userid }
+                        const response = { m_userid: results[0].m_userid , role: "member"}
                         const accessToken = jwt.sign(response, process.env.ACCESS_TOKEN, { expiresIn: '8h' })
                         res.status(200).json({
                             token: accessToken,
