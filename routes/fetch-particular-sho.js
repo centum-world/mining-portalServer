@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const { fetchParticularSHO } = require('../controllers/stateController');
-const { isAuthenticated, authorizeRole, checkAuth } = require('../middleware/checkAuth');
+const { isAuthenticated, authorizeRole } = require('../middleware/checkAuth');
 
-router.post('/fetch-particular-sho',checkAuth,fetchParticularSHO);
+router.post('/fetch-particular-sho',isAuthenticated,authorizeRole(["admin", "state"]),fetchParticularSHO);
 module.exports = router;
