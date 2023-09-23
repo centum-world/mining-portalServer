@@ -38,9 +38,7 @@ exports.loginSHO = async (req, res) => {
     return res.status(200).json({ message: "Login successfully", user, token });
   } catch (error) {
     console.log(error.message);
-    return res
-      .status(500)
-      .json({  message: "Internal server Error"  });
+    return res.status(500).json({ message: "Internal server Error" });
   }
 };
 
@@ -67,8 +65,32 @@ exports.fetchParticularSHO = async (req, res) => {
       .json({ message: "SHO details fetched successfully", sho });
   } catch (error) {
     console.log(error.message);
+    return res.status(500).json({ message: "Internal server Error" });
+  }
+};
+
+exports.fetchAllStateOfSHO = async (req, res) => {
+  try {
+    const { referralId } = req.body;
+
+    if (!referralId) {
+      return res.status(400).json({ message: "Referral Id is required." });
+    }
+
+    const findSHOQuery = "SELECT * FROM create_SHO WHERE referralId = ?";
+    const [sho] = await queryAsync(findSHOQuery, [referralId]);
+
+    if (!sho) {
+      return res.status(404).json({ message: "SHO not found" });
+    }
+
+    const selectedState = sho.selectedState;
+
     return res
-      .status(500)
-      .json({ message: "Internal server Error" });
+      .status(200)
+      .json({ message: "All state of SHO fetched", selectedState });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: "Internal server Error" });
   }
 };

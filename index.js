@@ -110,7 +110,7 @@ const express = require('express');
  const loginFranchise = require('./routes/login-franchise')
 const fetchParticularSHO = require('./routes/fetch-particular-sho')
 const fetchParticularFranchise = require('./routes/fetch-particular-franchise')
-
+const fetchAllStateOfSHO = require('./routes/fetch-all-state-of-sho')
 
 
 
@@ -220,6 +220,7 @@ const fetchParticularFranchise = require('./routes/fetch-particular-franchise')
  app.use('/franchise', loginFranchise)
  app.use('/state', fetchParticularSHO)
  app.use('/franchise', fetchParticularFranchise)
+ app.use('/state', fetchAllStateOfSHO)
  
 module.exports = app;
 
