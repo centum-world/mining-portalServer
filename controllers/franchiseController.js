@@ -44,3 +44,7 @@ exports.loginFranchise = async (req, res) => {
       .json({ message: "Database Error", error: error.message });
   }
 };
+
+//fetch particular franchise 
+
+// exports.fetchParticularFranchise = async(req, res)
