@@ -37,10 +37,10 @@ exports.loginSHO = async (req, res) => {
 
     return res.status(200).json({ message: "Login successfully", user, token });
   } catch (error) {
-    console.error(error.message);
+    console.log(error.message);
     return res
       .status(500)
-      .json({ message: "Database Error", error: error.message });
+      .json({  message: "Internal server Error"  });
   }
 };
 
@@ -66,9 +66,9 @@ exports.fetchParticularSHO = async (req, res) => {
       .status(200)
       .json({ message: "SHO details fetched successfully", sho });
   } catch (error) {
-    console.error(error.message);
+    console.log(error.message);
     return res
       .status(500)
-      .json({ message: "Database Error", error: error.message });
+      .json({ message: "Internal server Error" });
   }
 };

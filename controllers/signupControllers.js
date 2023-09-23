@@ -571,10 +571,10 @@ exports.createSHO = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
+    console.log(error.message);
     return res
       .status(500)
-      .json({ message: "Database Error", error: error.message });
+      .json({  message: "Internal server Error" });
   }
 };
 
@@ -749,10 +749,10 @@ exports.createFranchise = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
+    console.log(error.message);
     return res
       .status(500)
-      .json({ message: "Database Error", error: error.message });
+      .json({ message: "Internal server Error"  });
   }
 };
 

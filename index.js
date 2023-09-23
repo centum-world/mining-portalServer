@@ -109,6 +109,7 @@ const express = require('express');
  const loginSHO = require('./routes/login-sho')
  const loginFranchise = require('./routes/login-franchise')
 const fetchParticularSHO = require('./routes/fetch-particular-sho')
+const fetchParticularFranchise = require('./routes/fetch-particular-franchise')
 
 
 
@@ -218,6 +219,7 @@ const fetchParticularSHO = require('./routes/fetch-particular-sho')
  app.use('/state', loginSHO)
  app.use('/franchise', loginFranchise)
  app.use('/state', fetchParticularSHO)
+ app.use('/franchise', fetchParticularFranchise)
  
 module.exports = app;
 

@@ -41,10 +41,34 @@ exports.loginFranchise = async (req, res) => {
     console.log(error.message);
     return res
       .status(500)
-      .json({ message: "Database Error", error: error.message });
+      .json({ message: "Internal server error" });
   }
 };
 
 //fetch particular franchise 
 
-// exports.fetchParticularFranchise = async(req, res)
+exports.fetchParticularFranchise = async(req, res) => {
+  try {
+
+    const {franchiseId} = req.body
+
+    if(!franchiseId){
+      return res.status(400).json({message: "Franchise Id is required"})
+
+    }
+
+    const findFranchiseQuery = "SELECT * FROM create_Franchise WHERE franchiseId = ?"
+
+    const [franchise] = await queryAsync(findFranchiseQuery, [franchiseId])
+
+     if(!franchise){
+      return res.status(404).json({message: " Franchise not found"})
+     }
+    return res.status(200).json({message: "Franchise details fetched successfully", franchise})
+  } catch (error) {
+    console.log(error.message);
+    return res
+      .status(500)
+      .json({ message: "Internal server Error" });
+  }
+}
