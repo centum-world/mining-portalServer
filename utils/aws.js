@@ -32,7 +32,10 @@ const upload = multer({
       file.fieldname === "thumbnail" ||
       file.fieldname === "adharCard" ||
       file.fieldname === "panCard" ||
-      file.fieldname === "profilePhoto"
+      file.fieldname === "profilePhoto"||
+      file.fieldname === "adhar_front_side"||
+      file.fieldname === "adhar_back_side"
+
     ) {
       cb(null, true);
     } else {

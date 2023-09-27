@@ -77,7 +77,7 @@ exports.fetchAllStateOfSHO = async (req, res) => {
       return res.status(400).json({ message: "Referral Id is required." });
     }
 
-    const findSHOQuery = "SELECT * FROM create_SHO WHERE referralId = ?";
+    const findSHOQuery = "SELECT selectedState FROM create_SHO WHERE referralId = ?";
     const [sho] = await queryAsync(findSHOQuery, [referralId]);
 
     if (!sho) {

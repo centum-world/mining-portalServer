@@ -428,7 +428,29 @@ exports.createSHO = async (req, res) => {
     referredId,
   } = req.body;
 
-  console.log("files", req.files["adharCard"]);
+  if (!req.files["adhar_front_side"]) {
+    return res.status(400).json({ message: "Adhar card front side file is missing." });
+  }
+
+  if (!req.files["adhar_back_side"]) {
+    return res.status(400).json({ message: "Adhar card back side file is missing." });
+  }
+
+  if (!req.files["panCard"]) {
+    return res.status(400).json({ message: "Pan card file is missing." });
+  }
+
+
+  const adharFrontSideFile = req.files["adhar_front_side"][0]
+  const adharBackSideFile = req.files["adhar_back_side"][0]
+
+  const panCardFile = req.files["panCard"][0];
+
+
+  const adharFrontSideLocation = adharFrontSideFile.location
+  const adharBackSideLocation = adharBackSideFile.location
+
+  const panCardLocation = panCardFile.location;
 
   // Check if any required fields are missing
   const requiredFields = [
@@ -451,12 +473,10 @@ exports.createSHO = async (req, res) => {
   }
 
   try {
-    //hash passowrd
-
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    //check name is valid or not
-
+    // Check name validity
     if (!isValidName(fname)) {
       return res.status(422).json({
         message: "Invalid first name format.",
@@ -469,21 +489,22 @@ exports.createSHO = async (req, res) => {
       });
     }
 
-    //check phone is valid or not
-
+    // Check phone validity
     if (!isValidPhone(phone)) {
       return res.status(422).json({
         message:
-          "Invalid phone number format. Use 10 digits or include country code.",
+          "Invalid phone number format. Use 10 digits or include a country code.",
       });
     }
-    //email validation
+
+    // Email validation
     if (!isValidEmail(email)) {
       return res.status(422).json({
         message: "Invalid email format.",
       });
     }
 
+    // Password validation
     if (!isValidPassword(password)) {
       return res.status(422).json({
         message:
@@ -491,20 +512,18 @@ exports.createSHO = async (req, res) => {
       });
     }
 
+    // State Handler ID validation
     if (!isValidUserId(stateHandlerId)) {
       return res.status(422).json({
         message:
-          "State handler Id Should have at least 1 letter and 1 digit, minimum length 6.",
+          "State handler Id should have at least 1 letter and 1 digit, minimum length 6.",
       });
     }
 
-    //generate referralId
-
+    // Generate referralId
     const randomDigits = Math.floor(1000 + Math.random() * 9000);
-
     const firstThreeDigits = `${fname.substring(0, 3).toUpperCase()}`;
     const referralId = "SH" + "-" + firstThreeDigits + randomDigits;
-    console.log(referralId, "1886");
 
     // Check if stateHandlerId already exists
     const checkStateHandlerQuery =
@@ -519,25 +538,11 @@ exports.createSHO = async (req, res) => {
       });
     }
 
-    const adharCardFile = req.files["adharCard"][0];
-    const panCardFile = req.files["panCard"][0]; // Get an array of PAN card files
-
-    if (!adharCardFile || adharCardFile.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Aadhar card files are missing." });
-    }
-    if (!panCardFile || panCardFile.length === 0) {
-      return res.status(400).json({ message: "PAN card files are missing." });
-    }
-
-    const adharCard = adharCardFile.location;
-    const panCard = panCardFile.location;
 
     // Insert data into the database
     const insertStateHandlerQuery = `
-      INSERT INTO create_SHO (fname, lname, phone, email, gender, password, stateHandlerId, selectedState, referredId, adharCard, panCard, referralId)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?)
+      INSERT INTO create_SHO (fname, lname, phone, email, gender, password, stateHandlerId, selectedState, referredId, adhar_front_side, adhar_back_side, panCard, referralId)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await queryAsync(insertStateHandlerQuery, [
@@ -546,14 +551,16 @@ exports.createSHO = async (req, res) => {
       phone,
       email,
       gender,
-      hashedPassword, // Use the hashed password here
+      hashedPassword,
       stateHandlerId,
       selectedState,
       referredId,
-      adharCard,
-      panCard,
+      adharFrontSideLocation,
+      adharBackSideLocation,
+      panCardLocation,
       referralId,
     ]);
+
     return res.status(200).json({
       message: "State Handler created successfully",
       data: {
@@ -565,18 +572,18 @@ exports.createSHO = async (req, res) => {
         stateHandlerId,
         selectedState,
         referredId,
-        adharCard, // Store Aadhar card URL in response
-        panCard,
+        adhar_front_side:adharFrontSideLocation,
+        adhar_back_side:adharBackSideLocation, 
+        panCard:panCardLocation,
         referralId,
       },
     });
   } catch (error) {
     console.log(error.message);
-    return res
-      .status(500)
-      .json({  message: "Internal server Error" });
+    return res.status(500).json({ message: "Internal server Error" });
   }
 };
+
 
 //create franchise
 exports.createFranchise = async (req, res) => {
@@ -592,6 +599,30 @@ exports.createFranchise = async (req, res) => {
     franchiseCity,
     referredId,
   } = req.body;
+
+  if (!req.files["adhar_front_side"]) {
+    return res.status(400).json({ message: "Adhar card front side file is missing." });
+  }
+
+  if (!req.files["adhar_back_side"]) {
+    return res.status(400).json({ message: "Adhar card back side file is missing." });
+  }
+
+  if (!req.files["panCard"]) {
+    return res.status(400).json({ message: "Pan card file is missing." });
+  }
+
+
+  const adharFrontSideFile = req.files["adhar_front_side"][0]
+  const adharBackSideFile = req.files["adhar_back_side"][0]
+
+  const panCardFile = req.files["panCard"][0];
+
+
+  const adharFrontSideLocation = adharFrontSideFile.location
+  const adharBackSideLocation = adharBackSideFile.location
+
+  const panCardLocation = panCardFile.location;
 
   // Check if any required fields are missing
   const requiredFields = [
@@ -695,25 +726,11 @@ exports.createFranchise = async (req, res) => {
       });
     }
 
-    const adharCardFile = req.files["adharCard"][0];
-    const panCardFile = req.files["panCard"][0]; // Get an array of PAN card files
-
-    if (!adharCardFile || adharCardFile.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Aadhar card files are missing." });
-    }
-    if (!panCardFile || panCardFile.length === 0) {
-      return res.status(400).json({ message: "PAN card files are missing." });
-    }
-
-    const adharCard = adharCardFile.location;
-    const panCard = panCardFile.location;
 
     // Insert data into the database
     const insertStateHandlerQuery = `
-        INSERT INTO create_Franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adharCard, panCard, referralId)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?,?)
+        INSERT INTO create_Franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adhar_front_side,adhar_back_side, panCard, referralId)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?,?, ?)
       `;
 
     await queryAsync(insertStateHandlerQuery, [
@@ -727,8 +744,9 @@ exports.createFranchise = async (req, res) => {
       franchiseState,
       franchiseCity,
       referredId,
-      adharCard,
-      panCard,
+      adharFrontSideLocation,
+      adharBackSideLocation,
+      panCardLocation,
       referralId,
     ]);
     return res.status(200).json({
@@ -743,8 +761,9 @@ exports.createFranchise = async (req, res) => {
         franchiseState,
         franchiseCity,
         referredId,
-        adharCard, // Store Aadhar card URL in response
-        panCard,
+        adhar_front_side: adharFrontSideLocation, // Store Aadhar card URL in response
+        adhar_back_side: adharBackSideLocation, 
+        panCard:panCardLocation,
         referralId,
       },
     });
