@@ -77,7 +77,8 @@ exports.fetchAllStateOfSHO = async (req, res) => {
       return res.status(400).json({ message: "Referral Id is required." });
     }
 
-    const findSHOQuery = "SELECT selectedState FROM create_SHO WHERE referralId = ?";
+    const findSHOQuery =
+      "SELECT selectedState FROM create_SHO WHERE referralId = ?";
     const [sho] = await queryAsync(findSHOQuery, [referralId]);
 
     if (!sho) {
@@ -92,5 +93,70 @@ exports.fetchAllStateOfSHO = async (req, res) => {
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ message: "Internal server Error" });
+  }
+};
+
+// exports.fetchAllOwnFranchiseInState = async (req, res) => {
+//   try {
+//     const referralId = req.body;
+
+//     if (!referralId) {
+//       return res.status(404).json({ message: "Referral Id is required" });
+//     }
+
+//     const findFranchiseQuery =
+//       "SELECT * from create_Franchise WHERE referredId = ?";
+//     const [franchiseRows] = queryAsync(findFranchiseQuery, [referralId]);
+
+//     if (franchiseRows.length == 0) {
+//       return res
+//         .status(404)
+//         .json({ message: "Franchises not found for the given state" });
+//     }
+
+//     return res.status(200).json({
+//       message: "All Own Franchise fetched successfully",
+//       franchise: franchiseRows,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching franchises:", error);
+//     return res.status(500).json({ message: "Internal Server Error" });
+//   }
+// };
+
+
+
+exports.fetchAllOwnFranchiseInState = async (req, res) => {
+  try {
+    const { referralId } = req.body; // Destructure referralId from the request body
+
+    if (!referralId) {
+      return res.status(404).json({ message: "Referral Id is required" });
+    }
+
+    const findFranchiseQuery =
+      "SELECT * from create_Franchise WHERE referredId = ?";
+    
+    // Use connection.query directly
+    connection.query(findFranchiseQuery, [referralId], (error, franchiseRows) => {
+      if (error) {
+        console.error("Error fetching franchises:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      if (franchiseRows.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "Franchises not found for the given state" });
+      }
+
+      return res.status(200).json({
+        message: "All Own Franchise fetched successfully",
+        franchise: franchiseRows,
+      });
+    });
+  } catch (error) {
+    console.error("Error in try-catch block:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
