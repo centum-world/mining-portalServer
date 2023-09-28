@@ -112,7 +112,7 @@ const fetchParticularSHO = require('./routes/fetch-particular-sho')
 const fetchParticularFranchise = require('./routes/fetch-particular-franchise')
 const fetchAllStateOfSHO = require('./routes/fetch-all-state-of-sho')
 
-
+const fetchAllFranchise = require('./routes/fetch-all-franchise')
 
 
 
@@ -221,6 +221,7 @@ const fetchAllStateOfSHO = require('./routes/fetch-all-state-of-sho')
  app.use('/state', fetchParticularSHO)
  app.use('/franchise', fetchParticularFranchise)
  app.use('/state', fetchAllStateOfSHO)
+ app.use('/admin', fetchAllFranchise)
  
 module.exports = app;
 
