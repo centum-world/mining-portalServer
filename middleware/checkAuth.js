@@ -27,6 +27,7 @@ exports.isAuthenticated = async (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
+    console.log(token)
 
     if (!token) {
       return res.status(401).json({ message: "Token missing" });
@@ -34,6 +35,7 @@ exports.isAuthenticated = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
+      console.log(decoded, "lllll")
       req.user = decoded;
       next();
     } catch (error) {

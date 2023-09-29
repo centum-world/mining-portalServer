@@ -35,6 +35,8 @@ exports.loginSHO = async (req, res) => {
       process.env.ACCESS_TOKEN
     );
 
+    
+
     return res.status(200).json({ message: "Login successfully", user, token });
   } catch (error) {
     console.log(error.message);
@@ -124,8 +126,6 @@ exports.fetchAllStateOfSHO = async (req, res) => {
 //   }
 // };
 
-
-
 exports.fetchAllOwnFranchiseInState = async (req, res) => {
   try {
     const { referralId } = req.body; // Destructure referralId from the request body
@@ -136,32 +136,68 @@ exports.fetchAllOwnFranchiseInState = async (req, res) => {
 
     const findFranchiseQuery =
       "SELECT * from create_Franchise WHERE referredId = ?";
-    
+
     // Use connection.query directly
-    connection.query(findFranchiseQuery, [referralId], (error, franchiseRows) => {
-      if (error) {
-        console.error("Error fetching franchises:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
-      }
+    connection.query(
+      findFranchiseQuery,
+      [referralId],
+      (error, franchiseRows) => {
+        if (error) {
+          console.error("Error fetching franchises:", error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
 
-      if (franchiseRows.length === 0) {
-        return res
-          .status(404)
-          .json({ message: "Franchises not found for the given state" });
-      }
+        if (franchiseRows.length === 0) {
+          return res
+            .status(404)
+            .json({ message: "Franchises not found for the given state" });
+        }
 
-      return res.status(200).json({
-        message: "All Own Franchise fetched successfully",
-        franchise: franchiseRows,
-      });
-    });
+        return res.status(200).json({
+          message: "All Own Franchise fetched successfully",
+          franchise: franchiseRows,
+        });
+      }
+    );
   } catch (error) {
     console.error("Error in try-catch block:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-// franchise verify
+//Add back details for sho
 
+exports.CreateBankDetailsForSho = async (req, res) => {
+  try {
+    const {
+      user_id,
+      holder_name,
+      account_no,
+      ifsc_code,
+      branch_name,
+      bank_name,
+    } = req.body;
 
+    const insertBankShoQuery = `
+      INSERT INTO bank_details (user_id, holder_name, account_no, ifsc_code, branch_name, bank_name)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
 
+    // Use connection.query directly
+    connection.query(
+      insertBankShoQuery,
+      [user_id, holder_name, account_no, ifsc_code, branch_name, bank_name],
+      (error, result) => {
+        if (error) {
+          console.error("Error inserting bank details:", error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        return res.status(200).json({ message: "Bank details added successfully" });
+      }
+    );
+  } catch (error) {
+    console.log("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
