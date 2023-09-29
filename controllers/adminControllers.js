@@ -2631,3 +2631,34 @@ exports.fetchAllFranchise = (req, res) => {
     });
   });
 };
+
+//back details fetched
+
+exports.fetchBankDetails = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
+    }
+
+    const bankDetailsQuery = "SELECT * FROM bank_details WHERE user_id = ?";
+
+    connection.query(bankDetailsQuery, [userId], (error, result) => {
+      if (error) {
+        console.error("Error fetching bank details:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      if (result.length === 0) {
+        return res.status(404).json({ message: "Bank details not found for the given userId" });
+      }
+
+      return res.status(200).json({ message: "Bank details fetched", result });
+    });
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
