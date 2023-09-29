@@ -35,8 +35,6 @@ exports.loginSHO = async (req, res) => {
       process.env.ACCESS_TOKEN
     );
 
-    
-
     return res.status(200).json({ message: "Login successfully", user, token });
   } catch (error) {
     console.log(error.message);
@@ -178,26 +176,43 @@ exports.CreateBankDetailsForSho = async (req, res) => {
       bank_name,
     } = req.body;
 
-    const insertBankShoQuery = `
-      INSERT INTO bank_details (user_id, holder_name, account_no, ifsc_code, branch_name, bank_name)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
+    // Check if the user_id already exists in the create_sho table
+    const existingUserIdInSho = "SELECT * FROM create_sho WHERE stateHandlerId = ?";
 
-    // Use connection.query directly
-    connection.query(
-      insertBankShoQuery,
-      [user_id, holder_name, account_no, ifsc_code, branch_name, bank_name],
-      (error, result) => {
-        if (error) {
-          console.error("Error inserting bank details:", error);
-          return res.status(500).json({ message: "Internal Server Error" });
-        }
-
-        return res.status(200).json({ message: "Bank details added successfully" });
+    connection.query(existingUserIdInSho, [user_id], (error, result) => {
+      if (error) {
+        console.error("Error checking sho existence:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
       }
-    );
+      
+      if (result.length === 0) {
+        return res.status(404).json({ message: "User not found in create_sho table" });
+      }
+
+      // User exists, proceed to insert bank details
+      const insertBankShoQuery = `
+        INSERT INTO bank_details (user_id, holder_name, account_no, ifsc_code, branch_name, bank_name)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
+
+      connection.query(
+        insertBankShoQuery,
+        [user_id, holder_name, account_no, ifsc_code, branch_name, bank_name],
+        (insertError, insertResult) => {
+          if (insertError) {
+            console.error("Error inserting bank details:", insertError);
+            return res.status(500).json({ message: "Internal Server Error" });
+          }
+
+          return res
+            .status(201)
+            .json({ message: "Bank details added successfully for SHO",    });
+        }
+      );
+    });
   } catch (error) {
     console.log("Error in try-catch block:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+

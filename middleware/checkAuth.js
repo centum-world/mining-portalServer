@@ -35,7 +35,6 @@ exports.isAuthenticated = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
-      console.log(decoded, "lllll")
       req.user = decoded;
       next();
     } catch (error) {
