@@ -1,8 +1,7 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-
-exports.checkAuth =async(req, res, next) =>{
+exports.checkAuth = async (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
   //const token1 = token.split(" ")[1];
   //console.log(token);
@@ -16,14 +15,15 @@ exports.checkAuth =async(req, res, next) =>{
     return res.status(400).json("Invalid Token");
   }
   return next();
-}
-
+};
 
 exports.isAuthenticated = async (req, res, next) => {
   try {
     const authHeader = req.header("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Authorization header missing or invalid" });
+      return res
+        .status(401)
+        .json({ message: "Authorization header missing or invalid" });
     }
 
     const token = authHeader.split(" ")[1];
@@ -46,24 +46,21 @@ exports.isAuthenticated = async (req, res, next) => {
 };
 
 exports.authorizeRole = (allowedRoles) => {
-    return (req, res, next) => {
-      if (!req.user || !req.user.role) {
-        return res
-          .status(403)
-          .json({ message: "Unauthorized: User role not found" });
-      }
-  
-      const userRole = req.user.role;
-  
-      if (!allowedRoles.includes(userRole)) {
-        return res
-          .status(403)
-          .json({
-            message: `Unauthorized: only ${allowedRoles.join(", ")} can access`,
-          });
-      }
-  
-      next();
-    };
-  };
+  return (req, res, next) => {
+    if (!req.user || !req.user.role) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized: User role not found" });
+    }
 
+    const userRole = req.user.role;
+
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({
+        message: `Unauthorized: only ${allowedRoles.join(", ")} can access`,
+      });
+    }
+
+    next();
+  };
+};

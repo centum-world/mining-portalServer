@@ -123,6 +123,8 @@ const fetchBankDetails = require("./routes/fetch-bank-details");
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 
+const blockAndUnblockFranchise = require("./routes/block-and-unblock-franchise")
+const updateFranchise = require('./routes/update-franchise')
 const app = express();
 
 app.use(bodyParser.json());
@@ -226,4 +228,6 @@ app.use("/admin", fetchBankDetails);
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);
 
+app.use('/admin', blockAndUnblockFranchise)
+app.use('/franchise', updateFranchise)
 module.exports = app;

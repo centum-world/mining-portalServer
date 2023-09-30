@@ -177,16 +177,19 @@ exports.CreateBankDetailsForSho = async (req, res) => {
     } = req.body;
 
     // Check if the user_id already exists in the create_sho table
-    const existingUserIdInSho = "SELECT * FROM create_sho WHERE stateHandlerId = ?";
+    const existingUserIdInSho =
+      "SELECT * FROM create_sho WHERE stateHandlerId = ?";
 
     connection.query(existingUserIdInSho, [user_id], (error, result) => {
       if (error) {
         console.error("Error checking sho existence:", error);
         return res.status(500).json({ message: "Internal Server Error" });
       }
-      
+
       if (result.length === 0) {
-        return res.status(404).json({ message: "User not found in create_sho table" });
+        return res
+          .status(404)
+          .json({ message: "User not found in create_sho table" });
       }
 
       // User exists, proceed to insert bank details
@@ -206,7 +209,7 @@ exports.CreateBankDetailsForSho = async (req, res) => {
 
           return res
             .status(201)
-            .json({ message: "Bank details added successfully for SHO",    });
+            .json({ message: "Bank details added successfully for SHO" });
         }
       );
     });

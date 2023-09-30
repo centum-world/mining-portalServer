@@ -429,26 +429,28 @@ exports.createSHO = async (req, res) => {
   } = req.body;
 
   if (!req.files["adhar_front_side"]) {
-    return res.status(400).json({ message: "Adhar card front side file is missing." });
+    return res
+      .status(400)
+      .json({ message: "Adhar card front side file is missing." });
   }
 
   if (!req.files["adhar_back_side"]) {
-    return res.status(400).json({ message: "Adhar card back side file is missing." });
+    return res
+      .status(400)
+      .json({ message: "Adhar card back side file is missing." });
   }
 
   if (!req.files["panCard"]) {
     return res.status(400).json({ message: "Pan card file is missing." });
   }
 
-
-  const adharFrontSideFile = req.files["adhar_front_side"][0]
-  const adharBackSideFile = req.files["adhar_back_side"][0]
+  const adharFrontSideFile = req.files["adhar_front_side"][0];
+  const adharBackSideFile = req.files["adhar_back_side"][0];
 
   const panCardFile = req.files["panCard"][0];
 
-
-  const adharFrontSideLocation = adharFrontSideFile.location
-  const adharBackSideLocation = adharBackSideFile.location
+  const adharFrontSideLocation = adharFrontSideFile.location;
+  const adharBackSideLocation = adharBackSideFile.location;
 
   const panCardLocation = panCardFile.location;
 
@@ -538,7 +540,6 @@ exports.createSHO = async (req, res) => {
       });
     }
 
-
     // Insert data into the database
     const insertStateHandlerQuery = `
       INSERT INTO create_SHO (fname, lname, phone, email, gender, password, stateHandlerId, selectedState, referredId, adhar_front_side, adhar_back_side, panCard, referralId)
@@ -572,9 +573,9 @@ exports.createSHO = async (req, res) => {
         stateHandlerId,
         selectedState,
         referredId,
-        adhar_front_side:adharFrontSideLocation,
-        adhar_back_side:adharBackSideLocation, 
-        panCard:panCardLocation,
+        adhar_front_side: adharFrontSideLocation,
+        adhar_back_side: adharBackSideLocation,
+        panCard: panCardLocation,
         referralId,
       },
     });
@@ -583,7 +584,6 @@ exports.createSHO = async (req, res) => {
     return res.status(500).json({ message: "Internal server Error" });
   }
 };
-
 
 //create franchise
 exports.createFranchise = async (req, res) => {
@@ -601,26 +601,28 @@ exports.createFranchise = async (req, res) => {
   } = req.body;
 
   if (!req.files["adhar_front_side"]) {
-    return res.status(400).json({ message: "Adhar card front side file is missing." });
+    return res
+      .status(400)
+      .json({ message: "Adhar card front side file is missing." });
   }
 
   if (!req.files["adhar_back_side"]) {
-    return res.status(400).json({ message: "Adhar card back side file is missing." });
+    return res
+      .status(400)
+      .json({ message: "Adhar card back side file is missing." });
   }
 
   if (!req.files["panCard"]) {
     return res.status(400).json({ message: "Pan card file is missing." });
   }
 
-
-  const adharFrontSideFile = req.files["adhar_front_side"][0]
-  const adharBackSideFile = req.files["adhar_back_side"][0]
+  const adharFrontSideFile = req.files["adhar_front_side"][0];
+  const adharBackSideFile = req.files["adhar_back_side"][0];
 
   const panCardFile = req.files["panCard"][0];
 
-
-  const adharFrontSideLocation = adharFrontSideFile.location
-  const adharBackSideLocation = adharBackSideFile.location
+  const adharFrontSideLocation = adharFrontSideFile.location;
+  const adharBackSideLocation = adharBackSideFile.location;
 
   const panCardLocation = panCardFile.location;
 
@@ -726,7 +728,6 @@ exports.createFranchise = async (req, res) => {
       });
     }
 
-
     // Insert data into the database
     const insertStateHandlerQuery = `
         INSERT INTO create_Franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adhar_front_side,adhar_back_side, panCard, referralId)
@@ -762,16 +763,13 @@ exports.createFranchise = async (req, res) => {
         franchiseCity,
         referredId,
         adhar_front_side: adharFrontSideLocation, // Store Aadhar card URL in response
-        adhar_back_side: adharBackSideLocation, 
-        panCard:panCardLocation,
+        adhar_back_side: adharBackSideLocation,
+        panCard: panCardLocation,
         referralId,
       },
     });
   } catch (error) {
     console.log(error.message);
-    return res
-      .status(500)
-      .json({ message: "Internal server Error"  });
+    return res.status(500).json({ message: "Internal server Error" });
   }
 };
-
