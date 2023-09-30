@@ -529,7 +529,7 @@ exports.createSHO = async (req, res) => {
 
     // Check if stateHandlerId already exists
     const checkStateHandlerQuery =
-      "SELECT stateHandlerId FROM create_SHO WHERE stateHandlerId = ?";
+      "SELECT stateHandlerId FROM create_sho WHERE stateHandlerId = ?";
     const existingStateHandler = await queryAsync(checkStateHandlerQuery, [
       stateHandlerId,
     ]);
@@ -542,7 +542,7 @@ exports.createSHO = async (req, res) => {
 
     // Insert data into the database
     const insertStateHandlerQuery = `
-      INSERT INTO create_SHO (fname, lname, phone, email, gender, password, stateHandlerId, selectedState, referredId, adhar_front_side, adhar_back_side, panCard, referralId)
+      INSERT INTO create_sho (fname, lname, phone, email, gender, password, stateHandlerId, selectedState, referredId, adhar_front_side, adhar_back_side, panCard, referralId)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
@@ -698,7 +698,7 @@ exports.createFranchise = async (req, res) => {
     //check referredId is valid or not
 
     const checkReferredIdQuery =
-      "SELECT referralId from create_SHO WHERE referralId = ?";
+      "SELECT referralId from create_sho WHERE referralId = ?";
     const existingReferredId = await queryAsync(checkReferredIdQuery, [
       referredId,
     ]);
@@ -717,7 +717,7 @@ exports.createFranchise = async (req, res) => {
 
     // Check if franchiseId already exists
     const checkFranchiseQuery =
-      "SELECT franchiseId FROM create_Franchise WHERE franchiseId = ?";
+      "SELECT franchiseId FROM create_franchise WHERE franchiseId = ?";
     const existingFranchise = await queryAsync(checkFranchiseQuery, [
       franchiseId,
     ]);
@@ -730,7 +730,7 @@ exports.createFranchise = async (req, res) => {
 
     // Insert data into the database
     const insertStateHandlerQuery = `
-        INSERT INTO create_Franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adhar_front_side,adhar_back_side, panCard, referralId)
+        INSERT INTO create_franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adhar_front_side,adhar_back_side, panCard, referralId)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?,?, ?)
       `;
 
