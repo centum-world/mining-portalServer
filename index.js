@@ -118,6 +118,7 @@ const fetchAllOwnFranchiseInState = require("./routes/fetch-all-own-franchise-in
 const verifyFranchise = require("./routes/verify-franchise");
 const CreateBankDetailsForSho = require("./routes/create-bank-details-for-sho");
 const fetchBankDetails = require("./routes/fetch-bank-details");
+const blockAndUnblockFranchise = require("./routes/block-and-unblock-franchise")
 
 const app = express();
 
@@ -218,5 +219,6 @@ app.use("/state", fetchAllOwnFranchiseInState);
 app.use("/franchise", verifyFranchise);
 app.use("/state", CreateBankDetailsForSho);
 app.use("/admin", fetchBankDetails);
+app.use('/admin', blockAndUnblockFranchise)
 
 module.exports = app;
