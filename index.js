@@ -123,6 +123,13 @@ const fetchBankDetails = require("./routes/fetch-bank-details");
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 
+// ------------------------------------------------------------//
+
+// ------------------------------franchise------------------------//
+const franchiseAddBankDetails = require('./routes/frenchise/franchise-add-bank-details');
+const fetchFranchiseBankDetails = require('./routes/frenchise/fetch-bank-details');
+// ------------------------------------------------------------------//
+
 const blockAndUnblockFranchise = require("./routes/block-and-unblock-franchise")
 const updateFranchise = require('./routes/update-franchise')
 const app = express();
@@ -227,6 +234,12 @@ app.use("/admin", fetchBankDetails);
 
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);
+
+// ---------------------------------------------------//
+
+// ----------------------franchise--------------------//
+app.use('/franchise',franchiseAddBankDetails);
+app.use('/franchise',fetchFranchiseBankDetails);
 
 app.use('/admin', blockAndUnblockFranchise)
 app.use('/franchise', updateFranchise)

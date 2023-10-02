@@ -223,3 +223,86 @@ exports.updateFranchise = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.franchiseAddBankDetails = async (req,res) =>{
+  try {
+      const {
+        user_id,
+        holder_name,
+        account_no,
+        ifsc_code,
+        branch_name,
+        bank_name,
+      } = req.body;
+  
+      // Check if the user_id already exists in the create_sho table
+      const existingUserIdInFranchise =
+        "SELECT * FROM create_franchise WHERE franchiseId = ?";
+  
+      connection.query(existingUserIdInFranchise, [user_id], (error, result) => {
+        if (error) {
+          console.error("Error checking sho existence:", error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+  
+        if (result.length === 0) {
+          return res
+            .status(404)
+            .json({ message: "Franchise not found to create bank details" });
+        }
+  
+        // User exists, proceed to insert bank details
+        const insertBankShoQuery = `
+          INSERT INTO bank_details (user_id, holder_name, account_no, ifsc_code, branch_name, bank_name)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `;
+  
+        connection.query(
+          insertBankShoQuery,
+          [user_id, holder_name, account_no, ifsc_code, branch_name, bank_name],
+          (insertError, insertResult) => {
+            if (insertError) {
+              console.error("Error inserting bank details:", insertError);
+              return res.status(500).json({ message: "Internal Server Error" });
+            }
+  
+            return res
+              .status(201)
+              .json({ message: "Bank details added successfully for SHO" });
+          }
+        );
+      });
+    } catch (error) {
+      console.log("Error in try-catch block:", error.message);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+// fetchFranchiseBankDetails
+exports.fetchFranchiseBankDetails = async (req,res) => {
+  try {
+    const { franchiseId } = req.body;
+
+    if (!franchiseId) {
+      return res.status(400).json({ message: "FranchiseId is required" });
+    }
+
+    const bankDetailsQuery = "SELECT * FROM bank_details WHERE user_id = ?";
+
+    connection.query(bankDetailsQuery, [franchiseId], (error, result) => {
+      if (error) {
+        console.error("Error fetching bank details:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      if (result.length === 0) {
+        return res.status(404).json({ message: "Bank details not found for the given FranchiseId" });
+      }
+
+      return res.status(200).json({ message: "Bank details fetched", result });
+    });
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
