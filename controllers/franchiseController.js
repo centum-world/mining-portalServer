@@ -22,7 +22,7 @@ exports.loginFranchise = async (req, res) => {
         .json({ message: "Please provide Franchise  Id  and password." });
     }
 
-    const findUserQuery = "SELECT * from create_Franchise WHERE franchiseId=?";
+    const findUserQuery = "SELECT * from create_franchise WHERE franchiseId=?";
     const [user] = await queryAsync(findUserQuery, [userid]);
 
     if (!user) {
@@ -62,7 +62,7 @@ exports.fetchParticularFranchise = async (req, res) => {
     }
 
     const findFranchiseQuery =
-      "SELECT * FROM create_Franchise WHERE franchiseId = ?";
+      "SELECT * FROM create_franchise WHERE franchiseId = ?";
 
     const [franchise] = await queryAsync(findFranchiseQuery, [franchiseId]);
 
@@ -89,7 +89,7 @@ exports.verifyFranchise = async (req, res) => {
     }
 
     const upadteFranchiseQuery =
-      "UPDATE create_Franchise SET isVerify =? WHERE franchiseId = ?";
+      "UPDATE create_franchise SET isVerify =? WHERE franchiseId = ?";
 
     connection.query(
       upadteFranchiseQuery,

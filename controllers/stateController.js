@@ -14,7 +14,7 @@ exports.loginSHO = async (req, res) => {
         .json({ message: "Please provide State Handler  Id  and password." });
     }
 
-    const findUserQuery = "SELECT * from create_SHO WHERE stateHandlerId =?";
+    const findUserQuery = "SELECT * from create_sho WHERE stateHandlerId =?";
     const [user] = await queryAsync(findUserQuery, [userid]);
     if (!user) {
       return res
@@ -52,7 +52,7 @@ exports.fetchParticularSHO = async (req, res) => {
       return res.status(400).json({ message: "State Handler ID is required." });
     }
 
-    const findSHOQuery = "SELECT * FROM  create_SHO  WHERE stateHandlerId = ?";
+    const findSHOQuery = "SELECT * FROM  create_sho  WHERE stateHandlerId = ?";
 
     const [sho] = await queryAsync(findSHOQuery, [stateHandlerId]);
 
@@ -78,7 +78,7 @@ exports.fetchAllStateOfSHO = async (req, res) => {
     }
 
     const findSHOQuery =
-      "SELECT selectedState FROM create_SHO WHERE referralId = ?";
+      "SELECT selectedState FROM create_sho WHERE referralId = ?";
     const [sho] = await queryAsync(findSHOQuery, [referralId]);
 
     if (!sho) {
@@ -133,7 +133,7 @@ exports.fetchAllOwnFranchiseInState = async (req, res) => {
     }
 
     const findFranchiseQuery =
-      "SELECT * from create_Franchise WHERE referredId = ?";
+      "SELECT * from create_franchise WHERE referredId = ?";
 
     // Use connection.query directly
     connection.query(
