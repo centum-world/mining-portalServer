@@ -228,7 +228,7 @@ exports.CreateBankDetailsForSho = async (req, res) => {
 };
 
 // fetchOwnBankDetails
-exports.fetchOwnBankDetails = async (req,res) => {
+exports.fetchOwnBankDetails = async (req, res) => {
   try {
     const { userId } = req.body;
 
@@ -245,7 +245,9 @@ exports.fetchOwnBankDetails = async (req,res) => {
       }
 
       if (result.length === 0) {
-        return res.status(404).json({ message: "Bank details not found for the given userId" });
+        return res
+          .status(404)
+          .json({ message: "Bank details not found for the given userId" });
       }
 
       return res.status(200).json({ message: "Bank details fetched", result });
@@ -254,7 +256,7 @@ exports.fetchOwnBankDetails = async (req,res) => {
     console.error("Error in try-catch block:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 
 exports.updateSho = async (req, res) => {
   try {
@@ -307,6 +309,7 @@ exports.updateSho = async (req, res) => {
     }
 
     // Check if email is valid
+
     if (!isValidEmail(email)) {
       return res.status(422).json({
         message: "Invalid email format.",
@@ -315,21 +318,12 @@ exports.updateSho = async (req, res) => {
 
     // Construct the SQL query to update the sho
     const updateShoQuery =
-    "UPDATE create_sho SET fname=?, lname=?, email=?, phone=?, gender=?, selectedState=? WHERE stateHandlerId=?";
+      "UPDATE create_sho SET fname=?, lname=?, email=?, phone=?, gender=?, selectedState=? WHERE stateHandlerId=?";
 
     // Execute the SQL query to update the franchise
     connection.query(
       updateShoQuery,
-      [
-        fname,
-        lname,
-        email,
-        phone,
-        gender,
-        selectedState,
-        
-        stateHandlerId,
-      ],
+      [fname, lname, email, phone, gender, selectedState, stateHandlerId],
       (error, result) => {
         if (error) {
           console.error("Error executing SQL query:", error.message);
@@ -362,5 +356,35 @@ exports.updateSho = async (req, res) => {
   }
 };
 
+exports.verifySho = async (req, res) => {
+  try {
+    const { stateHandlerId, isVerify } = req.body;
 
+    if (typeof isVerify != "boolean") {
+      return res.status(400).json({ message: "Invalid 'isVerify' value" });
+    }
 
+    const upadteShoQuery =
+      "UPDATE create_sho SET isVerify =? WHERE stateHandlerId = ?";
+
+    connection.query(
+      upadteShoQuery,
+      [isVerify, stateHandlerId],
+      (error, result) => {
+        if (error) {
+          console.error("Error updating sho:", error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        if (result.affectedRows == 0) {
+          return res.status(200).json({ message: "S.H.O not found" });
+        }
+
+        return res.status(200).json({ message: "S.H.O verified" });
+      }
+    );
+  } catch (error) {
+    console.error("Error in try-catch block:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};

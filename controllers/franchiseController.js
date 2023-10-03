@@ -101,7 +101,7 @@ exports.verifyFranchise = async (req, res) => {
         }
 
         if (result.affectedRows == 0) {
-          return res.status(200).json({ message: "frnahcise not found" });
+          return res.status(200).json({ message: "franhcise not found" });
         }
 
         return res.status(200).json({ message: "Franchise verified" });
