@@ -2698,3 +2698,29 @@ exports.blockAndUnblockFranchise = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+
+//fetch all sho
+
+exports.fetchAllSho = async (req, res) => {
+  try {
+    const selectAllShoQuery = "SELECT * FROM create_sho";
+
+    connection.query(selectAllShoQuery, (error, results) => {
+      if (error) {
+        console.error("Error fetching sho details:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      // Successfully fetched sho records
+      return res.status(200).json({
+        message: "Sho records fetched successfully",
+        shoData: results,
+      });
+    });
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
