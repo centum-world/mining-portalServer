@@ -120,6 +120,7 @@ const CreateBankDetailsForSho = require("./routes/create-bank-details-for-sho");
 const fetchBankDetails = require("./routes/fetch-bank-details");
 
 const fetchAllSho = require('./routes/fetch-all-sho')
+const blockAndUnblockSho = require('./routes/block-and-unblock-sho')
 
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
@@ -232,6 +233,11 @@ app.use("/state", fetchAllOwnFranchiseInState);
 app.use("/franchise", verifyFranchise);
 app.use("/state", CreateBankDetailsForSho);
 app.use("/admin", fetchBankDetails);
+app.use('/admin', blockAndUnblockFranchise)
+app.use('/admin', fetchAllSho)
+app.use("/admin", blockAndUnblockSho)
+
+
 
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);
@@ -242,8 +248,6 @@ app.use('/state',fetchOwnBankDetails);
 app.use('/franchise',franchiseAddBankDetails);
 app.use('/franchise',fetchFranchiseBankDetails);
 
-app.use('/admin', blockAndUnblockFranchise)
 app.use('/franchise', updateFranchise)
 
-app.use('/admin', fetchAllSho)
 module.exports = app;

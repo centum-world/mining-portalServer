@@ -2724,3 +2724,37 @@ exports.fetchAllSho = async (req, res) => {
   }
 };
 
+//block and unblock sho
+
+exports.blockAndUnblockSho = async (req, res) => {
+  try {
+    const { isBlocked, stateHandlerId } = req.body;
+
+    const updateShoQuery =
+      "UPDATE create_sho SET isBlocked = ? WHERE stateHandlerId = ?";
+
+    connection.query(
+      updateShoQuery,
+      [isBlocked, stateHandlerId],
+      (error, result) => {
+        if (error) {
+          console.error("Error executing SQL query:", error.message);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "Sho not found" });
+        }
+
+        const message = isBlocked
+          ? "S.H.O is blocked successfully."
+          : "S.H.O is unblocked successfully.";
+
+        res.status(200).json({ message });
+      }
+    );
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
