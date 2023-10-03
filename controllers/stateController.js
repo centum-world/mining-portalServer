@@ -2,6 +2,14 @@ const connection = require("../config/database");
 const bcrypt = require("bcrypt");
 const { queryAsync } = require("../utils/utility");
 const jwt = require("jsonwebtoken");
+const {
+  isValidImage,
+  isValidEmail,
+  isValidPhone,
+  isValidName,
+  isValidPassword,
+  isValidUserId,
+} = require("../utils/validation");
 
 exports.loginSHO = async (req, res) => {
   try {
@@ -247,6 +255,112 @@ exports.fetchOwnBankDetails = async (req,res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 }
+
+exports.updateSho = async (req, res) => {
+  try {
+    const {
+      fname,
+      lname,
+      email,
+      phone,
+      gender,
+      selectedState,
+      stateHandlerId,
+    } = req.body;
+
+    const requiredFields = [
+      "fname",
+      "lname",
+      "email",
+      "phone",
+      "gender",
+      "selectedState",
+      "stateHandlerId",
+    ];
+    const missingFields = requiredFields.filter((field) => !req.body[field]);
+
+    if (missingFields.length > 0) {
+      return res.status(422).json({
+        message: `Please fill all details: ${missingFields.join(", ")}`,
+      });
+    }
+
+    // Check if name is valid
+    if (!isValidName(fname)) {
+      return res.status(422).json({
+        message: "Invalid first name format.",
+      });
+    }
+
+    if (!isValidName(lname)) {
+      return res.status(422).json({
+        message: "Invalid last name format.",
+      });
+    }
+
+    // Check if phone is valid
+    if (!isValidPhone(phone)) {
+      return res.status(422).json({
+        message:
+          "Invalid phone number format. Use 10 digits or include a country code.",
+      });
+    }
+
+    // Check if email is valid
+    if (!isValidEmail(email)) {
+      return res.status(422).json({
+        message: "Invalid email format.",
+      });
+    }
+
+    // Construct the SQL query to update the sho
+    const updateShoQuery =
+    "UPDATE create_sho SET fname=?, lname=?, email=?, phone=?, gender=?, selectedState=? WHERE stateHandlerId=?";
+
+    // Execute the SQL query to update the franchise
+    connection.query(
+      updateShoQuery,
+      [
+        fname,
+        lname,
+        email,
+        phone,
+        gender,
+        selectedState,
+        
+        stateHandlerId,
+      ],
+      (error, result) => {
+        if (error) {
+          console.error("Error executing SQL query:", error.message);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        if (result.affectedRows === 1) {
+          const updatedData = {
+            fname,
+            lname,
+            email,
+            phone,
+            gender,
+            selectedState,
+            stateHandlerId,
+          };
+
+          res.status(200).json({
+            message: "Sho updated successfully",
+            updatedData: updatedData,
+          });
+        } else {
+          res.status(404).json({ message: "S.H.O not found" });
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 
 

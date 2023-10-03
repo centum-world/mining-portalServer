@@ -124,6 +124,7 @@ const blockAndUnblockSho = require('./routes/block-and-unblock-sho')
 
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
+const updateSho = require('./routes/update-sho')
 
 // ------------------------------------------------------------//
 
@@ -241,6 +242,7 @@ app.use("/admin", blockAndUnblockSho)
 
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);
+app.use('/state', updateSho)
 
 // ---------------------------------------------------//
 
