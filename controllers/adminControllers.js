@@ -2759,4 +2759,30 @@ exports.blockAndUnblockSho = async (req, res) => {
   }
 };
 
-//
+//delet franchise
+exports.deleteFranchise = async (req,res)=>{
+  try {
+    const {franchiseId} = req.params;
+
+    const deleteFranchsiseQuery = 
+    "DELETE FROM create_franchise WHERE franchiseId = ?";
+  
+    connection.query(
+      deleteFranchsiseQuery,
+      [franchiseId], (error,result)  =>{
+        if(error){
+          console.error("Error executing SQL query:", error.message);
+          return rex.status(500).json({message:"Internal Server Error"})
+        }
+
+        if(result.affectedRows===0){
+          return res.status(404).json({message:"Franchise Not Found"})
+        } 
+      }
+    )
+
+
+  } catch (error) {
+    
+  }
+}
