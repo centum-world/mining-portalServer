@@ -242,7 +242,7 @@ exports.fetchMember = (req, res) => {
     if (!err) {
       return res.status(200).json({
         message: "Fetched data successfully",
-        data: results,
+        memberData: results,
       });
     } else {
       return res.status(500).json(err);
@@ -2759,30 +2759,153 @@ exports.blockAndUnblockSho = async (req, res) => {
   }
 };
 
-//delet franchise
-exports.deleteFranchise = async (req,res)=>{
+//adminVerifyMember
+exports.adminVerifyMember = async (req,res) =>{
   try {
-    const {franchiseId} = req.params;
+    const { m_userid, isVerify } = req.body;
 
-    const deleteFranchsiseQuery = 
-    "DELETE FROM create_franchise WHERE franchiseId = ?";
-  
+    if (typeof isVerify != "boolean") {
+      return res.status(400).json({ message: "Invalid 'isVerify' value" });
+    }
+
+    const upadteMemberQuery =
+      "UPDATE create_member SET isVerify =? WHERE m_userid = ?";
+
     connection.query(
-      deleteFranchsiseQuery,
-      [franchiseId], (error,result)  =>{
-        if(error){
-          console.error("Error executing SQL query:", error.message);
-          return rex.status(500).json({message:"Internal Server Error"})
+      upadteMemberQuery,
+      [isVerify, m_userid],
+      (error, result) => {
+        if (error) {
+          console.error("Error updating Member:", error);
+          return res.status(500).json({ message: "Internal Server Error" });
         }
 
-        if(result.affectedRows===0){
-          return res.status(404).json({message:"Franchise Not Found"})
-        } 
+        if (result.affectedRows == 0) {
+          return res.status(200).json({ message: "Member not found" });
+        }
+
+        return res.status(200).json({ message: "Member verified" });
       }
-    )
-
-
+    );
   } catch (error) {
-    
+    console.error("Error in try-catch block:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// adminBlockMember
+exports.adminBlockMember = async (req,res) => {
+  try {
+    const { isBlocked, m_userid } = req.body;
+
+    const updateMemberQuery =
+      "UPDATE create_member SET isBlocked = ? WHERE m_userid = ?";
+
+    connection.query(
+      updateMemberQuery,
+      [isBlocked, m_userid],
+      (error, result) => {
+        if (error) {
+          console.error("Error executing SQL query:", error.message);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "Member not found" });
+        }
+
+        const message = isBlocked
+          ? "Member is blocked successfully."
+          : "Member is unblocked successfully.";
+
+        res.status(200).json({ message });
+      }
+    );
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// adminFetchAllMiningPartner
+exports.adminFetchAllMiningPartner = async (req,res) => {
+  let query = "select *from mining_partner";
+  connection.query(query, (err, results) => {
+    if (!err) {
+      return res.status(200).json({
+        message: "Fetched data successfully",
+        miningPartnerData: results,
+      });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}
+
+// adminVerifyPartner
+exports.adminVerifyPartner = async (req,res) => {
+  try {
+    const { p_userid, isVerify } = req.body;
+
+    if (typeof isVerify != "boolean") {
+      return res.status(400).json({ message: "Invalid 'isVerify' value" });
+    }
+
+    const upadtePartnerQuery =
+      "UPDATE mining_partner SET isVerify =? WHERE p_userid = ?";
+
+    connection.query(
+      upadtePartnerQuery,
+      [isVerify, p_userid],
+      (error, result) => {
+        if (error) {
+          console.error("Error updating Member:", error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        if (result.affectedRows == 0) {
+          return res.status(200).json({ message: "Partner not found" });
+        }
+
+        return res.status(200).json({ message: "Partner verified" });
+      }
+    );
+  } catch (error) {
+    console.error("Error in try-catch block:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// adminBlockUnblockPartner
+exports.adminBlockUnblockPartner = async (req,res) => {
+  try {
+    const { isBlocked, p_userid } = req.body;
+
+    const updatePartnerQuery =
+      "UPDATE mining_partner SET isBlocked = ? WHERE p_userid = ?";
+
+    connection.query(
+      updatePartnerQuery,
+      [isBlocked, p_userid],
+      (error, result) => {
+        if (error) {
+          console.error("Error executing SQL query:", error.message);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "Partner not found" });
+        }
+
+        const message = isBlocked
+          ? "Partner is blocked successfully."
+          : "Partner is unblocked successfully.";
+
+        res.status(200).json({ message });
+      }
+    );
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 }

@@ -123,6 +123,13 @@ const fetchAllSho = require('./routes/fetch-all-sho')
 const blockAndUnblockSho = require('./routes/block-and-unblock-sho')
 const verifySho = require('./routes/verify-sho')
 
+// -----------------------admin-----------------------------//
+adminVerifyMember = require('./routes/admin-verify-member');
+adminBlockMember = require('./routes/admin-block-member');
+adminFetchAllMiningPartner = require('./routes/admin-fetch-all-mining-partner');
+adminVerifyPartner = require('./routes/admin-verify-partner');
+adminBlockUnblockPartner = require('./routes/admin-block-unblock-partner');
+
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
@@ -240,7 +247,13 @@ app.use('/admin', fetchAllSho)
 app.use("/admin", blockAndUnblockSho)
 app.use("/state", verifySho)
 
+// --------------------------admin-------------------//
 
+app.use('/admin',adminVerifyMember);
+app.use('/admin',adminBlockMember);
+app.use('/admin',adminFetchAllMiningPartner);
+app.use('/admin',adminVerifyPartner);
+app.use('/admin',adminBlockUnblockPartner);
 
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);
