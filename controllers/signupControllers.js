@@ -540,6 +540,21 @@ exports.createSHO = async (req, res) => {
       });
     }
 
+    if (referredId) {
+      const checkReferredIdQuery =
+        "SELECT reffer_id FROM admin_login WHERE reffer_id = ?";
+      const referredAdmin = await queryAsync(checkReferredIdQuery, [
+        referredId,
+      ]);
+
+      if (referredAdmin.length === 0) {
+        return res.status(400).json({
+          message:
+            "Invalid referred Id. You are providing invalid referral Id.",
+        });
+      }
+    }
+
     // Insert data into the database
     const insertStateHandlerQuery = `
       INSERT INTO create_sho (fname, lname, phone, email, gender, password, stateHandlerId, selectedState, referredId, adhar_front_side, adhar_back_side, panCard, referralId)
@@ -704,7 +719,7 @@ exports.createFranchise = async (req, res) => {
     ]);
     if (existingReferredId.length === 0) {
       return res.status(400).json({
-        message: "Invalid referredId. Please provide a valid referralId.",
+        message: "Invalid referredId. Please provide a valid referral Id.",
       });
     }
 
@@ -726,6 +741,18 @@ exports.createFranchise = async (req, res) => {
       return res.status(400).json({
         message: "Franchise Id already exists. Please choose a unique ID.",
       });
+    }
+
+    if (referredId) {
+      const checkReferredIdQuery =
+        "SELECT referralId FROM create_sho WHERE referralId = ?";
+      const referralSho = await queryAsync(checkReferredIdQuery, [referredId]);
+
+      if (referralSho.length === 0) {
+        return res.status(400).json({
+          message: "You are providing invalid referred Id.",
+        });
+      }
     }
 
     // Insert data into the database

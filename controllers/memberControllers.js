@@ -536,7 +536,6 @@ exports.fetchLiquidityForMemberSummary = (req, res) => {
   });
 };
 
-
 exports.updateMember = async (req, res) => {
   try {
     const {
@@ -550,22 +549,45 @@ exports.updateMember = async (req, res) => {
       m_userid,
     } = req.body;
 
-    const requiredFields = [
-      "m_name",
-      "m_lname",
-      "m_email",
-      "m_phone",
-      "m_state",
-      "m_designation",
-      "m_userid",
-      "m_add", 
-    ];
+    if (!m_name) {
+      return res.status(400).json({
+        message: "First name is required.",
+      });
+    }
+    if (!m_lname) {
+      return res.status(400).json({
+        message: "Last name is required.",
+      });
+    }
+    if (!m_add) {
+      return res.status(400).json({
+        message: "Address is required.",
+      });
+    }
+    if (!m_phone) {
+      return res.status(400).json({
+        message: "Phone is required.",
+      });
+    }
+    if (!m_email) {
+      return res.status(400).json({
+        message: "email is required.",
+      });
+    }
+    if (!m_state) {
+      return res.status(400).json({
+        message: "State is required.",
+      });
+    }
+    if (!m_designation) {
+      return res.status(400).json({
+        message: "Designation is required.",
+      });
+    }
 
-    const missingFields = requiredFields.filter((field) => !req.body[field]);
-
-    if (missingFields.length > 0) {
-      return res.status(422).json({
-        message: `Please fill all details: ${missingFields.join(", ")}`,
+    if (!m_userid) {
+      return res.status(400).json({
+        message: "User Id is required.",
       });
     }
 
@@ -604,7 +626,16 @@ exports.updateMember = async (req, res) => {
     // Execute the SQL query to update the member
     connection.query(
       updateMemberQuery,
-      [m_name, m_lname, m_email, m_phone, m_state, m_designation, m_add, m_userid], 
+      [
+        m_name,
+        m_lname,
+        m_email,
+        m_phone,
+        m_state,
+        m_designation,
+        m_add,
+        m_userid,
+      ],
       (error, result) => {
         if (error) {
           console.error("Error executing SQL query:", error.message);
@@ -637,4 +668,3 @@ exports.updateMember = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
