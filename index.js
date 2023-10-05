@@ -122,7 +122,7 @@ const fetchBankDetails = require("./routes/fetch-bank-details");
 const fetchAllSho = require('./routes/fetch-all-sho')
 const blockAndUnblockSho = require('./routes/block-and-unblock-sho')
 const verifySho = require('./routes/verify-sho')
-const updateMember = require('./routes/update-member')
+const updateMember = require('./routes/update-member') 
 
 // -----------------------admin-----------------------------//
 adminVerifyMember = require('./routes/admin-verify-member');
@@ -249,6 +249,7 @@ app.use('/admin', fetchAllSho)
 app.use("/admin", blockAndUnblockSho)
 app.use("/state", verifySho)
 app.use("/member", updateMember)
+
 
 // --------------------------admin-------------------//
 

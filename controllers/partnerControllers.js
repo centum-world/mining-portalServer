@@ -6,6 +6,14 @@ const forgetpasswordSms = require("../utils/forget-password-otp");
 const sms = require("../utils/successfull-add-sms");
 const walletSms = require("../utils/wallet-amount-sms");
 const memberWalletSms = require("../utils/member-wallet-amount-sms");
+const {
+  isValidImage,
+  isValidEmail,
+  isValidPhone,
+  isValidName,
+  isValidPassword,
+  isValidUserId,
+} = require("../utils/validation");
 
 require("dotenv").config();
 
@@ -1181,3 +1189,7 @@ exports.helpAndSupport = (req, res) => {
     }
   );
 };
+
+
+
+
