@@ -7,6 +7,14 @@ const sms = require("../utils/successfull-add-sms");
 const accountSid = process.env.ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
+const {
+  isValidImage,
+  isValidEmail,
+  isValidPhone,
+  isValidName,
+  isValidPassword,
+  isValidUserId,
+} = require("../utils/validation");
 
 // hash compare password
 
@@ -527,3 +535,106 @@ exports.fetchLiquidityForMemberSummary = (req, res) => {
     }
   });
 };
+
+
+exports.updateMember = async (req, res) => {
+  try {
+    const {
+      m_name,
+      m_lname,
+      m_add,
+      m_phone,
+      m_email,
+      m_state,
+      m_designation,
+      m_userid,
+    } = req.body;
+
+    const requiredFields = [
+      "m_name",
+      "m_lname",
+      "m_email",
+      "m_phone",
+      "m_state",
+      "m_designation",
+      "m_userid",
+      "m_add", 
+    ];
+
+    const missingFields = requiredFields.filter((field) => !req.body[field]);
+
+    if (missingFields.length > 0) {
+      return res.status(422).json({
+        message: `Please fill all details: ${missingFields.join(", ")}`,
+      });
+    }
+
+    // Check if m_name and m_lname are valid
+    if (!isValidName(m_name)) {
+      return res.status(422).json({
+        message: "Invalid first name format.",
+      });
+    }
+
+    if (!isValidName(m_lname)) {
+      return res.status(422).json({
+        message: "Invalid last name format.",
+      });
+    }
+
+    // Check if m_phone is valid
+    if (!isValidPhone(m_phone)) {
+      return res.status(422).json({
+        message:
+          "Invalid phone number format. Use 10 digits or include a country code.",
+      });
+    }
+
+    // Check if m_email is valid
+    if (!isValidEmail(m_email)) {
+      return res.status(422).json({
+        message: "Invalid email format.",
+      });
+    }
+
+    // Construct the SQL query to update the member
+    const updateMemberQuery =
+      "UPDATE create_member SET m_name=?, m_lname=?, m_email=?, m_phone=?, m_state=?, m_designation=?, m_add=? WHERE m_userid=?";
+
+    // Execute the SQL query to update the member
+    connection.query(
+      updateMemberQuery,
+      [m_name, m_lname, m_email, m_phone, m_state, m_designation, m_add, m_userid], 
+      (error, result) => {
+        if (error) {
+          console.error("Error executing SQL query:", error.message);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        if (result.affectedRows === 1) {
+          const updatedData = {
+            m_name,
+            m_lname,
+            m_email,
+            m_phone,
+            m_state,
+            m_designation,
+            m_add,
+            m_userid,
+          };
+
+          res.status(200).json({
+            message: "Member updated successfully",
+            updatedData: updatedData,
+          });
+        } else {
+          res.status(404).json({ message: "Member not found" });
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
