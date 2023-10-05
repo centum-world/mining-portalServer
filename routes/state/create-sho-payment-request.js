@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  createShoPaymentRequest,
+   createPaymentRequest,
 } = require("../../controllers/stateController");
 const {
   isAuthenticated,
@@ -12,8 +12,8 @@ const {
 router.post(
   "/create-sho-payment-request",
   isAuthenticated,
-  authorizeRole(["state"]),
-  createShoPaymentRequest
+  authorizeRole(["state"], "franchise"),
+  createPaymentRequest
 );
 
 module.exports = router;

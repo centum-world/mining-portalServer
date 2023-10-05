@@ -125,16 +125,17 @@ const verifySho = require('./routes/verify-sho')
 const updateMember = require('./routes/update-member') 
 
 // -----------------------admin-----------------------------//
-adminVerifyMember = require('./routes/admin-verify-member');
-adminBlockMember = require('./routes/admin-block-member');
-adminFetchAllMiningPartner = require('./routes/admin-fetch-all-mining-partner');
-adminVerifyPartner = require('./routes/admin-verify-partner');
-adminBlockUnblockPartner = require('./routes/admin-block-unblock-partner');
+const adminVerifyMember = require('./routes/admin-verify-member');
+const adminBlockMember = require('./routes/admin-block-member');
+const adminFetchAllMiningPartner = require('./routes/admin-fetch-all-mining-partner');
+const adminVerifyPartner = require('./routes/admin-verify-partner');
+const adminBlockUnblockPartner = require('./routes/admin-block-unblock-partner');
+const approvePaymentRequestOfSho = require('./routes/state/approve-payment-request-of-sho')
 
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
-const createShoPaymentRequest = require('./routes/state/create-sho-payment-request')
+const createPaymentRequest = require('./routes/state/create-sho-payment-request')
 
 // ------------------------------------------------------------//
 
@@ -258,11 +259,12 @@ app.use('/admin',adminBlockMember);
 app.use('/admin',adminFetchAllMiningPartner);
 app.use('/admin',adminVerifyPartner);
 app.use('/admin',adminBlockUnblockPartner);
+app.use('/admin', approvePaymentRequestOfSho)
 
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);
 app.use('/state', updateSho)
-app.use('/state', createShoPaymentRequest)
+app.use('/state', createPaymentRequest)
 
 // ---------------------------------------------------//
 

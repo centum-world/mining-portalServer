@@ -2909,3 +2909,64 @@ exports.adminBlockUnblockPartner = async (req,res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 }
+
+
+exports.approvePaymentRequestOfSho = async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    // Check if the payment request exists
+    const checkPaymentRequestQuery = "SELECT * FROM payment_request WHERE id = ?";
+    connection.query(checkPaymentRequestQuery, [id], async (error, results) => {
+      if (error) {
+        console.error("Error checking payment request:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ message: "payment request not found." });
+      }
+
+      const paymentRequest = results[0];
+
+      const insertPaymentApprovalQuery = `
+        INSERT INTO payment_approve (userId, amount, requestDate, approveDate)
+        VALUES (?, ?, ?, NOW())
+      `;
+
+      connection.query(insertPaymentApprovalQuery, [
+        paymentRequest.userId,
+        paymentRequest.amount,
+        paymentRequest.requestDate,
+      ], async (error) => {
+        if (error) {
+          console.error("Error inserting payment approval:", error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        const deletePaymentRequestQuery = "DELETE FROM payment_request WHERE id = ?";
+        connection.query(deletePaymentRequestQuery, [id], async (error) => {
+          if (error) {
+            console.error("Error deleting state payment request:", error);
+            return res.status(500).json({ message: "Internal Server Error" });
+          }
+
+          // Update the state handler's paymentRequestCount
+          const updateStateHandlerQuery = "UPDATE create_sho SET paymentRequestCount = paymentRequestCount - 1 WHERE stateHandlerId = ?";
+          connection.query(updateStateHandlerQuery, [paymentRequest.userId], async (error) => {
+            if (error) {
+              console.error("Error updating state handler:", error);
+              return res.status(500).json({ message: "Internal Server Error" });
+            }
+
+            res.status(201).json({ message: "State payment request approved successfully" });
+          });
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Error approving state payment request:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+

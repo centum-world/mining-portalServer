@@ -389,17 +389,17 @@ exports.verifySho = async (req, res) => {
   }
 };
 
-exports.createShoPaymentRequest = async (req, res) => {
+exports.createPaymentRequest = async (req, res) => {
   try {
-    const { stateHandlerId, amount, paymentBy } = req.body;
+    const { userId, amount, paymentBy } = req.body;
 
-    if (!stateHandlerId || !amount || !paymentBy) {
+    if (!userId || !amount || !paymentBy) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     // Check if the state handler exists
     const stateQuery = "SELECT * FROM create_sho WHERE stateHandlerId = ?";
-    connection.query(stateQuery, [stateHandlerId], (error, results) => {
+    connection.query(stateQuery, [userId], (error, results) => {
       if (error) {
         console.error("Error checking state handler:", error);
         return res.status(500).json({ message: "Internal Server Error" });
@@ -429,7 +429,7 @@ exports.createShoPaymentRequest = async (req, res) => {
         WHERE stateHandlerId = ?
       `;
 
-      connection.query(updateWalletQuery, [amount, stateHandlerId], (error) => {
+      connection.query(updateWalletQuery, [amount, userId], (error) => {
         if (error) {
           console.error("Error updating state handler wallet:", error);
           return res.status(500).json({ message: "Internal Server Error" });
@@ -437,11 +437,11 @@ exports.createShoPaymentRequest = async (req, res) => {
 
         // Insert the new payment request
         const insertPaymentRequestQuery = `
-          INSERT INTO state_payment_request (stateHandlerId, amount, paymentBy, requestDate)
+          INSERT INTO payment_request (userId, amount, paymentBy, requestDate)
           VALUES (?, ?, ?, NOW())
         `;
 
-        connection.query(insertPaymentRequestQuery, [stateHandlerId, amount, paymentBy], (error, result) => {
+        connection.query(insertPaymentRequestQuery, [userId, amount, paymentBy], (error, result) => {
           if (error) {
             console.error("Error creating payment request:", error);
             return res.status(500).json({ message: "Internal Server Error" });
@@ -450,7 +450,7 @@ exports.createShoPaymentRequest = async (req, res) => {
           res.status(201).json({
             message: "Payment requested successfully",
             savedPaymentRequest: {
-              stateHandlerId,
+              userId,
               amount,
               paymentBy,
             },
