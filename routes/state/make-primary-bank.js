@@ -1,20 +1,18 @@
 const express = require("express");
 const router = express.Router();
 
-const {
-   createPaymentRequest,
-} = require("../../controllers/stateController");
+const { makePrimaryBank } = require("../../controllers/stateController");
 const {
   isAuthenticated,
   authorizeRole,
 } = require("../../middleware/checkAuth");
 
 router.post(
-  "/create-sho-payment-request",
+  "/make-primary-bank",
   isAuthenticated,
-  authorizeRole(["state"], "franchise"),
-  createPaymentRequest
+  authorizeRole(["state", "admin"]),
+  makePrimaryBank
 );
 
 module.exports = router;
-
+//route
