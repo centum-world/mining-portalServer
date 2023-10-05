@@ -167,7 +167,7 @@ exports.updatePartnerData = (req, res) => {
       partner.p_state,
       partner.p_nominee_name,
       partner.p_nominee_aadhar,
-      partner.p_phone,
+      partner.p_nominee_phone,
       partner.p_dob,
       partner.p_userid,
     ],
