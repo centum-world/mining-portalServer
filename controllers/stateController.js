@@ -389,7 +389,7 @@ exports.verifySho = async (req, res) => {
   }
 };
 
-exports.createStatePaymentRequest = async (req, res) => {
+exports.createShoPaymentRequest = async (req, res) => {
   try {
     const { stateHandlerId, amount, paymentBy } = req.body;
 
@@ -399,61 +399,68 @@ exports.createStatePaymentRequest = async (req, res) => {
 
     // Check if the state handler exists
     const stateQuery = "SELECT * FROM create_sho WHERE stateHandlerId = ?";
-    const [state] = await queryAsync(stateQuery, [stateHandlerId]);
+    connection.query(stateQuery, [stateHandlerId], (error, results) => {
+      if (error) {
+        console.error("Error checking state handler:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
 
-    if (!state) {
-      return res.status(404).json({ message: "S.H.O not found" });
-    }
+      if (results.length === 0) {
+        return res.status(404).json({ message: "S.H.O not found" });
+      }
 
-    if (amount < 1) {
-      return res.status(400).json({ message: "Minimum request amount should be 1" });
-    }
+      const state = results[0];
 
-    if (state.stateHandlerWallet < amount) {
-      return res.status(400).json({ message: "Insufficient funds" });
-    }
+      if (amount < 1) {
+        return res.status(400).json({ message: "Minimum request amount should be 1" });
+      }
 
-    // Start a transaction to ensure data consistency
-    await beginTransaction();
+      if (state.stateHandlerWallet < amount) {
+        return res.status(400).json({ message: "Insufficient funds" });
+      }
 
-    // Deduct the amount from the state handler's wallet
-    const updateWalletQuery = `
-      UPDATE create_sho
-      SET stateHandlerWallet = stateHandlerWallet - ?,
-          paymentRequestCount = paymentRequestCount + 1,
-          firstPayment = 0,
-          verifyDate = NOW()
-      WHERE stateHandlerId = ?
-    `;
+      // Deduct the amount from the state handler's wallet
+      const updateWalletQuery = `
+        UPDATE create_sho
+        SET stateHandlerWallet = stateHandlerWallet - ?,
+            paymentRequestCount = paymentRequestCount + 1,
+            firstPayment = 0,
+            verifyDate = NOW()
+        WHERE stateHandlerId = ?
+      `;
 
-    await queryAsync(updateWalletQuery, [amount, stateHandlerId]);
+      connection.query(updateWalletQuery, [amount, stateHandlerId], (error) => {
+        if (error) {
+          console.error("Error updating state handler wallet:", error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
 
-    // Insert the new payment request
-    const insertPaymentRequestQuery = `
-      INSERT INTO StatePaymentRequest (stateHandlerId, amount, paymentBy, createdAt)
-      VALUES (?, ?, ?, NOW())
-    `;
+        // Insert the new payment request
+        const insertPaymentRequestQuery = `
+          INSERT INTO state_payment_request (stateHandlerId, amount, paymentBy, requestDate)
+          VALUES (?, ?, ?, NOW())
+        `;
 
-    const [result] = await queryAsync(insertPaymentRequestQuery, [stateHandlerId, amount, paymentBy]);
+        connection.query(insertPaymentRequestQuery, [stateHandlerId, amount, paymentBy], (error, result) => {
+          if (error) {
+            console.error("Error creating payment request:", error);
+            return res.status(500).json({ message: "Internal Server Error" });
+          }
 
-    // Commit the transaction
-    await commitTransaction();
-
-    res.status(201).json({
-      message: "Payment requested successfully",
-      savedPaymentRequest: {
-        paymentRequestId: result.insertId,
-        stateHandlerId,
-        amount,
-        paymentBy,
-      },
+          res.status(201).json({
+            message: "Payment requested successfully",
+            savedPaymentRequest: {
+              stateHandlerId,
+              amount,
+              paymentBy,
+            },
+          });
+        });
+      });
     });
   } catch (error) {
-    console.error("Error creating state payment request:", error);
-
-    // Rollback the transaction in case of an error
-    await rollbackTransaction();
-
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error in try-catch block:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+

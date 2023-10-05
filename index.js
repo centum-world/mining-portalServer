@@ -134,6 +134,7 @@ adminBlockUnblockPartner = require('./routes/admin-block-unblock-partner');
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
+const createShoPaymentRequest = require('./routes/state/create-sho-payment-request')
 
 // ------------------------------------------------------------//
 
@@ -260,6 +261,7 @@ app.use('/admin',adminBlockUnblockPartner);
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);
 app.use('/state', updateSho)
+app.use('/state', createShoPaymentRequest)
 
 // ---------------------------------------------------//
 

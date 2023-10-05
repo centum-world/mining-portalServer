@@ -1,0 +1,20 @@
+const express = require("express");
+const router = express.Router();
+
+const {
+  createShoPaymentRequest,
+} = require("../../controllers/stateController");
+const {
+  isAuthenticated,
+  authorizeRole,
+} = require("../../middleware/checkAuth");
+
+router.post(
+  "/create-sho-payment-request",
+  isAuthenticated,
+  authorizeRole(["state"]),
+  createShoPaymentRequest
+);
+
+module.exports = router;
+
