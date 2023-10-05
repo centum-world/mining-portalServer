@@ -545,6 +545,7 @@ exports.updateMember = async (req, res) => {
       m_phone,
       m_email,
       m_userid,
+      m_gender
     } = req.body;
 
     if (!m_name) {
@@ -570,6 +571,11 @@ exports.updateMember = async (req, res) => {
     if (!m_email) {
       return res.status(400).json({
         message: "email is required.",
+      });
+    }
+    if (!m_gender) {
+      return res.status(400).json({
+        message: "Gender is required.",
       });
     }
 
@@ -611,7 +617,7 @@ exports.updateMember = async (req, res) => {
 
     // Construct the SQL query to update the member
     const updateMemberQuery =
-      "UPDATE create_member SET m_name=?, m_lname=?, m_email=?, m_phone=?, m_add=? WHERE m_userid=?";
+      "UPDATE create_member SET m_name=?, m_lname=?, m_email=?, m_phone=?, m_add=?,m_gender=? WHERE m_userid=?";
 
     // Execute the SQL query to update the member
     connection.query(
@@ -623,6 +629,7 @@ exports.updateMember = async (req, res) => {
         m_phone,
         m_add,
         m_userid,
+        m_gender
       ],
       (error, result) => {
         if (error) {
@@ -638,6 +645,7 @@ exports.updateMember = async (req, res) => {
             m_phone,
             m_add,
             m_userid,
+            m_gender
           };
 
           res.status(200).json({
