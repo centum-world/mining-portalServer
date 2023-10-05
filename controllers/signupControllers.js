@@ -569,7 +569,8 @@ exports.createSHO = async (req, res) => {
       gender,
       hashedPassword,
       stateHandlerId,
-      selectedState,
+      JSON.stringify(selectedState), // Convert the array to a JSON string
+
       referredId,
       adharFrontSideLocation,
       adharBackSideLocation,

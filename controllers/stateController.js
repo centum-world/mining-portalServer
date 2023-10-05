@@ -388,3 +388,72 @@ exports.verifySho = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.createStatePaymentRequest = async (req, res) => {
+  try {
+    const { stateHandlerId, amount, paymentBy } = req.body;
+
+    if (!stateHandlerId || !amount || !paymentBy) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Check if the state handler exists
+    const stateQuery = "SELECT * FROM create_sho WHERE stateHandlerId = ?";
+    const [state] = await queryAsync(stateQuery, [stateHandlerId]);
+
+    if (!state) {
+      return res.status(404).json({ message: "S.H.O not found" });
+    }
+
+    if (amount < 1) {
+      return res.status(400).json({ message: "Minimum request amount should be 1" });
+    }
+
+    if (state.stateHandlerWallet < amount) {
+      return res.status(400).json({ message: "Insufficient funds" });
+    }
+
+    // Start a transaction to ensure data consistency
+    await beginTransaction();
+
+    // Deduct the amount from the state handler's wallet
+    const updateWalletQuery = `
+      UPDATE create_sho
+      SET stateHandlerWallet = stateHandlerWallet - ?,
+          paymentRequestCount = paymentRequestCount + 1,
+          firstPayment = 0,
+          verifyDate = NOW()
+      WHERE stateHandlerId = ?
+    `;
+
+    await queryAsync(updateWalletQuery, [amount, stateHandlerId]);
+
+    // Insert the new payment request
+    const insertPaymentRequestQuery = `
+      INSERT INTO StatePaymentRequest (stateHandlerId, amount, paymentBy, createdAt)
+      VALUES (?, ?, ?, NOW())
+    `;
+
+    const [result] = await queryAsync(insertPaymentRequestQuery, [stateHandlerId, amount, paymentBy]);
+
+    // Commit the transaction
+    await commitTransaction();
+
+    res.status(201).json({
+      message: "Payment requested successfully",
+      savedPaymentRequest: {
+        paymentRequestId: result.insertId,
+        stateHandlerId,
+        amount,
+        paymentBy,
+      },
+    });
+  } catch (error) {
+    console.error("Error creating state payment request:", error);
+
+    // Rollback the transaction in case of an error
+    await rollbackTransaction();
+
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
