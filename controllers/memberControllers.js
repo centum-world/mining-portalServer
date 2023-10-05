@@ -544,8 +544,9 @@ exports.updateMember = async (req, res) => {
       m_add,
       m_phone,
       m_email,
+      m_gender,
       m_userid,
-      m_gender
+      
     } = req.body;
 
     if (!m_name) {
@@ -628,8 +629,9 @@ exports.updateMember = async (req, res) => {
         m_email,
         m_phone,
         m_add,
-        m_userid,
-        m_gender
+        m_gender,
+        m_userid
+       
       ],
       (error, result) => {
         if (error) {
@@ -644,8 +646,9 @@ exports.updateMember = async (req, res) => {
             m_email,
             m_phone,
             m_add,
+            m_gender,
             m_userid,
-            m_gender
+            
           };
 
           res.status(200).json({
