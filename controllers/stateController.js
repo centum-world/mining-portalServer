@@ -389,6 +389,11 @@ exports.verifySho = async (req, res) => {
   }
 };
 
+
+// Import the necessary modules and initialize your connection here
+
+// ...
+
 exports.createPaymentRequest = async (req, res) => {
   try {
     const { userId, amount, paymentBy } = req.body;
@@ -447,13 +452,40 @@ exports.createPaymentRequest = async (req, res) => {
             return res.status(500).json({ message: "Internal Server Error" });
           }
 
-          res.status(201).json({
-            message: "Payment requested successfully",
-            savedPaymentRequest: {
-              userId,
-              amount,
-              paymentBy,
-            },
+          // Check if the user has any bank details
+          const checkBankDetailsQuery = "SELECT * FROM bank_details WHERE user_id = ?";
+          connection.query(checkBankDetailsQuery, [userId], (error, bankResults) => {
+            if (error) {
+              console.error("Error checking bank details:", error);
+              return res.status(500).json({ message: "Internal Server Error" });
+            }
+
+            // If no bank details found for the user, provide a message
+            if (bankResults.length === 0) {
+              return res.status(400).json({ message: "Please add bank details" });
+            }
+
+            // Check if the user has a primary bank
+            const checkPrimaryBankQuery = "SELECT * FROM bank_details WHERE user_id = ? AND isPrimary = 1";
+            connection.query(checkPrimaryBankQuery, [userId], (error, bankResults) => {
+              if (error) {
+                console.error("Error checking primary bank:", error);
+                return res.status(500).json({ message: "Internal Server Error" });
+              }
+
+              if (bankResults.length === 0) {
+                return res.status(400).json({ message: "Please add a primary bank" });
+              }
+
+              res.status(201).json({
+                message: "Payment requested successfully",
+                savedPaymentRequest: {
+                  userId,
+                  amount,
+                  paymentBy,
+                },
+              });
+            });
           });
         });
       });
@@ -461,6 +493,53 @@ exports.createPaymentRequest = async (req, res) => {
   } catch (error) {
     console.error("Error in try-catch block:", error);
     return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+
+  
+
+exports.makePrimaryBank = async (req, res) => {
+  try {
+    const { user_id, bank_name } = req.body;
+
+    // Check if any bank details exist for the user
+    const checkBankDetailsQuery = "SELECT * FROM bank_details WHERE user_id = ?";
+    connection.query(checkBankDetailsQuery, [user_id], async (error, results) => {
+      if (error) {
+        console.error("Error checking bank details:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      // If no bank details found for the user, return a 404 response
+      if (results.length === 0) {
+        return res.status(404).json({ message: "No bank details found for the user" });
+      }
+
+      // Clear the primary flag for all user's banks
+      const clearPrimaryFlagQuery = "UPDATE bank_details SET isPrimary = 0 WHERE user_id = ?";
+      connection.query(clearPrimaryFlagQuery, [user_id], async (error) => {
+        if (error) {
+          console.error("Error clearing primary flag:", error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        // Set the selected bank as primary
+        const updateBankDetailsQuery = "UPDATE bank_details SET isPrimary = 1 WHERE user_id = ? AND bank_name = ?";
+        connection.query(updateBankDetailsQuery, [user_id, bank_name], async (error, results) => {
+          if (error) {
+            console.error("Error updating bank details:", error);
+            return res.status(500).json({ message: "Internal Server Error" });
+          }
+
+          res.status(200).json({ message: "Primary bank updated successfully" });
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Error in try-catch block:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 

@@ -136,6 +136,7 @@ const approvePaymentRequestOfSho = require('./routes/state/approve-payment-reque
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
 const createPaymentRequest = require('./routes/state/create-sho-payment-request')
+const makePrimaryBank = require('./routes/state/make-primary-bank')
 
 // ------------------------------------------------------------//
 
@@ -265,6 +266,7 @@ app.use('/admin', approvePaymentRequestOfSho)
 app.use('/state',fetchOwnBankDetails);
 app.use('/state', updateSho)
 app.use('/state', createPaymentRequest)
+app.use('/state', makePrimaryBank)
 
 // ---------------------------------------------------//
 
