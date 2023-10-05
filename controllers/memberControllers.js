@@ -544,8 +544,6 @@ exports.updateMember = async (req, res) => {
       m_add,
       m_phone,
       m_email,
-      m_state,
-      m_designation,
       m_userid,
     } = req.body;
 
@@ -574,16 +572,8 @@ exports.updateMember = async (req, res) => {
         message: "email is required.",
       });
     }
-    if (!m_state) {
-      return res.status(400).json({
-        message: "State is required.",
-      });
-    }
-    if (!m_designation) {
-      return res.status(400).json({
-        message: "Designation is required.",
-      });
-    }
+
+  
 
     if (!m_userid) {
       return res.status(400).json({
@@ -621,7 +611,7 @@ exports.updateMember = async (req, res) => {
 
     // Construct the SQL query to update the member
     const updateMemberQuery =
-      "UPDATE create_member SET m_name=?, m_lname=?, m_email=?, m_phone=?, m_state=?, m_designation=?, m_add=? WHERE m_userid=?";
+      "UPDATE create_member SET m_name=?, m_lname=?, m_email=?, m_phone=?, m_add=? WHERE m_userid=?";
 
     // Execute the SQL query to update the member
     connection.query(
@@ -631,8 +621,6 @@ exports.updateMember = async (req, res) => {
         m_lname,
         m_email,
         m_phone,
-        m_state,
-        m_designation,
         m_add,
         m_userid,
       ],
@@ -648,8 +636,6 @@ exports.updateMember = async (req, res) => {
             m_lname,
             m_email,
             m_phone,
-            m_state,
-            m_designation,
             m_add,
             m_userid,
           };
