@@ -197,7 +197,7 @@ exports.CreateBankDetailsForSho = async (req, res) => {
       if (result.length === 0) {
         return res
           .status(404)
-          .json({ message: "User not found in create_sho table" });
+          .json({ message: "User not found" });
       }
 
       // User exists, proceed to insert bank details
@@ -578,3 +578,35 @@ exports.makePrimaryBank = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.fetchPrimarybank = async (req, res) => {
+  try {
+    const { user_id } = req.body;
+
+    // Query to retrieve the primary bank for the user
+    const fetchPrimaryBankQuery =
+      "SELECT * FROM bank_details WHERE user_id = ? AND isPrimary = 1";
+
+    connection.query(fetchPrimaryBankQuery, [user_id], async (error, results) => {
+      if (error) {
+        console.error("Error fetching primary bank:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      // Check if a primary bank was found
+      if (results.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No primary bank found for the user" });
+      }
+
+      // Return the primary bank details in the response
+      const primaryBank = results[0];
+      res.status(200).json({ primaryBank });
+    });
+  } catch (error) {
+    console.error("Error in fetchPrimarybank try-catch block:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+

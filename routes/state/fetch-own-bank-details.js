@@ -4,7 +4,7 @@ const router = express.Router();
 const { fetchOwnBankDetails } = require("../../controllers/stateController");
 const { isAuthenticated, authorizeRole } = require("../../middleware/checkAuth");
 
-router.post("/state/fetch-own-bank-details", isAuthenticated,authorizeRole(["state","admin"]), fetchOwnBankDetails)
+router.post("/state/fetch-own-bank-details", isAuthenticated,authorizeRole(["state","admin", "franchise"]), fetchOwnBankDetails)
 
 module.exports = router;
 //route
