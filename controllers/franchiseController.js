@@ -307,4 +307,133 @@ exports.fetchFranchiseBankDetails = async (req,res) => {
   }
 }
 
+// create payment request for franchise
+
+exports.createFranchisePaymentRequest = async (req, res)=> {
+  try {
+    const { userId, amount, paymentBy } = req.body;
+
+    if (!userId || !amount || !paymentBy) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Check if the state handler exists
+    const stateQuery = "SELECT * FROM create_franchise WHERE franchiseId = ?";
+    connection.query(stateQuery, [userId], (error, results) => {
+      if (error) {
+        console.error("Error checking franchise:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ message: "Franchise not found" });
+      }
+
+      const franchise = results[0];
+
+      if (amount < 1) {
+        return res
+          .status(400)
+          .json({ message: "Minimum request amount should be 1" });
+      }
+
+      if (franchise.franchiseWallet < amount) {
+        return res.status(400).json({ message: "Insufficient funds" });
+      }
+
+      // Deduct the amount from the state handler's wallet
+      const updateWalletQuery = `
+        UPDATE create_franchise
+        SET franchiseWallet = franchiseWallet - ?,
+            paymentRequestCount = paymentRequestCount + 1,
+            firstPayment = 0,
+            verifyDate = NOW()
+        WHERE franchiseId = ?
+      `;
+
+      connection.query(updateWalletQuery, [amount, userId], (error) => {
+        if (error) {
+          console.error("Error updating franchise wallet:", error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        // Insert the new payment request
+        const insertPaymentRequestQuery = `
+          INSERT INTO payment_request (userId, amount, paymentBy, requestDate)
+          VALUES (?, ?, ?, NOW())
+        `;
+
+        connection.query(
+          insertPaymentRequestQuery,
+          [userId, amount, paymentBy],
+          (error, result) => {
+            if (error) {
+              console.error("Error creating payment request:", error);
+              return res.status(500).json({ message: "Internal Server Error" });
+            }
+
+            // Check if the user has any bank details
+            const checkBankDetailsQuery =
+              "SELECT * FROM bank_details WHERE user_id = ?";
+            connection.query(
+              checkBankDetailsQuery,
+              [userId],
+              (error, bankResults) => {
+                if (error) {
+                  console.error("Error checking bank details:", error);
+                  return res
+                    .status(500)
+                    .json({ message: "Internal Server Error" });
+                }
+
+                // If no bank details found for the user, provide a message
+                if (bankResults.length === 0) {
+                  return res
+                    .status(400)
+                    .json({ message: "Please add bank details" });
+                }
+
+                // Check if the user has a primary bank
+                const checkPrimaryBankQuery =
+                  "SELECT * FROM bank_details WHERE user_id = ? AND isPrimary = 1";
+                connection.query(
+                  checkPrimaryBankQuery,
+                  [userId],
+                  (error, bankResults) => {
+                    if (error) {
+                      console.error("Error checking primary bank:", error);
+                      return res
+                        .status(500)
+                        .json({ message: "Internal Server Error" });
+                    }
+
+                    if (bankResults.length === 0) {
+                      return res
+                        .status(400)
+                        .json({ message: "Please add a primary bank" });
+                    }
+
+                    res.status(201).json({
+                      message: "Payment requested successfully",
+                      savedPaymentRequest: {
+                        userId,
+                        amount,
+                        paymentBy,
+                      },
+                    });
+                  }
+                );
+              }
+            );
+          }
+        );
+      });
+    });
+  } catch (error) {
+    console.error("Error in try-catch block:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+
 

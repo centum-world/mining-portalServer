@@ -2970,3 +2970,26 @@ exports.approvePaymentRequestOfSho = async (req, res) => {
   }
 };
 
+exports.fetchPaymentRequestForAll = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    // Query to fetch payment requests for the given userId
+    const fetchPaymentRequestsQuery =
+      "SELECT * FROM payment_request WHERE userId = ?";
+
+    connection.query(fetchPaymentRequestsQuery, [userId], async (error, results) => {
+      if (error) {
+        console.error("Error fetching payment requests:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      // Return the list of payment requests in the response
+      res.status(200).json({ paymentRequests: results });
+    });
+  } catch (error) {
+    console.error("Error in fetchPaymentRrquest try-catch block:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+

@@ -131,7 +131,8 @@ const adminFetchAllMiningPartner = require('./routes/admin-fetch-all-mining-part
 const adminVerifyPartner = require('./routes/admin-verify-partner');
 const adminBlockUnblockPartner = require('./routes/admin-block-unblock-partner');
 const approvePaymentRequestOfSho = require('./routes/state/approve-payment-request-of-sho')
-
+ 
+const fetchPaymentRequestForAll = require('./routes/fetch-payment-request-for-all')
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
@@ -262,6 +263,7 @@ app.use('/admin',adminFetchAllMiningPartner);
 app.use('/admin',adminVerifyPartner);
 app.use('/admin',adminBlockUnblockPartner);
 app.use('/admin', approvePaymentRequestOfSho)
+app.use('/admin', fetchPaymentRequestForAll)
 
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);
