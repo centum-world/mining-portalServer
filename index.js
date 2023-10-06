@@ -145,6 +145,7 @@ const fetchPrimaryBank = require('./routes/state/fetch-primary-bank')
 // ------------------------------franchise------------------------//
 const franchiseAddBankDetails = require('./routes/frenchise/franchise-add-bank-details');
 const fetchFranchiseBankDetails = require('./routes/frenchise/fetch-bank-details');
+const createFranchisePaymentRequest = require('./routes/frenchise/create-franchise-payment-request')
 // ------------------------------------------------------------------//
 
 const blockAndUnblockFranchise = require("./routes/block-and-unblock-franchise")
@@ -279,5 +280,6 @@ app.use('/franchise',franchiseAddBankDetails);
 app.use('/franchise',fetchFranchiseBankDetails);
 
 app.use('/franchise', updateFranchise)
+app.use('/franchise', createFranchisePaymentRequest)
 
 module.exports = app;
