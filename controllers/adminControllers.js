@@ -2984,6 +2984,10 @@ exports.fetchPaymentRequestForAll = async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
       }
 
+      if(results.length == 0){
+        return res.status(404).json({message: "Payment request not found"})
+      }
+
       // Return the list of payment requests in the response
       res.status(200).json({ paymentRequests: results });
     });
