@@ -2924,42 +2924,62 @@ exports.approvePaymentRequestOfSho = async (req, res) => {
       }
 
       if (results.length === 0) {
-        return res.status(404).json({ message: "payment request not found." });
+        return res.status(404).json({ message: "Payment request not found." });
       }
 
       const paymentRequest = results[0];
 
-      const insertPaymentApprovalQuery = `
-        INSERT INTO payment_approve (userId, amount, requestDate, approveDate)
-        VALUES (?, ?, ?, NOW())
-      `;
-
-      connection.query(insertPaymentApprovalQuery, [
-        paymentRequest.userId,
-        paymentRequest.amount,
-        paymentRequest.requestDate,
-      ], async (error) => {
+      // Fetch the user's bank name
+      const fetchUserBankQuery =
+        "SELECT bank_name FROM bank_details WHERE user_id = ?";
+      connection.query(fetchUserBankQuery, [paymentRequest.userId], async (error, bankResults) => {
         if (error) {
-          console.error("Error inserting payment approval:", error);
+          console.error("Error fetching user's bank name:", error);
           return res.status(500).json({ message: "Internal Server Error" });
         }
 
-        const deletePaymentRequestQuery = "DELETE FROM payment_request WHERE id = ?";
-        connection.query(deletePaymentRequestQuery, [id], async (error) => {
+        if (bankResults.length === 0) {
+          return res.status(400).json({ message: "User's bank details not found" });
+        }
+
+        const userBankName = bankResults[0].bank_name;
+
+        const insertPaymentApprovalQuery = `
+          INSERT INTO payment_approve (userId, amount, requestDate, approveDate, bankName)
+          VALUES (?, ?, ?, NOW(), ?)
+        `;
+
+        connection.query(insertPaymentApprovalQuery, [
+          paymentRequest.userId,
+          paymentRequest.amount,
+          paymentRequest.requestDate,
+          userBankName, // Include the user's bank name in the query
+        ], async (error) => {
           if (error) {
-            console.error("Error deleting state payment request:", error);
+            console.error("Error inserting payment approval:", error);
             return res.status(500).json({ message: "Internal Server Error" });
           }
 
-          // Update the state handler's paymentRequestCount
-          const updateStateHandlerQuery = "UPDATE create_sho SET paymentRequestCount = paymentRequestCount - 1 WHERE stateHandlerId = ?";
-          connection.query(updateStateHandlerQuery, [paymentRequest.userId], async (error) => {
+          const deletePaymentRequestQuery = "DELETE FROM payment_request WHERE id = ?";
+          connection.query(deletePaymentRequestQuery, [id], async (error) => {
             if (error) {
-              console.error("Error updating state handler:", error);
+              console.error("Error deleting state payment request:", error);
               return res.status(500).json({ message: "Internal Server Error" });
             }
 
-            res.status(201).json({ message: "State payment request approved successfully" });
+            // Update the state handler's paymentRequestCount
+            const updateStateHandlerQuery = "UPDATE create_sho SET paymentRequestCount = paymentRequestCount - 1 WHERE stateHandlerId = ?";
+            connection.query(updateStateHandlerQuery, [paymentRequest.userId], async (error) => {
+              if (error) {
+                console.error("Error updating state handler:", error);
+                return res.status(500).json({ message: "Internal Server Error" });
+              }
+
+              res.status(201).json({
+                message: "State payment request approved successfully",
+                bankName: userBankName, // Include the user's bank name in the response
+              });
+            });
           });
         });
       });
@@ -2969,6 +2989,32 @@ exports.approvePaymentRequestOfSho = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.fetchParticularPaymentApprove = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    // Query to fetch particular payment approvals for the given userId
+    const fetchPaymentApprovalsQuery = `
+      SELECT * FROM payment_approve
+      WHERE userId = ?
+    `;
+
+    connection.query(fetchPaymentApprovalsQuery, [userId], async (error, results) => {
+      if (error) {
+        console.error("Error fetching payment approvals:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      // Return the list of payment approvals in the response
+      res.status(200).json({ paymentApprovals: results });
+    });
+  } catch (error) {
+    console.error("Error in fetchParticularPaymentApprove try-catch block:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 
 exports.fetchPaymentRequestForAll = async (req, res) => {
   try {
