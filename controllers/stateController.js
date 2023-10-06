@@ -519,6 +519,7 @@ exports.createPaymentRequest = async (req, res) => {
   }
 };
 
+
 exports.makePrimaryBank = async (req, res) => {
   try {
     const { user_id, bank_name } = req.body;
