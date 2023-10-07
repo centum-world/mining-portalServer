@@ -436,4 +436,27 @@ exports.createFranchisePaymentRequest = async (req, res)=> {
 }
 
 
+exports.allBdDetailsReferredByFranchise = (req, res) => {
+  try {
+    const { referralId } = req.body; 
+
+    const findBdquery = "SELECT * FROM create_bd WHERE referredId = ?";
+
+    connection.query(findBdquery, [referralId], (error, results) => {
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ message: "No Business Developers found with this referralId." });
+      }
+
+      return res.status(200).json({ message: "Business Developers referred by Franchise fetched successfully", results });
+    });
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
