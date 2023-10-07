@@ -816,6 +816,7 @@ exports.createBd = async (req, res) => {
       businessDeveloperId,
       referredId,
       businessCity,
+      state
     } = req.body;
 
     // Check for missing files
@@ -860,6 +861,7 @@ exports.createBd = async (req, res) => {
       "referredId",
       "businessCity",
       "gender",
+      "state"
     ];
 
     const missingFields = requiredFields.filter((field) => !req.body[field]);
@@ -926,8 +928,8 @@ exports.createBd = async (req, res) => {
 
     // Insert data into the database
     const insertBusinessDeveloperQuery = `
-        INSERT INTO create_bd (fname, lname, phone, email, gender, password, businessDeveloperId, adhar_back_side, adhar_front_side, panCard, referralId, referredId, businessCity)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO create_bd (fname, lname, phone, email, gender, password, businessDeveloperId, adhar_back_side, adhar_front_side, panCard, referralId, referredId, businessCity, state)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
     await queryAsync(insertBusinessDeveloperQuery, [
@@ -944,6 +946,7 @@ exports.createBd = async (req, res) => {
       referralId,
       referredId,
       businessCity,
+      state
     ]);
 
     return res.status(201).json({
@@ -961,6 +964,7 @@ exports.createBd = async (req, res) => {
         referralId,
         referredId,
         businessCity,
+        state
       },
     });
   } catch (error) {
