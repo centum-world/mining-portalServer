@@ -801,3 +801,170 @@ exports.createFranchise = async (req, res) => {
     return res.status(500).json({ message: "Internal server Error" });
   }
 };
+
+//create business developer
+
+exports.createBd = async (req, res) => {
+  try {
+    const {
+      fname,
+      lname,
+      phone,
+      email,
+      gender,
+      password,
+      businessDeveloperId,
+      referredId,
+      businessCity,
+    } = req.body;
+
+    // Check for missing files
+    if (!req.files["adhar_front_side"]) {
+      return res
+        .status(400)
+        .json({ message: "Adhar card front side file is missing." });
+    }
+  
+    if (!req.files["adhar_back_side"]) {
+      return res
+        .status(400)
+        .json({ message: "Adhar card back side file is missing." });
+    }
+  
+    if (!req.files["panCard"]) {
+      return res.status(400).json({ message: "Pan card file is missing." });
+    }
+
+    const adharCardBackFile = req.files["adhar_back_side"][0];
+    const adharCardFrontFile = req.files["adhar_front_side"][0];
+    const panCardFile = req.files["panCard"][0];
+
+    // Check if adharCard image is valid using isValidImage function
+    if (!isValidImage(adharCardBackFile.originalname) || !isValidImage(adharCardFrontFile.originalname) || !isValidImage(panCardFile.originalname)) {
+      return res.status(422).json({
+        message: "Invalid image format. Images must be in jpeg, jpg, tiff, png, webp, or bmp format.",
+      });
+    }
+
+    const adharBackLocation = adharCardBackFile.location;
+    const adharFrontLocation = adharCardFrontFile.location;
+    const panCardLocation = panCardFile.location;
+
+    const requiredFields = [
+      "fname",
+      "lname",
+      "email",
+      "phone",
+      "password",
+      "businessDeveloperId",
+      "referredId",
+      "businessCity",
+      "gender",
+    ];
+
+    const missingFields = requiredFields.filter((field) => !req.body[field]);
+    if (missingFields.length > 0) {
+      return res.status(422).json({
+        message: `Please fill all details: ${missingFields.join(", ")}`,
+      });
+    }
+
+    // Validate businessDeveloperId uniqueness
+    const checkBusinessDeveloperQuery = "SELECT businessDeveloperId FROM create_bd WHERE businessDeveloperId = ?";
+    const existingBusinessDeveloper = await queryAsync(checkBusinessDeveloperQuery, [businessDeveloperId]);
+
+    if (existingBusinessDeveloper.length > 0) {
+      return res.status(422).json({
+        message: "This Business Developer ID already exists. Please choose a unique ID.",
+      });
+    }
+
+    // Check if referredId exists in your Frenchise table
+    const checkReferredIdQuery = "SELECT referralId FROM create_franchise WHERE referralId = ?";
+    const existingReferredId = await queryAsync(checkReferredIdQuery, [referredId]);
+
+    if (existingReferredId.length === 0) {
+      return res.status(400).json({ message: "Invalid referredId. Please provide a valid referral Id." });
+    }
+
+    if (!isValidPhone(phone)) {
+      return res.status(422).json({
+        message: "Invalid phone number format. Use 10 digits or include country code.",
+      });
+    }
+
+    if (!isValidName(fname) || !isValidName(lname)) {
+      return res.status(422).json({
+        message: "Invalid name format.",
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(422).json({
+        message: "Invalid email format.",
+      });
+    }
+
+    if (!isValidPassword(password)) {
+      return res.status(422).json({
+        message: "Password must be 8 to 15 characters long and contain at least one lowercase letter, one uppercase letter, and one digit.",
+      });
+    }
+
+    if (!isValidUserId(businessDeveloperId)) {
+      return res.status(422).json({
+        message: "Business Developer Id Should have at least 1 letter and 1 digit, minimum length 6.",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const firstThreeDigits = `${fname.substring(0, 3).toUpperCase()}`;
+    const randomDigits = Math.floor(1000 + Math.random() * 9000);
+    const referralId = "BD" + "-" + firstThreeDigits + randomDigits;
+
+
+    // Insert data into the database
+    const insertBusinessDeveloperQuery = `
+        INSERT INTO create_bd (fname, lname, phone, email, gender, password, businessDeveloperId, adhar_back_side, adhar_front_side, panCard, referralId, referredId, businessCity)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+    await queryAsync(insertBusinessDeveloperQuery, [
+      fname,
+      lname,
+      phone,
+      email,
+      gender,
+      hashedPassword,
+      businessDeveloperId,
+      adharBackLocation,
+      adharFrontLocation,
+      panCardLocation,
+      referralId,
+      referredId,
+      businessCity,
+    ]);
+
+    return res.status(201).json({
+      message: "Business Developer created successfully",
+      data: {
+        fname,
+        lname,
+        phone,
+        email,
+        gender,
+        businessDeveloperId,
+        adhar_back_side: adharBackLocation,
+        adhar_front_side: adharFrontLocation,
+        panCard: panCardLocation,
+        referralId,
+        referredId,
+        businessCity,
+      },
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

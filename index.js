@@ -134,6 +134,7 @@ const approvePaymentRequestOfSho = require('./routes/state/approve-payment-reque
  
 const fetchPaymentRequestForAll = require('./routes/fetch-payment-request-for-all')
 const fetchParticularPaymentApprove = require('./routes/fetch-particular-payment-approve')
+const createBd = require('./routes/create-bd')
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
@@ -151,6 +152,11 @@ const createFranchisePaymentRequest = require('./routes/frenchise/create-franchi
 
 const blockAndUnblockFranchise = require("./routes/block-and-unblock-franchise")
 const updateFranchise = require('./routes/update-franchise')
+
+//========================bd======================================
+
+const loginBd = require('./routes/bd/login-bd')
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -240,6 +246,7 @@ app.use("/admin", accountsPaidWithdrawal);
 app.use("/member", fetchLiquidityForMemberSummary);
 app.use("/admin", createSHO);
 app.use("/admin", createFranchise);
+app.use("/admin", createBd)
 app.use("/state", loginSHO);
 app.use("/franchise", loginFranchise);
 app.use("/state", fetchParticularSHO);
@@ -284,5 +291,8 @@ app.use('/franchise',fetchFranchiseBankDetails);
 
 app.use('/franchise', updateFranchise)
 app.use('/franchise', createFranchisePaymentRequest)
+
+//=======================================================//
+app.use('/bd', loginBd)
 
 module.exports = app;
