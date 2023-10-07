@@ -135,6 +135,7 @@ const approvePaymentRequestOfSho = require('./routes/state/approve-payment-reque
 const fetchPaymentRequestForAll = require('./routes/fetch-payment-request-for-all')
 const fetchParticularPaymentApprove = require('./routes/fetch-particular-payment-approve')
 const createBd = require('./routes/create-bd')
+const fetchAllBd = require('./routes/fetch-all-bd')
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
@@ -275,6 +276,7 @@ app.use('/admin',adminBlockUnblockPartner);
 app.use('/admin', approvePaymentRequestOfSho)
 app.use('/admin', fetchPaymentRequestForAll)
 app.use('/admin', fetchParticularPaymentApprove)
+app.use('/admin', fetchAllBd)
 
 
 // --------------------state------------------------///
