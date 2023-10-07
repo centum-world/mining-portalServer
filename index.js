@@ -155,7 +155,8 @@ const updateFranchise = require('./routes/update-franchise')
 
 //========================bd======================================
 
-const loginBd = require('./routes/bd/login-bd')
+const loginBd = require('./routes/bd/login-bd') 
+const fetchParticularBd = require('./routes/bd/fetch-particular-bd')
 
 const app = express();
 
@@ -294,5 +295,6 @@ app.use('/franchise', createFranchisePaymentRequest)
 
 //=======================================================//
 app.use('/bd', loginBd)
+app.use('/bd', fetchParticularBd)
 
 module.exports = app;
