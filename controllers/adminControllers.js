@@ -495,7 +495,7 @@ exports.fetchSumOfAllPartnerLiquidity = (req, res) => {
 exports.fetchAllActivePartnerOnly = (req, res) => {
   //const partnerId = req.body;
   let query =
-    "select p_userid,p_name,p_phone,p_reffered_id,p_dop,p_liquidity,partner_status,month_count from mining_partner where (partner_status = '1' OR month_count='11') OR (partner_status = '0' AND month_count = '12')";
+    "select p_userid,p_name,p_lname,p_phone,p_reffered_id,p_dop,p_liquidity,partner_status,month_count from mining_partner where (partner_status = '1' OR month_count='11') OR (partner_status = '0' AND month_count = '12')";
   connection.query(query, (err, results) => {
     if (!err) {
       return res.status(200).json({
@@ -872,7 +872,7 @@ exports.approveMemberWithdrawalRequest = (req, res) => {
 exports.fetchAllPendingPartnerOnly = (req, res) => {
   //const partnerId = req.body;
   let query =
-    "select p_userid,p_name,p_phone,p_reffered_id,p_phone,p_liquidity from mining_partner where partner_status = '0' AND month_count='0'";
+    "select p_userid,p_name,p_lname,p_phone,p_reffered_id,p_phone,p_liquidity from mining_partner where partner_status = '0' AND month_count='0'";
   connection.query(query, (err, results) => {
     if (!err) {
       return res.status(200).json({
@@ -2356,82 +2356,84 @@ exports.fetchMemberRefferWithdrawalRequestFromAdmin = (req, res) => {
 
 // approveMemberRefferWithdrawalRequest
 exports.approveMemberRefferWithdrawalRequest = (req, res) => {
-  let partnerId = req.body;
+  const partnerId = req.body;
   console.log(partnerId.id, "250");
-  let query =
-    "select member_wallet,request_date,id,reffer_p_userid,m_userid from member_reffer_withdrawal where id = ? ";
+  const query =
+    "SELECT member_wallet, request_date, id, reffer_p_userid, m_userid FROM member_reffer_withdrawal WHERE id = ?";
+
   connection.query(query, [partnerId.id], (err, results) => {
-    if (!err) {
-      //console.log(res);
-      console.log(results);
-
-      let member_wallet = results[0]?.member_wallet;
-      let id = results[0]?.id;
-      let request_date = results[0]?.request_date;
-      let reffer_p_userid = results[0]?.reffer_p_userid;
-      let m_userid = results[0]?.m_userid;
-      let approve_date = new Date();
-      let insertquery =
-        "insert into member_reffer_withdrawal_history (member_wallet,request_date,approve_date,reffer_p_userid,m_userid) values (?,?,?,?,?)";
-      connection.query(
-        insertquery,
-        [member_wallet, request_date, approve_date, reffer_p_userid, m_userid],
-        (err, results) => {
-          try {
-            if (!err) {
-              let selectquery =
-                "select m_email,m_phone from create_member where m_userid = ?";
-              connection.query(
-                selectquery,
-                [partnerId.m_userid],
-                (err, results) => {
-                  try {
-                    if (!err) {
-                      let memberEmail = results[0]?.m_email;
-                      let memberPhone = results[0]?.m_phone;
-                      console.log(memberPhone, "270");
-                      withdrawalSms(memberPhone, {
-                        type: "Member",
-                        userid: m_userid,
-                        amount: member_wallet,
-                      });
-
-                      email(memberEmail, { withdrawalAmount: member_wallet });
-                    } else {
-                      return res.status(500).json({
-                        message: "Something Went Wrong1",
-                      });
-                    }
-                  } catch (error) {
-                    return res.status(500).json(error);
-                  }
-                }
-              );
-
-              let deletequery =
-                "delete from member_reffer_withdrawal where id = ?";
-              connection.query(deletequery, [partnerId.id], (err, results) => {
-                if (!err) {
-                  return res.status(200).json({
-                    message: " Member Reffer Withdrwal Request Approved",
-                  });
-                }
-              });
-            } else {
-              return res.status(500).json({
-                message: "Something Went Wrong2",
-              });
-            }
-          } catch (error) {
-            return res.status(500).json(error);
-          }
-        }
-      );
-    } else {
-      return res.status(500).json(err);
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Database error" });
     }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Withdrawal request not found" });
+    }
+
+    const {
+      member_wallet,
+      id,
+      request_date,
+      reffer_p_userid,
+      m_userid,
+    } = results[0];
+    const approve_date = new Date();
+    const insertQuery =
+      "INSERT INTO member_reffer_withdrawal_history (member_wallet, request_date, approve_date, reffer_p_userid, m_userid) VALUES (?, ?, ?, ?, ?)";
+
+    connection.query(
+      insertQuery,
+      [member_wallet, request_date, approve_date, reffer_p_userid, m_userid],
+      (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ message: "Database error" });
+        }
+
+        const selectQuery =
+          "SELECT m_email, m_phone FROM create_member WHERE m_userid = ?";
+
+        connection.query(selectQuery, [partnerId.m_userid], (err, results) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Database error" });
+          }
+
+          if (results.length === 0) {
+            return res.status(404).json({ message: "Member not found" });
+          }
+
+          const memberEmail = results[0]?.m_email;
+          const memberPhone = results[0]?.m_phone;
+
+          console.log(memberPhone, "270");
+          // withdrawalSms(memberPhone, {
+          //   type: "Member",
+          //   userid: m_userid,
+          //   amount: member_wallet,
+          // });
+
+          email(memberEmail, { withdrawalAmount: member_wallet });
+
+          const deleteQuery =
+            "DELETE FROM member_reffer_withdrawal WHERE id = ?";
+          connection.query(deleteQuery, [id], (err) => {
+            if (err) {
+              console.error(err);
+              return res.status(500).json({ message: "Database error" });
+            }
+
+            return res
+              .status(200)
+              .json({ message: "Member Referral Withdrawal Request Approved" });
+          });
+        });
+      }
+    );
   });
 };
+
 
 // fetchMemberRefferApproveWithdrawalHostoryFromAdmin
 exports.fetchMemberRefferApproveWithdrawalHostoryFromAdmin = (req, res) => {
