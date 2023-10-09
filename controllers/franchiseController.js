@@ -174,6 +174,8 @@ exports.updateFranchise = async (req, res) => {
       });
     }
 
+    const cityList = franchiseCity.join(',');
+
     // Construct the SQL query to update the franchise
     const updateFranchiseQuery =
       "UPDATE create_franchise SET fname=?, lname=?, email=?, phone=?, gender=?, franchiseState=?, franchiseCity=? WHERE franchiseId=?";
@@ -188,7 +190,7 @@ exports.updateFranchise = async (req, res) => {
         phone,
         gender,
         franchiseState,
-        franchiseCity,
+        cityList,
         franchiseId,
       ],
       (error, result) => {
