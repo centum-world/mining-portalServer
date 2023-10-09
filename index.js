@@ -161,6 +161,7 @@ const loginBd = require('./routes/bd/login-bd')
 const fetchParticularBd = require('./routes/bd/fetch-particular-bd')
 const blockAndUnblockBd = require('./routes/bd/block-and-unblock-bd')
 const verifyBd = require('./routes/bd/verify-bd')
+const updateBd = require('./routes/bd/update-bd')
 
 const app = express();
 
@@ -304,4 +305,6 @@ app.use('/bd', loginBd)
 app.use('/bd', fetchParticularBd)
 app.use('/bd', blockAndUnblockBd)
 app.use('/bd', verifyBd)
+app.use('/bd', updateBd)
+
 module.exports = app;

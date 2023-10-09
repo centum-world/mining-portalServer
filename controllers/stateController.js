@@ -104,37 +104,10 @@ exports.fetchAllStateOfSHO = async (req, res) => {
   }
 };
 
-// exports.fetchAllOwnFranchiseInState = async (req, res) => {
-//   try {
-//     const referralId = req.body;
-
-//     if (!referralId) {
-//       return res.status(404).json({ message: "Referral Id is required" });
-//     }
-
-//     const findFranchiseQuery =
-//       "SELECT * from create_Franchise WHERE referredId = ?";
-//     const [franchiseRows] = queryAsync(findFranchiseQuery, [referralId]);
-
-//     if (franchiseRows.length == 0) {
-//       return res
-//         .status(404)
-//         .json({ message: "Franchises not found for the given state" });
-//     }
-
-//     return res.status(200).json({
-//       message: "All Own Franchise fetched successfully",
-//       franchise: franchiseRows,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching franchises:", error);
-//     return res.status(500).json({ message: "Internal Server Error" });
-//   }
-// };
 
 exports.fetchAllOwnFranchiseInState = async (req, res) => {
   try {
-    const { referralId } = req.body; // Destructure referralId from the request body
+    const { referralId } = req.body; 
 
     if (!referralId) {
       return res.status(404).json({ message: "Referral Id is required" });

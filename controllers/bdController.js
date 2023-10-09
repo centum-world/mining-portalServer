@@ -137,3 +137,104 @@ exports.verifyBd = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.updateBd = async (req, res) => {
+  try {
+    const {
+      fname,
+      lname,
+      email,
+      phone,
+      gender,
+      state,
+      businessCity,
+      businessDeveloperId,
+    } = req.body;
+
+    const requiredFields = [
+      "fname",
+      "lname",
+      "email",
+      "phone",
+      "gender",
+      "state",
+      "businessCity",
+      "businessDeveloperId",
+    ];
+    const missingFields = requiredFields.filter((field) => !req.body[field]);
+
+    if (missingFields.length > 0) {
+      return res.status(422).json({
+        message: `Please fill all details: ${missingFields.join(", ")}`,
+      });
+    }
+
+    // Check if name is valid
+    if (!isValidName(fname)) {
+      return res.status(422).json({
+        message: "Invalid first name format.",
+      });
+    }
+
+    if (!isValidName(lname)) {
+      return res.status(422).json({
+        message: "Invalid last name format.",
+      });
+    }
+
+    // Check if phone is valid
+    if (!isValidPhone(phone)) {
+      return res.status(422).json({
+        message:
+          "Invalid phone number format. Use 10 digits or include a country code.",
+      });
+    }
+
+    // Check if email is valid
+    if (!isValidEmail(email)) {
+      return res.status(422).json({
+        message: "Invalid email format.",
+      });
+    }
+
+    // Construct the SQL query to update the business developer
+    const updateBdQuery =
+      "UPDATE create_bd SET fname=?, lname=?, email=?, phone=?, gender=?, state=?, businessCity=? WHERE businessDeveloperId=?";
+
+    // Execute the SQL query to update the business developer
+    connection.query(
+      updateBdQuery,
+      [fname, lname, email, phone, gender, state, businessCity, businessDeveloperId],
+      (error, result) => {
+        if (error) {
+          console.error("Error executing SQL query:", error.message);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        if (result.affectedRows === 1) {
+          const updatedData = {
+            fname,
+            lname,
+            email,
+            phone,
+            gender,
+            state,
+            businessCity,
+            businessDeveloperId,
+          };
+
+          res.status(200).json({
+            message: "Business Developer updated successfully",
+            updatedData: updatedData,
+          });
+        } else {
+          res.status(404).json({ message: "Business Developer not found" });
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+

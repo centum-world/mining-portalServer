@@ -10,7 +10,7 @@ const {
 router.post(
   "/verify-bd",
   isAuthenticated,
-  authorizeRole(["admin", 'franchise']),
+  authorizeRole(["admin", "franchise"]),
   verifyBd
 );
 
