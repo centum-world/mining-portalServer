@@ -1012,13 +1012,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                     "update mining_partner set partner_status= ?,partner_wallet = ?, partner_count = ? where p_userid = ?";
                   connection.query(
                     updatequery,
-                    [
-                      (partner_status = 0),
-                      (partner_wallet = 0),
-                      (partner_count = 0),
-                      partnerid.p_userid,
-                    ],
-                    (err, results) => {
+                    [(partner_status = 0),(partner_wallet = 0),(partner_count = 0),partnerid.p_userid,], (err, results) => {
                       try {
                         if (!err) {
                           return res.status(400).json({
@@ -1111,14 +1105,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                           query =
                             "update mining_partner  set partner_wallet=?,wallet_update_date=?,partner_count=?,perday_partner_wallet_amount=? where p_userid =?";
                           connection.query(
-                            query,
-                            [
-                              partner_wallet,
-                              partnerid.partnerdate,
-                              partner_count,
-                              perday_partner_wallet_amount,
-                              partnerid.p_userid,
-                            ],
+                            query,[partner_wallet,partnerid.partnerdate,partner_count,perday_partner_wallet_amount,partnerid.p_userid,],
                             (err, results) => {
                               try {
                                 if (!err) {
@@ -1162,11 +1149,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
 
                                                 connection.query(
                                                   updatequery,
-                                                  [
-                                                    month_count,
-                                                    partnerid.p_userid,
-                                                  ],
-                                                  (err, results) => {}
+                                                  [month_count,partnerid.p_userid,],(err, results) => { }
                                                 );
                                               }
                                             }
@@ -1711,7 +1694,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                       (
                                                                         err,
                                                                         results
-                                                                      ) => {}
+                                                                      ) => { }
                                                                     );
                                                                     let selectMemberRefferWalletHistory =
                                                                       "select * from member_reffer_wallet_history where reffer_p_userid =?";
@@ -1750,7 +1733,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                             (
                                                                               err,
                                                                               results
-                                                                            ) => {}
+                                                                            ) => { }
                                                                           );
                                                                         }
                                                                         if (
@@ -1855,7 +1838,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                                           (
                                                                                             err,
                                                                                             results
-                                                                                          ) => {}
+                                                                                          ) => { }
                                                                                         );
                                                                                       }
                                                                                     }
@@ -1981,7 +1964,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                           });
                                         } else {
                                         }
-                                      } catch (error) {}
+                                      } catch (error) { }
                                     }
                                   );
                                 } else {
@@ -3110,3 +3093,43 @@ exports.fetchAllBd = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+// fetchParticularMemberWithdrawalRequest
+exports.fetchParticularMemberWithdrawalRequest = async (req,res) => {
+   const memberId = req.body;
+  try {
+     let query ="select * from member_reffer_withdrawal where m_userid = ?";
+   connection.query(query,[memberId.m_userid], (err, results) => {
+     if (!err) {
+       return res.status(200).json({
+         message: "Fetched Member Withdrawal Request to Admin successfully",
+         data: results,
+       });
+     } else {
+       return res.status(400).json({
+        message:"Something went wrong"
+       });
+     }
+   });
+  } catch (error) {
+    return res.status(500).json({
+      message:"Internal Server error"
+    })
+  }
+}
+
+// fetchParticularMemberApprovedWithdrawalHistory
+exports.fetchParticularMemberApprovedWithdrawalHistory = async (req,res) => {
+  let memberId = req.body;
+  let query = "select * from member_reffer_withdrawal_history where m_userid =? ";
+  connection.query(query, [memberId.m_userid], (err, results) => {
+    if (!err) {
+      return res.status(200).json({
+        message: "Fetched Partner Withdrawal History data successfully",
+        memberWithdrawalHistory: results,
+      });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}

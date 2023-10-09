@@ -130,12 +130,14 @@ const adminBlockMember = require('./routes/admin-block-member');
 const adminFetchAllMiningPartner = require('./routes/admin-fetch-all-mining-partner');
 const adminVerifyPartner = require('./routes/admin-verify-partner');
 const adminBlockUnblockPartner = require('./routes/admin-block-unblock-partner');
-const approvePaymentRequestOfSho = require('./routes/state/approve-payment-request-of-sho')
+const approvePaymentRequestOfSho = require('./routes/state/approve-payment-request-of-sho');
+const fetchParticularMemberWithdrawalRequest = require('./routes/fetch-particular-member-withdrawal-request');
  
 const fetchPaymentRequestForAll = require('./routes/fetch-payment-request-for-all')
 const fetchParticularPaymentApprove = require('./routes/fetch-particular-payment-approve')
 const createBd = require('./routes/create-bd')
 const fetchAllBd = require('./routes/fetch-all-bd')
+const fetchParticularMemberApprovedWithdrawalHistory = require('./routes/fetch-particular-member-approved-withdrawal-history');
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
@@ -281,6 +283,8 @@ app.use('/admin', approvePaymentRequestOfSho)
 app.use('/admin', fetchPaymentRequestForAll)
 app.use('/admin', fetchParticularPaymentApprove)
 app.use('/admin', fetchAllBd)
+app.use('/admin',fetchParticularMemberWithdrawalRequest);
+app.use('/admin',fetchParticularMemberApprovedWithdrawalHistory);
 
 
 // --------------------state------------------------///

@@ -134,7 +134,7 @@ exports.addMemberBankDetails = (req, res) => {
 //Fetch Member Bank Details
 exports.fetchMemberBankDetails = (req, res) => {
   const memberId = req.body;
-  let query = "select * from member_bank_details where user_id = ?";
+  let query = "select * from bank_details where user_id = ?";
   connection.query(query, [memberId.user_id], (err, results) => {
     if (!err) {
       return res.status(200).json({
@@ -142,7 +142,9 @@ exports.fetchMemberBankDetails = (req, res) => {
         data: results,
       });
     } else {
-      return res.status(500).json(err);
+      return res.status(500).json({
+        message:"Internal Server error"
+      });
     }
   });
 };
