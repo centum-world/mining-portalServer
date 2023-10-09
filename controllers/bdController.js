@@ -109,3 +109,31 @@ exports.blockAndUnblockBd = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.verifyBd = async (req, res) => {
+  try {
+    const { businessDeveloperId } = req.body;
+
+    const updateBdQuery = "UPDATE create_bd SET isVerify = 1 WHERE businessDeveloperId = ?";
+
+    connection.query(
+      updateBdQuery,
+      [businessDeveloperId],
+      (error, result) => {
+        if (error) {
+          console.error("Error executing SQL query:", error.message);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "Business developer not found" });
+        }
+
+        res.status(200).json({ message: "This business developer is verified successfully." });
+      }
+    );
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
