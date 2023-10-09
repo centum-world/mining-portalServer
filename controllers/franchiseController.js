@@ -127,7 +127,7 @@ exports.updateFranchise = async (req, res) => {
       franchiseCity,
       franchiseId,
     } = req.body;
-
+    
     const requiredFields = [
       "fname",
       "lname",
@@ -177,6 +177,7 @@ exports.updateFranchise = async (req, res) => {
     const cityList = franchiseCity.join(',');
 
     // Construct the SQL query to update the franchise
+    console.log(phone, 180)
     const updateFranchiseQuery =
       "UPDATE create_franchise SET fname=?, lname=?, email=?, phone=?, gender=?, franchiseState=?, franchiseCity=? WHERE franchiseId=?";
 

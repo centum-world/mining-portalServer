@@ -290,13 +290,15 @@ exports.updateSho = async (req, res) => {
     }
 
     // Construct the SQL query to update the sho
+
+    const state = selectedState.join(',');
     const updateShoQuery =
       "UPDATE create_sho SET fname=?, lname=?, email=?, phone=?, gender=?, selectedState=? WHERE stateHandlerId=?";
 
     // Execute the SQL query to update the franchise
     connection.query(
       updateShoQuery,
-      [fname, lname, email, phone, gender, selectedState, stateHandlerId],
+      [fname, lname, email, phone, gender, state, stateHandlerId],
       (error, result) => {
         if (error) {
           console.error("Error executing SQL query:", error.message);
@@ -310,7 +312,7 @@ exports.updateSho = async (req, res) => {
             email,
             phone,
             gender,
-            selectedState,
+            state,
             stateHandlerId,
           };
 
