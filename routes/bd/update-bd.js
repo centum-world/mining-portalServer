@@ -7,7 +7,7 @@ const {
   authorizeRole,
 } = require("../../middleware/checkAuth");
 
-router.post(
+router.put(
   "/update-bd",
   isAuthenticated,
   authorizeRole(["admin", "franchise", "bd"]),
