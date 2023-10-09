@@ -17,11 +17,9 @@ exports.loginBd = async (req, res) => {
 
     // Check if required fields are missing
     if (!userid || !password) {
-      return res
-        .status(422)
-        .json({
-          message: "Please provide Business developer Id  and password.",
-        });
+      return res.status(422).json({
+        message: "Please provide Business developer Id  and password.",
+      });
     }
 
     const findUserQuery =
@@ -77,5 +75,37 @@ exports.fetchParticularBd = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+exports.blockAndUnblockBd = async (req, res) => {
+  try {
+    const { isBlocked, businessDeveloperId } = req.body;
+
+    const updateBdQuery =
+      "UPDATE create_bd SET isBlocked = ? WHERE businessDeveloperId = ?";
+
+    connection.query(
+      updateBdQuery,
+      [isBlocked, businessDeveloperId],
+      (error, result) => {
+        if (error) {
+          console.error("Error executing SQL query:", error.message);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: "Business developer not found" });
+        }
+
+        const message = isBlocked
+          ? "This business dveloper is blocked successfully."
+          : "This business dveloper is unblocked successfully.";
+
+        res.status(200).json({ message });
+      }
+    );
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };

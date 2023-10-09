@@ -159,6 +159,7 @@ const updateFranchise = require('./routes/update-franchise')
 
 const loginBd = require('./routes/bd/login-bd') 
 const fetchParticularBd = require('./routes/bd/fetch-particular-bd')
+const blockAndUnblockBd = require('./routes/bd/block-and-unblock-bd')
 
 const app = express();
 
@@ -300,5 +301,6 @@ app.use('/franchise', allBdDetailsReferredByFranchise)
 //=======================================================//
 app.use('/bd', loginBd)
 app.use('/bd', fetchParticularBd)
+app.use('/bd', blockAndUnblockBd)
 
 module.exports = app;
