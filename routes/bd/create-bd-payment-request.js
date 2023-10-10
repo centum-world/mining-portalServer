@@ -1,20 +1,17 @@
 const express = require("express");
 const router = express.Router();
 
-const {
-   createPaymentRequest,
-} = require("../../controllers/stateController");
+const { createBdPaymentRequest } = require("../../controllers/bdController");
 const {
   isAuthenticated,
   authorizeRole,
 } = require("../../middleware/checkAuth");
 
 router.post(
-  "/create-sho-payment-request",
+  "/bd/create-bd-payment-request",
   isAuthenticated,
-  authorizeRole(['state']),
-  createPaymentRequest
+  authorizeRole([ "bd"]),
+  createBdPaymentRequest
 );
 
 module.exports = router;
-

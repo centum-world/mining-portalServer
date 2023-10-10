@@ -271,7 +271,7 @@ exports.franchiseAddBankDetails = async (req,res) =>{
   
             return res
               .status(201)
-              .json({ message: "Bank details added successfully for SHO" });
+              .json({ message: "Bank details added successfully for franchise" });
           }
         );
       });
