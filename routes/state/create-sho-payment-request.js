@@ -12,7 +12,7 @@ const {
 router.post(
   "/create-sho-payment-request",
   isAuthenticated,
-  authorizeRole(["state"], "franchise"),
+  authorizeRole(["state"]),
   createPaymentRequest
 );
 
