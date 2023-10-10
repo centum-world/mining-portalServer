@@ -911,26 +911,43 @@ exports.isPartnerActiveManualFromAdmin = (req, res) => {
 
 // doActivatePartnerManualFromAdmin
 exports.doActivatePartnerManualFromAdmin = (req, res) => {
+
   let partnerid = req.body;
   if (!partnerid) {
     return res.status(422).json({
       message: "No Data Found",
     });
   }
-  let query = "update mining_partner set partner_status=? where p_userid=? ";
+  let query = "update mining_partner set partner_status = ? where p_userid = ? ";
   connection.query(
     query,
     [(partner_status = 1), partnerid.p_userid],
     (err, results) => {
       if (!err) {
         let selectquery =
-          " select p_liquidity,p_phone from mining_partner where p_userid = ?";
+          " select * from mining_partner where p_userid = ?";
         connection.query(selectquery, [partnerid.p_userid], (err, results) => {
+          console.log(results, "results")
+
           let liquidity = results[0]?.p_liquidity;
           let phone = results[0]?.p_phone;
           console.log(liquidity, phone, "621");
           doPartnerActivateSms(phone, { liquidity: liquidity });
+
+
+          const findMember =  "Select * from create_member where reffer_id = ?"
+
+          connection.query(findMember, [results[0].p_reffered_id], (error, result) => {
+            if(error){
+              console.log((error.message))
+            }
+          })
+
+
         });
+
+
+
         return res.status(200).json({
           message: "Mining Partner Liquiditity Paid successfully",
         });
@@ -3150,7 +3167,80 @@ exports.fetchParticularMemberApprovedWithdrawalHistory = async (req, res) => {
   });
 };
 
+exports.partnerPerMonthPayout = async (req, res) => {
+  try {
+    let memberReferred = "";
+    let bdReferred = "";
+    let franchiseReferred = "";
+    let shoReferred = "";
 
+    let referredId = "";
+
+    const { userId, amount, requestDate } = req.body;
+
+    if (!requestDate || !amount) {
+      return res
+        .status(422)
+        .json({ mesaage: "Please provide date and amount." });
+    }
+
+    const findPartnerQuery = "select * from mining_partner where p_userid = ?";
+
+    connection.query(findPartnerQuery, [userId], (error, result) => {
+      if (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+
+      const partner = result[0];
+
+      referredId = partner.p_reffered_id;
+
+      const insertPartnerRequestWalletHistory = `insert into partner_withdrawal (p_userid,partner_wallet, request_date  ) values(?,?,?)`;
+
+      connection.query(
+        insertPartnerRequestWalletHistory,
+        [userId, amount, requestDate],
+        (error, result) => {
+          if (error) {
+            console.log(error.message);
+          }
+        }
+      );
+
+      //check refererred id exist in member table or partner
+
+      const findMember = "select * from create_member where reffer_id =?";
+
+      connection.query(findMember, [referredId], (error, result) => {
+        if (error) {
+          console.log(error.message);
+        }
+
+        const member = result[0];
+        console.log(member, "member details");
+      });
+
+      const findPartner = "select * from mining_partner where p_refferal_id =?";
+
+      connection.query(findPartner, [referredId], (error, result) => {
+        if (error) {
+          console.log(error.message);
+        }
+
+        const refferredPartner = result[0];
+        console.log(refferredPartner, " reffered partner details");
+      });
+
+      
+
+
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 exports.approvePaymentRequestOfFranchise = async (req, res) => {
   try {
