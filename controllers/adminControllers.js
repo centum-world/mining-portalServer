@@ -2541,9 +2541,18 @@ exports.approveMemberRefferWithdrawalRequest = (req, res) => {
               return res.status(500).json({ message: "Database error" });
             }
 
+            const updateMemberWallet = "UPDATE create_member SET member_wallet = member_wallet - ? WHERE m_userid = ?";
+
+            connection.query(updateMemberWallet, [member_wallet, m_userid], (err) => {
+              if (err) {
+                console.error(err);
+                return res.status(500).json({ message: "Database error" });
+              }
+
             return res
               .status(200)
               .json({ message: "Member Referral Withdrawal Request Approved" });
+            })
           });
         });
       }
