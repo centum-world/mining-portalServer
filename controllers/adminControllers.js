@@ -911,56 +911,159 @@ exports.isPartnerActiveManualFromAdmin = (req, res) => {
 
 // doActivatePartnerManualFromAdmin
 exports.doActivatePartnerManualFromAdmin = (req, res) => {
-
   let partnerid = req.body;
   if (!partnerid) {
     return res.status(422).json({
       message: "No Data Found",
     });
   }
-  let query = "update mining_partner set partner_status = ? where p_userid = ? ";
+  let query =
+    "update mining_partner set partner_status = ? where p_userid = ? ";
   connection.query(
     query,
     [(partner_status = 1), partnerid.p_userid],
     (err, results) => {
       if (!err) {
-        let selectquery =
-          " select * from mining_partner where p_userid = ?";
+        let selectquery = " select * from mining_partner where p_userid = ?";
         connection.query(selectquery, [partnerid.p_userid], (err, results) => {
-          console.log(results, "results")
-
           let liquidity = results[0]?.p_liquidity;
           let phone = results[0]?.p_phone;
-          console.log(liquidity, phone, "621");
-          doPartnerActivateSms(phone, { liquidity: liquidity });
+          let referredIdOfPartner = results[0]?.p_reffered_id;
+          // doPartnerActivateSms(phone, { liquidity: liquidity });
 
+          const findMember = "Select * from create_member where reffer_id = ?";
 
-          const findMember =  "Select * from create_member where reffer_id = ?"
+          connection.query(
+            findMember,
+            [referredIdOfPartner],
+            (error, result) => {
+              if (error) {
+                console.log(error.message);
+                return res
+                  .status(500)
+                  .json({ medssage: "Internal server error" });
+              }
 
-          connection.query(findMember, [results[0].p_reffered_id], (error, result) => {
-            if(error){
-              console.log((error.message))
+              const member = result[0];
+              const referredIdOfMember = member.m_refferid;
+
+              const findBdQuery =
+                "select * from create_bd where referralId =? ";
+              connection.query(
+                findBdQuery,
+                [referredIdOfMember],
+                (error, result) => {
+                  if (error) {
+                    console.log(error.message);
+                    return res
+                      .status(500)
+                      .json({ message: "Internal server error." });
+                  }
+
+                  let bdWallet = (liquidity * 4) / 100;
+
+                  const updateWalletForBd =
+                    "update create_bd set bdWallet = ? where referralId = ?";
+
+                  connection.query(
+                    updateWalletForBd,
+                    [bdWallet, referredIdOfMember],
+                    (error, result) => {
+                      if (error) {
+                        console.log(error.message);
+                        return res
+                          .status(500)
+                          .json({ message: "Internal server error." });
+                      }
+                    }
+                  );
+
+                  const referredIdOfBd = result[0].referredId;
+
+                  const findFranchiseQuery =
+                    "select * from create_franchise where referralId= ?";
+
+                  connection.query(
+                    findFranchiseQuery,
+                    [referredIdOfBd],
+                    (error, result) => {
+                      if (error) {
+                        console.log(error.message);
+                        return res
+                          .status(500)
+                          .json({ message: "Internal server error." });
+                      }
+
+                      let franchiseShare = (liquidity * 3) / 100;
+
+                      const updateWalletForFranchise =
+                        "update create_franchise set franchiseWallet = ? where referralId = ?";
+                      connection.query(updateWalletForFranchise, [
+                        franchiseShare,
+                        referredIdOfBd,
+                        (error, result) => {
+                          if (error) {
+                            console.log(error.message);
+                            return res
+                              .status(500)
+                              .json({ message: "Internal server error." });
+                          }
+                        },
+                      ]);
+
+                      const franchise = result[0];
+                      const referredIdOfFranchise = franchise.referredId;
+
+                      const findShoQuery =
+                        "select * from create_sho where referralId = ?";
+                      connection.query(
+                        findShoQuery,
+                        [referredIdOfFranchise],
+                        (error, result) => {
+                          if (error) {
+                            console.log(error.message);
+                            return res
+                              .status(500)
+                              .json({ message: "Internal server error." });
+                          }
+
+                          const sho = result[0];
+                          const shoShare = (liquidity * 3) / 100;
+
+                          const updateWalletForSho =
+                            "update create_sho set stateHandlerWallet = ? where referralId = ?";
+                          connection.query(
+                            updateWalletForSho,
+                            [shoShare, referredIdOfFranchise],
+                            (error, result) => {
+                              if (error) {
+                                console.log(error.message);
+                                return res
+                                  .status(500)
+                                  .json({ message: "Internal server error" });
+                              }
+                            }
+                          );
+                        }
+                      );
+                    }
+                  );
+                }
+              );
             }
-          })
-
-
+          );
         });
-
-
 
         return res.status(200).json({
           message: "Mining Partner Liquiditity Paid successfully",
         });
       } else {
-        return res.status(500).json({
-          message: err,
-        });
+        return res.status(500).json({ message: "internal server error." });
       }
     }
   );
 };
 
-// perdayAmountTransferToPartnerManual
 exports.perdayAmountTransferToPartnerManual = (req, res) => {
   let reffered_id = "";
   let table_flag = "";
@@ -3033,8 +3136,6 @@ exports.approvePaymentRequestOfSho = async (req, res) => {
   }
 };
 
-
-
 exports.fetchParticularPaymentApprove = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -3231,10 +3332,6 @@ exports.partnerPerMonthPayout = async (req, res) => {
         const refferredPartner = result[0];
         console.log(refferredPartner, " reffered partner details");
       });
-
-      
-
-
     });
   } catch (error) {
     console.log(error.message);
@@ -3333,8 +3430,9 @@ exports.approvePaymentRequestOfFranchise = async (req, res) => {
                       }
 
                       res.status(201).json({
-                        message: "Franchise payment request approved successfully",
-                        bankName: userBankName, 
+                        message:
+                          "Franchise payment request approved successfully",
+                        bankName: userBankName,
                       });
                     }
                   );
