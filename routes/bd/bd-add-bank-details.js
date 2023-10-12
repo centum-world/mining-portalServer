@@ -7,3 +7,4 @@ const { isAuthenticated, authorizeRole } = require("../../middleware/checkAuth")
 router.post("/bd-add-bank-details",isAuthenticated, authorizeRole(["bd"]), bdAddBankDetails);
 
 module.exports = router;
+
