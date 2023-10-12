@@ -10,7 +10,7 @@ const {
 router.post(
   "/fetch-payment-request-for-all",
   isAuthenticated,
-  authorizeRole(["state", "franchise", "admin"]),
+  authorizeRole(["state", "franchise", "admin", "bd"]),
   fetchPaymentRequestForAll
 );
 
