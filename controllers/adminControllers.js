@@ -3057,7 +3057,7 @@ exports.approvePaymentRequestOfSho = async (req, res) => {
 
       // Fetch the user's bank name
       const fetchUserBankQuery =
-        "SELECT bank_name FROM bank_details WHERE user_id = ?";
+        "SELECT bank_name FROM bank_details WHERE user_id = ? AND isPrimary =1";
       connection.query(
         fetchUserBankQuery,
         [paymentRequest.userId],
@@ -3369,7 +3369,7 @@ exports.approvePaymentRequestOfFranchise = async (req, res) => {
 
       // Fetch the user's bank name
       const fetchUserBankQuery =
-        "SELECT bank_name FROM bank_details WHERE user_id = ?";
+        "SELECT bank_name FROM bank_details WHERE user_id = ? AND isPrimary =1";
       connection.query(
         fetchUserBankQuery,
         [paymentRequest.userId],
@@ -3409,7 +3409,7 @@ exports.approvePaymentRequestOfFranchise = async (req, res) => {
               }
 
               const deletePaymentRequestQuery =
-                "DELETE FROM payment_request WHERE id = ?";
+                "DELETE FROM payment_request WHERE id = ? ";
               connection.query(
                 deletePaymentRequestQuery,
                 [id],
@@ -3479,7 +3479,7 @@ exports.approvePaymentRequestOfBd = async (req, res) => {
 
       // Fetch the user's bank name
       const fetchUserBankQuery =
-        "SELECT bank_name FROM bank_details WHERE user_id = ?";
+        "SELECT bank_name FROM bank_details WHERE user_id = ? AND isPrimary =1";
       connection.query(
         fetchUserBankQuery,
         [paymentRequest.userId],
