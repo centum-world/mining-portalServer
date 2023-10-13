@@ -68,7 +68,7 @@ exports.fetchParticularBd = async (req, res) => {
           .json({ message: "Business Developer not found" });
       }
 
-      const bdDetails = result[0]
+      const bdDetails = result[0];
 
       return res
         .status(200)
@@ -309,7 +309,7 @@ exports.bdAddBankDetails = async (req, res) => {
   }
 };
 
-//franchise payment request 
+//franchise payment request
 
 exports.createBdPaymentRequest = async (req, res) => {
   try {
@@ -434,5 +434,34 @@ exports.createBdPaymentRequest = async (req, res) => {
   } catch (error) {
     console.error("Error in try-catch block:", error);
     return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//fetch all members by particular bd referralId
+
+exports.fetchMembersReferredByBd = async (req, res) => {
+  try {
+    const { referralId } = req.body;
+
+    const findMembersQuery = "select * from create_member where m_refferid = ?";
+
+    connection.query(findMembersQuery, [referralId], (error, results) => {
+      if (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: "Internal server error." });
+      }
+      // Check if any results were found
+      if (results.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No members found for the given referralId." });
+      }
+      return res
+        .status(200)
+        .json({ message: "Members fetched by given referral Id.", results });
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: "Internal server error." });
   }
 };

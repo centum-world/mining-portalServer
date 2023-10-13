@@ -170,6 +170,7 @@ const verifyBd = require('./routes/bd/verify-bd')
 const updateBd = require('./routes/bd/update-bd') 
 const bdAddBankDetails = require('./routes/bd/bd-add-bank-details')
 const createBdPaymentRequest = require('./routes/bd/create-bd-payment-request')
+const fetchMembersReferredByBd = require('./routes/bd/fetch-members-referred-by-bd')
 
 const app = express();
 
@@ -321,5 +322,6 @@ app.use('/bd', verifyBd)
 app.use('/bd', updateBd)
 app.use('/bd', bdAddBankDetails)
 app.use('/bd', createBdPaymentRequest)
+app.use('/bd', fetchMembersReferredByBd)
 
 module.exports = app;
