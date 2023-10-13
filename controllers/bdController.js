@@ -68,9 +68,11 @@ exports.fetchParticularBd = async (req, res) => {
           .json({ message: "Business Developer not found" });
       }
 
+      const bdDetails = result[0]
+
       return res
         .status(200)
-        .json({ message: "Bd details fetched successfully", result });
+        .json({ message: "Bd details fetched successfully", bdDetails });
     });
   } catch (error) {
     console.error(error);
