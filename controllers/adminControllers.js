@@ -3457,3 +3457,112 @@ exports.approvePaymentRequestOfFranchise = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.approvePaymentRequestOfBd = async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    // Check if the payment request exists
+    const checkPaymentRequestQuery =
+      "SELECT * FROM payment_request WHERE id = ?";
+    connection.query(checkPaymentRequestQuery, [id], async (error, results) => {
+      if (error) {
+        console.error("Error checking payment request:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ message: "Payment request not found." });
+      }
+
+      const paymentRequest = results[0];
+
+      // Fetch the user's bank name
+      const fetchUserBankQuery =
+        "SELECT bank_name FROM bank_details WHERE user_id = ?";
+      connection.query(
+        fetchUserBankQuery,
+        [paymentRequest.userId],
+        async (error, bankResults) => {
+          if (error) {
+            console.error("Error fetching user's bank name:", error);
+            return res.status(500).json({ message: "Internal Server Error" });
+          }
+
+          if (bankResults.length === 0) {
+            return res
+              .status(400)
+              .json({ message: "User's bank details not found" });
+          }
+
+          const userBankName = bankResults[0].bank_name;
+
+          const insertPaymentApprovalQuery = `
+          INSERT INTO payment_approve (userId, amount, requestDate, approveDate, bankName)
+          VALUES (?, ?, ?, NOW(), ?)
+        `;
+
+          connection.query(
+            insertPaymentApprovalQuery,
+            [
+              paymentRequest.userId,
+              paymentRequest.amount,
+              paymentRequest.requestDate,
+              userBankName, // Include the user's bank name in the query
+            ],
+            async (error) => {
+              if (error) {
+                console.error("Error inserting payment approval:", error);
+                return res
+                  .status(500)
+                  .json({ message: "Internal Server Error" });
+              }
+
+              const deletePaymentRequestQuery =
+                "DELETE FROM payment_request WHERE id = ?";
+              connection.query(
+                deletePaymentRequestQuery,
+                [id],
+                async (error) => {
+                  if (error) {
+                    console.error(
+                      "Error deleting bd payment request:",
+                      error
+                    );
+                    return res
+                      .status(500)
+                      .json({ message: "Internal Server Error" });
+                  }
+
+                  // Update the state handler's paymentRequestCount
+                  const updateBdQuery =
+                    "UPDATE create_bd SET paymentRequestCount = paymentRequestCount - 1 WHERE businessDeveloperId = ?";
+                  connection.query(
+                    updateBdQuery,
+                    [paymentRequest.userId],
+                    async (error) => {
+                      if (error) {
+                        console.error("Error updating business developer:", error);
+                        return res
+                          .status(500)
+                          .json({ message: "Internal Server Error" });
+                      }
+
+                      res.status(201).json({
+                        message: "Business developer payment request approved successfully",
+                        bankName: userBankName, // Include the user's bank name in the response
+                      });
+                    }
+                  );
+                }
+              );
+            }
+          );
+        }
+      );
+    });
+  } catch (error) {
+    console.error("Error approving state payment request:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

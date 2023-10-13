@@ -140,6 +140,7 @@ const fetchAllBd = require('./routes/fetch-all-bd')
 const fetchParticularMemberApprovedWithdrawalHistory = require('./routes/fetch-particular-member-approved-withdrawal-history');
 const fetchParticularPartner = require('./routes/fetch-particular-partner')
 const approvePaymentRequestOfFranchise = require('./routes/approve-payment-request-of-franchise')
+const approvePaymentRequestOfBd = require('./routes/approve-payment-request-of-bd')
 
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
@@ -292,6 +293,7 @@ app.use('/admin', fetchAllBd)
 app.use('/admin',fetchParticularMemberWithdrawalRequest);
 app.use('/admin',fetchParticularMemberApprovedWithdrawalHistory);
 app.use('/admin', approvePaymentRequestOfFranchise)
+app.use('/admin', approvePaymentRequestOfBd)
 
 
 // --------------------state------------------------///
