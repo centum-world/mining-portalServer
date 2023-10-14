@@ -465,3 +465,33 @@ exports.fetchMembersReferredByBd = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
+// fetchWithdrawalRequestHistroy
+exports.fetchWithdrawalRequestHistroy = async (req,res) => {
+  try {
+    const { userId } = req.body;
+
+    const findBdquery = "SELECT * FROM  payment_request Where userId = ?";
+
+    connection.query(findBdquery, [userId], (error, result) => {
+      if (error) {
+        console.log(error);
+        return res.status(500).json({ message: "internaln server erro" });
+      }
+      if (result.length == 0) {
+        return res
+          .status(404)
+          .json({ message: "Business Developer not found" });
+      }
+
+      const withdrawalRequest = result;
+
+      return res
+        .status(200)
+        .json({ message: "Withdrawal request fetched", withdrawalRequest });
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
