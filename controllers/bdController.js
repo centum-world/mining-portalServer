@@ -143,6 +143,7 @@ exports.verifyBd = async (req, res) => {
   }
 };
 
+
 exports.updateBd = async (req, res) => {
   try {
     const {
