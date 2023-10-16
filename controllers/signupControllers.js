@@ -23,7 +23,34 @@ exports.memberSignup = (req, res, next) => {
   let member = req.body;
   let firstname = req.body.m_name;
   let lastname = req.body.m_lname;
+
+  if (!req.files["adhar_front_side"]) {
+    return res
+      .status(400)
+      .json({ message: "Adhar card front side file is missing." });
+  }
+
+  if (!req.files["adhar_back_side"]) {
+    return res
+      .status(400)
+      .json({ message: "Adhar card back side file is missing." });
+  }
+
+  if (!req.files["panCard"]) {
+    return res.status(400).json({ message: "Pan card file is missing." });
+  }
+
+  const adharFrontSideFile = req.files["adhar_front_side"][0];
+  const adharBackSideFile = req.files["adhar_back_side"][0];
+  const panCardFile = req.files["panCard"][0];
+
+  const adharFrontSideLocation = adharFrontSideFile.location;
+  const adharBackSideLocation = adharBackSideFile.location;
+  const panCardLocation = panCardFile.location;
+
+
   let reffer_id = "";
+
   const firstCharf = firstname.charAt(0).toUpperCase();
   const firstCharl = lastname.charAt(0).toUpperCase();
 
@@ -44,7 +71,7 @@ exports.memberSignup = (req, res, next) => {
                 }
                 hash = result;
                 let query =
-                  "insert into create_member (m_name,m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_designation, m_quali, m_gender, m_exp, m_salary,m_dob, m_doj , m_userid, m_password, reffer_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                  "insert into create_member (m_name,m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_designation, m_quali, m_gender, m_exp, m_salary,m_dob, m_doj , m_userid, m_password, reffer_id, adhar_front_side, adhar_back_side, panCard) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,?,?)";
                 connection.query(
                   query,
                   [
@@ -65,6 +92,9 @@ exports.memberSignup = (req, res, next) => {
                     member.m_userid,
                     hash,
                     reffer_id,
+                    adharFrontSideLocation,
+                    adharBackSideLocation,
+                    panCardLocation,
                   ],
                   (err, results) => {
                     if (!err) {
@@ -110,7 +140,7 @@ exports.memberSignup = (req, res, next) => {
                 }
                 hash = result;
                 let query =
-                  "insert into create_member (m_name,m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_designation, m_quali, m_gender, m_exp, m_salary,m_dob, m_doj , m_userid, m_password, reffer_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                  "insert into create_member (m_name,m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_designation, m_quali, m_gender, m_exp, m_salary,m_dob, m_doj , m_userid, m_password, reffer_id,  adhar_front_side, adhar_back_side, panCard) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,?,?)";
                 connection.query(
                   query,
                   [
@@ -131,6 +161,9 @@ exports.memberSignup = (req, res, next) => {
                     member.m_userid,
                     hash,
                     reffer_id,
+                    adharFrontSideLocation,
+                    adharBackSideLocation,
+                    panCardLocation,
                   ],
                   (err, results) => {
                     if (!err) {
@@ -161,46 +194,6 @@ exports.memberSignup = (req, res, next) => {
       }
     }
   });
-  // let selectquery = "select * from create_member where m_userid =?";
-  // connection.query(selectquery, [member.m_userid], (err, results) => {
-  //     if (!err) {
-  //         if (results.length <= 0) {
-  //             let password = member.m_password;
-
-  //             bcrypt.hash(member.m_password, 10, function (err, result) {
-  //                 if (err) {
-  //                     throw (err);
-  //                 }
-  //                 hash = result;
-
-  //                 let query = "insert into create_member (m_name,m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_designation, m_quali, m_gender, m_exp, m_salary,m_dob, m_doj , m_userid, m_password, reffer_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-  //                 connection.query(query, [member.m_name,member.m_lname, member.m_phone, member.m_add,
-  //                 member.m_refferid, member.m_state, member.m_email, member.m_designation,
-  //                 member.m_quali, member.m_gender, member.m_exp,
-  //                 member.m_salary, member.m_dob, member.m_doj, member.m_userid,
-  //                     hash, member.reffer_id], (err, results) => {
-  //                         if (!err) {
-
-  //                             sms(member.m_phone, { "type": 'Member', "userid": member.m_userid, "password": password })
-
-  //                             return res.status(200).json({
-  //                                 message: "member added successfully"
-  //                             });
-  //                         } else {
-  //                             return res.status(500).json(err);
-  //                         }
-  //                     });
-  //             })
-
-  //         } else {
-  //             return res.status(400).json({
-  //                 message: "Member ID already exist!"
-  //             })
-  //         }
-  //     } else {
-  //         return res.status(500).json(err);
-  //     }
-  // });
 };
 
 // Partner Signup
@@ -209,6 +202,31 @@ exports.partnerSignup = (req, res, next) => {
   let partner = req.body;
   let firstname = req.body.p_name;
   let lastname = req.body.p_lname;
+
+  if (!req.files["adhar_front_side"]) {
+    return res
+      .status(400)
+      .json({ message: "Adhar card front side file is missing." });
+  }
+
+  if (!req.files["adhar_back_side"]) {
+    return res
+      .status(400)
+      .json({ message: "Adhar card back side file is missing." });
+  }
+
+  if (!req.files["panCard"]) {
+    return res.status(400).json({ message: "Pan card file is missing." });
+  }
+
+  const adharFrontSideFile = req.files["adhar_front_side"][0];
+  const adharBackSideFile = req.files["adhar_back_side"][0];
+  const panCardFile = req.files["panCard"][0];
+
+  const adharFrontSideLocation = adharFrontSideFile.location;
+  const adharBackSideLocation = adharBackSideFile.location;
+  const panCardLocation = panCardFile.location;
+
   const firstCharf = firstname.charAt(0).toUpperCase();
   const firstCharl = lastname.charAt(0).toUpperCase();
   let p_refferal_id = "";
@@ -255,7 +273,7 @@ exports.partnerSignup = (req, res, next) => {
                 }
                 hash = result;
                 let query =
-                  "insert into mining_partner(p_reffered_id ,p_name,p_lname ,p_aadhar,p_phone,p_email,p_address,p_state,p_dob,p_nominee_name,p_nominee_aadhar,p_nominee_phone,p_dop,p_liquidity, terms,p_userid,p_password, p_refferal_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                  "insert into mining_partner(p_reffered_id ,p_name,p_lname ,p_aadhar,p_phone,p_email,p_address,p_state,p_dob,p_nominee_name,p_nominee_aadhar,p_nominee_phone,p_dop,p_liquidity, terms,p_userid,p_password, p_refferal_id,adhar_front_side, adhar_back_side, panCard) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,?,?)";
                 connection.query(
                   query,
                   [
@@ -277,6 +295,9 @@ exports.partnerSignup = (req, res, next) => {
                     partner.p_userid,
                     hash,
                     p_refferal_id,
+                    adharFrontSideLocation,
+                    adharBackSideLocation,
+                    panCardLocation
                   ],
                   (err, results) => {
                     if (!err) {
@@ -321,7 +342,7 @@ exports.partnerSignup = (req, res, next) => {
                 }
                 hash = result;
                 let query =
-                  "insert into mining_partner(p_reffered_id ,p_name,p_lname ,p_aadhar,p_phone,p_email,p_address,p_state,p_dob,p_nominee_name,p_nominee_aadhar,p_nominee_phone,p_dop,p_liquidity, terms,p_userid,p_password, p_refferal_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                  "insert into mining_partner(p_reffered_id ,p_name,p_lname ,p_aadhar,p_phone,p_email,p_address,p_state,p_dob,p_nominee_name,p_nominee_aadhar,p_nominee_phone,p_dop,p_liquidity, terms,p_userid,p_password, p_refferal_id,adhar_front_side, adhar_back_side, panCard) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
                 connection.query(
                   query,
                   [
@@ -343,6 +364,10 @@ exports.partnerSignup = (req, res, next) => {
                     partner.p_userid,
                     hash,
                     p_refferal_id,
+                    adharFrontSideLocation,
+                    adharBackSideLocation,
+                    panCardLocation
+
                   ],
                   (err, results) => {
                     if (!err) {

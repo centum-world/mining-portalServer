@@ -1,17 +1,13 @@
 const express = require('express');
-//const connection = require('../config/database');
-const router = express.Router();
+const router = express.Router()
+const upload  = require("../utils/aws"); 
 
-//const sms = require('./successfull-add-sms');
-require('dotenv').config();
-const accountSid = process.env.ACCOUNT_SID 
-const authToken = process.env.TWILIO_AUTH_TOKEN
-const client = require("twilio")(accountSid, authToken);
+
 
 const signupController = require('../controllers/signupControllers');
-//const { jwt } = require('twilio');
-//const checkAuthMiddleware = require('../middleware/checkAuth');
-router.post('/member-signup',signupController.memberSignup);
+
+router.post('/member-signup',upload.fields([{ name: 'adhar_front_side' },{ name: 'adhar_back_side' }, {name: "panCard"}]),signupController.memberSignup);
 
 
 module.exports = router;
+
