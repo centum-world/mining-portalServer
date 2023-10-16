@@ -571,35 +571,20 @@ exports.businessDevFetchPartnerTeam = async (req, res) => {
     const memberReferredIds = result.map((entry) => entry.reffer_id);
     console.log(memberReferredIds)
 
-      const findPartnerQuery = "SELECT * FROM mining_partner WHERE p_referred_id = ?";
-    connection.query(findPartnerQuery, [memberReferredIds], (err, partnerResult) => {
-      if (err) {
-        console.error("Error in mining_partner query:", err);
-        return res.status(500).json({ message: "Internal server error" });
-      }
-      if (partnerResult.length === 0) {
-        return res.status(404).json({ message: "No Partners found" });
-      }
-      const foundPartners = partnerResult;
-      return res.status(200).json({ message: "Partners found", foundPartners });
-    });
-    // const nameListItems = referredIds.map((name, index) => {
-    //   const findPartnerQuery = "SELECT * FROM mining_partner where p_reffered_id = ?";
-    //   connection.query(findPartnerQuery,[name],(err,result) => {
-    //     if(err){
-    //       return res.status(500).json({ message: "internal server error" });
-    //     }
-    //     if(result.length == 0){
-    //       return res
-    //       .status(404)
-    //       .json({ message: "No Partner found" });
-    //     }
-    //     let partnerDetails = result[index];
-    //     console.log(partnerDetails)
-    //     return res
-    // .status(200)
-    // .json({ message: "Withdrawal request fetched", partnerDetails });
-    //   })
+    const findPartnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+  connection.query(findPartnerQuery, [memberReferredIds], (err, partnerResult) => {
+    if (err) {
+      return res.status(500).json({ message: "Internal server error" });
+    }
+    if (partnerResult.length === 0) {
+      return res.status(404).json({ message: "No Partners found" });
+    }
+
+    const partnerDetails = partnerResult;
+    console.log(partnerDetails);
+
+    return res.status(200).json({ message: "Partner details fetched", partnerDetails });
+  });
   })
 }
 
