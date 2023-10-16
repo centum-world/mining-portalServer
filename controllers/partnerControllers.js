@@ -155,11 +155,12 @@ exports.fetchPartnerBankDetails = (req, res) => {
 exports.updatePartnerData = (req, res) => {
   let partner = req.body;
   query =
-    "update mining_partner set p_name=?, p_phone=?, p_aadhar=?,p_email=?,p_address=?,p_state=?,p_nominee_name=?,p_nominee_aadhar=?,p_nominee_phone=?,p_dob=? where p_userid=? ";
+    "update mining_partner set p_name=?, p_lname=?, p_phone=?, p_aadhar=?,p_email=?,p_address=?,p_state=?,p_nominee_name=?,p_nominee_aadhar=?,p_nominee_phone=?,p_dob=? where p_userid=? ";
   connection.query(
     query,
     [
       partner.p_name,
+      partner.p_lname,
       partner.p_phone,
       partner.p_aadhar,
       partner.p_email,

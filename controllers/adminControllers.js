@@ -753,11 +753,12 @@ exports.fetchMiningPartnerProfileDetailsFromAdmin = (req, res) => {
 exports.updateMiningPartnerProfileDetailsFromAdmin = (req, res) => {
   let partnerId = req.body;
   let query =
-    "update mining_partner set p_name=?, p_aadhar=?,p_phone=?,p_email=?,p_address=?,p_state=?,p_nominee_name=?,p_nominee_aadhar=?,p_nominee_phone=?,p_dob=?,p_dop=?,p_liquidity=? where p_userid=? ";
+    "update mining_partner set p_name=?,l_name=?, p_aadhar=?,p_phone=?,p_email=?,p_address=?,p_state=?,p_nominee_name=?,p_nominee_aadhar=?,p_nominee_phone=?,p_dob=?,p_dop=?,p_liquidity=? where p_userid=? ";
   connection.query(
     query,
     [
       partnerId.p_name,
+      partnerId.p_lname,
       partnerId.p_aadhar,
       partnerId.p_phone,
       partnerId.p_email,
