@@ -556,6 +556,7 @@ exports.updateMember = async (req, res) => {
         message: "First name is required.",
       });
     }
+
     if (!m_lname) {
       return res.status(400).json({
         message: "Last name is required.",
