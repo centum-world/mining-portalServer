@@ -172,6 +172,9 @@ const bdAddBankDetails = require('./routes/bd/bd-add-bank-details')
 const createBdPaymentRequest = require('./routes/bd/create-bd-payment-request')
 const fetchMembersReferredByBd = require('./routes/bd/fetch-members-referred-by-bd')
 const fetchWithdrawalRequestHistroy = require('./routes/bd/fetch-withdrawal-request');
+const fetchWithdrawalSuccessHistory = require('./routes/bd/fetch-withdrawal-sucess-history');
+const businessDevTotalWithdrawal = require('./routes/bd/business-dev-total-withdrawal');
+const businessDevFetchPartnerTeam = require('./routes/bd/businessDev-fetch-partner-team');
 
 const app = express();
 
@@ -325,5 +328,8 @@ app.use('/bd', bdAddBankDetails)
 app.use('/bd', createBdPaymentRequest)
 app.use('/bd', fetchMembersReferredByBd)
 app.use('/bd',fetchWithdrawalRequestHistroy);
+app.use('/bd',fetchWithdrawalSuccessHistory);
+app.use('/bd',businessDevTotalWithdrawal);
+app.use('/bd',businessDevFetchPartnerTeam);
 
 module.exports = app;

@@ -468,7 +468,7 @@ exports.fetchMembersReferredByBd = async (req, res) => {
 };
 
 // fetchWithdrawalRequestHistroy
-exports.fetchWithdrawalRequestHistroy = async (req,res) => {
+exports.fetchWithdrawalRequestHistroy = async (req, res) => {
   try {
     const { userId } = req.body;
 
@@ -496,3 +496,110 @@ exports.fetchWithdrawalRequestHistroy = async (req,res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 }
+
+// fetchWithdrawalSuccessHistory
+exports.fetchWithdrawalSuccessHistory = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    const findBdquery = "SELECT * FROM  payment_approve Where userId = ?";
+
+    connection.query(findBdquery, [userId], (error, result) => {
+      if (error) {
+        console.log(error);
+        return res.status(500).json({ message: "internal server error" });
+      }
+      if (result.length == 0) {
+        return res
+          .status(404)
+          .json({ message: "Business Developer not found" });
+      }
+
+      const withdrawalSuccess = result;
+
+      return res
+        .status(200)
+        .json({ message: "Withdrawal History fetched", withdrawalSuccess });
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+exports.businessDevTotalWithdrawal = async (req, res) => {
+  const { userId } = req.body;
+
+  const query = "SELECT SUM(amount) AS sumofTotalWithdrawal FROM payment_approve WHERE userId = ?";
+  connection.query(query, [userId], (err, results) => {
+    if (!err) {
+      if (results.length > 0) {
+        // You may want to check if there are results before accessing the data
+        return res.status(200).json({
+          message: "Fetched Sum Of All Withdrawal successfully",
+          data: results[0].sumofTotalWithdrawal, // Access the sum
+        });
+      } else {
+        return res.status(404).json({
+          message: "No records found for the given userId",
+        });
+      }
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+
+};
+
+// businessDevFetchPartnerTeam
+exports.businessDevFetchPartnerTeam = async (req, res) => {
+  const { referralId } = req.body
+
+  const findMemberquery = "SELECT * FROM create_member Where m_refferid = ?";
+
+  connection.query(findMemberquery, [referralId], (error, result) => {
+    if (error) {
+      console.log(error);
+      return res.status(500).json({ message: "internal server error" });
+    }
+    if (result.length == 0) {
+      return res
+        .status(404)
+        .json({ message: "Member not found" });
+    }
+    // const foundMember = result;
+    const memberReferredIds = result.map((entry) => entry.reffer_id);
+    console.log(memberReferredIds)
+
+      const findPartnerQuery = "SELECT * FROM mining_partner WHERE p_referred_id = ?";
+    connection.query(findPartnerQuery, [memberReferredIds], (err, partnerResult) => {
+      if (err) {
+        console.error("Error in mining_partner query:", err);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      if (partnerResult.length === 0) {
+        return res.status(404).json({ message: "No Partners found" });
+      }
+      const foundPartners = partnerResult;
+      return res.status(200).json({ message: "Partners found", foundPartners });
+    });
+    // const nameListItems = referredIds.map((name, index) => {
+    //   const findPartnerQuery = "SELECT * FROM mining_partner where p_reffered_id = ?";
+    //   connection.query(findPartnerQuery,[name],(err,result) => {
+    //     if(err){
+    //       return res.status(500).json({ message: "internal server error" });
+    //     }
+    //     if(result.length == 0){
+    //       return res
+    //       .status(404)
+    //       .json({ message: "No Partner found" });
+    //     }
+    //     let partnerDetails = result[index];
+    //     console.log(partnerDetails)
+    //     return res
+    // .status(200)
+    // .json({ message: "Withdrawal request fetched", partnerDetails });
+    //   })
+  })
+}
+
