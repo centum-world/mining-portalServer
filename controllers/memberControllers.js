@@ -548,70 +548,31 @@ exports.updateMember = async (req, res) => {
       m_email,
       m_gender,
       m_userid,
-      
+      m_state,
     } = req.body;
 
-    if (!m_name) {
+    // Check for required fields
+    if (!m_name || !m_lname || !m_add || !m_phone || !m_email || !m_gender || !m_state || !m_userid) {
       return res.status(400).json({
-        message: "First name is required.",
-      });
-    }
-    if (!m_lname) {
-      return res.status(400).json({
-        message: "Last name is required.",
-      });
-    }
-    if (!m_add) {
-      return res.status(400).json({
-        message: "Address is required.",
-      });
-    }
-    if (!m_phone) {
-      return res.status(400).json({
-        message: "Phone is required.",
-      });
-    }
-    if (!m_email) {
-      return res.status(400).json({
-        message: "email is required.",
-      });
-    }
-    if (!m_gender) {
-      return res.status(400).json({
-        message: "Gender is required.",
+        message: "All fields (m_name, m_lname, m_add, m_phone, m_email, m_gender, m_state, m_userid) are required.",
       });
     }
 
-  
-
-    if (!m_userid) {
-      return res.status(400).json({
-        message: "User Id is required.",
-      });
-    }
-
-    // Check if m_name and m_lname are valid
-    if (!isValidName(m_name)) {
+    // Validate name format
+    if (!isValidName(m_name) || !isValidName(m_lname)) {
       return res.status(422).json({
-        message: "Invalid first name format.",
+        message: "Invalid name format. Name and last name should be valid names.",
       });
     }
 
-    if (!isValidName(m_lname)) {
-      return res.status(422).json({
-        message: "Invalid last name format.",
-      });
-    }
-
-    // Check if m_phone is valid
+    // Validate phone number format
     if (!isValidPhone(m_phone)) {
       return res.status(422).json({
-        message:
-          "Invalid phone number format. Use 10 digits or include a country code.",
+        message: "Invalid phone number format. Use 10 digits or include a country code.",
       });
     }
 
-    // Check if m_email is valid
+    // Validate email format
     if (!isValidEmail(m_email)) {
       return res.status(422).json({
         message: "Invalid email format.",
@@ -620,21 +581,12 @@ exports.updateMember = async (req, res) => {
 
     // Construct the SQL query to update the member
     const updateMemberQuery =
-      "UPDATE create_member SET m_name=?, m_lname=?, m_email=?, m_phone=?, m_add=?,m_gender=? WHERE m_userid=?";
+      "UPDATE create_member SET m_name=?, m_lname=?, m_email=?, m_phone=?, m_add=?, m_gender=?, m_state=? WHERE m_userid=?";
 
     // Execute the SQL query to update the member
     connection.query(
       updateMemberQuery,
-      [
-        m_name,
-        m_lname,
-        m_email,
-        m_phone,
-        m_add,
-        m_gender,
-        m_userid
-       
-      ],
+      [m_name, m_lname, m_email, m_phone, m_add, m_gender, m_state, m_userid],
       (error, result) => {
         if (error) {
           console.error("Error executing SQL query:", error.message);
@@ -649,8 +601,8 @@ exports.updateMember = async (req, res) => {
             m_phone,
             m_add,
             m_gender,
+            m_state,
             m_userid,
-            
           };
 
           res.status(200).json({
@@ -667,3 +619,4 @@ exports.updateMember = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
