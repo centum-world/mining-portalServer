@@ -174,6 +174,8 @@ const allBdDetailsReferredByFranchise = require('./routes/frenchise/all-bd-detai
 
 const blockAndUnblockFranchise = require("./routes/block-and-unblock-franchise")
 const updateFranchise = require('./routes/update-franchise')
+const fetchTotalWithdrawal = require('./routes/frenchise/fetch-total-withdrawal');
+const fetchPartnerMyTeam = require('./routes/frenchise/fetch-partner-my-team');
 
 //========================bd======================================
 
@@ -346,6 +348,8 @@ app.use('/franchise',fetchFranchiseBankDetails);
 app.use('/franchise', updateFranchise)
 app.use('/franchise', createFranchisePaymentRequest)
 app.use('/franchise', allBdDetailsReferredByFranchise)
+app.use('/franchise',fetchTotalWithdrawal);
+app.use('/franchise',fetchPartnerMyTeam);
 
 //==========================Business Dev=============================//
 app.use('/bd', loginBd)

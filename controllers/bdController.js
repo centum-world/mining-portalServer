@@ -572,19 +572,19 @@ exports.businessDevFetchPartnerTeam = async (req, res) => {
     console.log(memberReferredIds)
 
     const findPartnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
-  connection.query(findPartnerQuery, [memberReferredIds], (err, partnerResult) => {
-    if (err) {
-      return res.status(500).json({ message: "Internal server error" });
-    }
-    if (partnerResult.length === 0) {
-      return res.status(404).json({ message: "No Partners found" });
-    }
+    connection.query(findPartnerQuery, [memberReferredIds], (err, partnerResult) => {
+      if (err) {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      if (partnerResult.length === 0) {
+        return res.status(404).json({ message: "No Partners found" });
+      }
 
-    const partnerDetails = partnerResult;
-    console.log(partnerDetails);
+      const partnerDetails = partnerResult;
+      console.log(partnerDetails);
 
-    return res.status(200).json({ message: "Partner details fetched", partnerDetails });
-  });
+      return res.status(200).json({ message: "Partner details fetched", partnerDetails });
+    });
   })
 }
 

@@ -127,7 +127,7 @@ exports.updateFranchise = async (req, res) => {
       franchiseCity,
       franchiseId,
     } = req.body;
-    
+
     const requiredFields = [
       "fname",
       "lname",
@@ -227,62 +227,62 @@ exports.updateFranchise = async (req, res) => {
   }
 };
 
-exports.franchiseAddBankDetails = async (req,res) =>{
+exports.franchiseAddBankDetails = async (req, res) => {
   try {
-      const {
-        user_id,
-        holder_name,
-        account_no,
-        ifsc_code,
-        branch_name,
-        bank_name,
-      } = req.body;
-  
-      // Check if the user_id already exists in the create_sho table
-      const existingUserIdInFranchise =
-        "SELECT * FROM create_franchise WHERE franchiseId = ?";
-  
-      connection.query(existingUserIdInFranchise, [user_id], (error, result) => {
-        if (error) {
-          console.error("Error checking sho existence:", error);
-          return res.status(500).json({ message: "Internal Server Error" });
-        }
-  
-        if (result.length === 0) {
-          return res
-            .status(404)
-            .json({ message: "Franchise not found to create bank details" });
-        }
-  
-        // User exists, proceed to insert bank details
-        const insertBankShoQuery = `
+    const {
+      user_id,
+      holder_name,
+      account_no,
+      ifsc_code,
+      branch_name,
+      bank_name,
+    } = req.body;
+
+    // Check if the user_id already exists in the create_sho table
+    const existingUserIdInFranchise =
+      "SELECT * FROM create_franchise WHERE franchiseId = ?";
+
+    connection.query(existingUserIdInFranchise, [user_id], (error, result) => {
+      if (error) {
+        console.error("Error checking sho existence:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      if (result.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "Franchise not found to create bank details" });
+      }
+
+      // User exists, proceed to insert bank details
+      const insertBankShoQuery = `
           INSERT INTO bank_details (user_id, holder_name, account_no, ifsc_code, branch_name, bank_name)
           VALUES (?, ?, ?, ?, ?, ?)
         `;
-  
-        connection.query(
-          insertBankShoQuery,
-          [user_id, holder_name, account_no, ifsc_code, branch_name, bank_name],
-          (insertError, insertResult) => {
-            if (insertError) {
-              console.error("Error inserting bank details:", insertError);
-              return res.status(500).json({ message: "Internal Server Error" });
-            }
-  
-            return res
-              .status(201)
-              .json({ message: "Bank details added successfully for franchise" });
+
+      connection.query(
+        insertBankShoQuery,
+        [user_id, holder_name, account_no, ifsc_code, branch_name, bank_name],
+        (insertError, insertResult) => {
+          if (insertError) {
+            console.error("Error inserting bank details:", insertError);
+            return res.status(500).json({ message: "Internal Server Error" });
           }
-        );
-      });
-    } catch (error) {
-      console.log("Error in try-catch block:", error.message);
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
+
+          return res
+            .status(201)
+            .json({ message: "Bank details added successfully for franchise" });
+        }
+      );
+    });
+  } catch (error) {
+    console.log("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 }
 
 // fetchFranchiseBankDetails
-exports.fetchFranchiseBankDetails = async (req,res) => {
+exports.fetchFranchiseBankDetails = async (req, res) => {
   try {
     const { franchiseId } = req.body;
 
@@ -312,7 +312,7 @@ exports.fetchFranchiseBankDetails = async (req,res) => {
 
 // create payment request for franchise
 
-exports.createFranchisePaymentRequest = async (req, res)=> {
+exports.createFranchisePaymentRequest = async (req, res) => {
   try {
     const { userId, amount, paymentBy } = req.body;
 
@@ -441,7 +441,7 @@ exports.createFranchisePaymentRequest = async (req, res)=> {
 
 exports.allBdDetailsReferredByFranchise = (req, res) => {
   try {
-    const { referralId } = req.body; 
+    const { referralId } = req.body;
 
     const findBdquery = "SELECT * FROM create_bd WHERE referredId = ?";
 
@@ -463,3 +463,75 @@ exports.allBdDetailsReferredByFranchise = (req, res) => {
   }
 };
 
+// fetchTotalWithdrawal
+exports.fetchTotalWithdrawal = async (req, res) => {
+  const { userId } = req.body;
+
+  const query = "SELECT SUM(amount) AS sumofTotalWithdrawal FROM payment_approve WHERE userId = ?";
+  connection.query(query, [userId], (err, results) => {
+    if (!err) {
+      if (results.length > 0) {
+        // You may want to check if there are results before accessing the data
+        return res.status(200).json({
+          message: "Fetched Sum Of All Withdrawal successfully",
+          data: results[0].sumofTotalWithdrawal, // Access the sum
+        });
+      } else {
+        return res.status(404).json({
+          message: "No records found for the given userId",
+        });
+      }
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}
+
+// fetchPartnerMyTeam
+exports.fetchPartnerMyTeam = async (req, res) => {
+  const { referralId } = req.body
+
+  const findbdquery = "SELECT * FROM create_bd Where referredId = ?";
+
+  connection.query(findbdquery, [referralId], (error, result) => {
+    if (error) {
+      console.log(error);
+      return res.status(500).json({ message: "internal server error" });
+    }
+    if (result.length == 0) {
+      return res
+        .status(404)
+        .json({ message: "BusinessDev not found" });
+    }
+    const businessReferredIds = result.map((entry) => entry.referralId);
+    // console.log(businessReferredIds)
+
+    const findMemberQuery = "SELECT * FROM create_member WHERE m_refferid IN (?)";
+    connection.query(findMemberQuery, [businessReferredIds], (err, memberResult) => {
+      if (err) {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      if (memberResult.length === 0) {
+        return res.status(404).json({ message: "No Member found" });
+      }
+
+      const memberDetails = memberResult;
+      const refferIds = memberDetails.map((member) => member.reffer_id);
+
+      const findPartnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      connection.query(findPartnerQuery, [refferIds], (err, partnerResult) => {
+        if (err) {
+          return res.status(500).json({ message: "Internal server error" });
+        }
+        if (partnerResult.length === 0) {
+          return res.status(404).json({ message: "No Partners found" });
+        }
+  
+        const partnerDetails = partnerResult;
+      
+        return res.status(200).json({ message: "Partner details fetched", partnerDetails });
+      });
+
+    });
+  })
+}
