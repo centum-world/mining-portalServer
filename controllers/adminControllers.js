@@ -1826,8 +1826,16 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                       "insert into  member_reffer_withdrawal (reffer_p_userid,member_wallet,request_date,m_userid) values (?,?,?,?)";
                                                                     connection.query(
                                                                       insertMemberRefferMonthlyPayout,
-                                                                      [partnerid.p_userid, walletAmount, partnerid.partnerdate, m_userid,],
-                                                                      (err, results) => { }
+                                                                      [
+                                                                        partnerid.p_userid,
+                                                                        walletAmount,
+                                                                        partnerid.partnerdate,
+                                                                        m_userid,
+                                                                      ],
+                                                                      (
+                                                                        err,
+                                                                        results
+                                                                      ) => {}
                                                                     );
                                                                     let selectMemberRefferWalletHistory =
                                                                       "select * from member_reffer_wallet_history where reffer_p_userid =?";
@@ -1836,13 +1844,22 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                       [
                                                                         partnerid.p_userid,
                                                                       ],
-                                                                      (err, results) => {
+                                                                      (
+                                                                        err,
+                                                                        results
+                                                                      ) => {
+                                                                        let member_wallet =
+                                                                          results[0]
+                                                                            ?.member_wallet;
 
-                                                                        let member_wallet = results[0]?.member_wallet;
+                                                                        member_wallet =
+                                                                          member_wallet +
+                                                                          walletAmount;
 
-                                                                        member_wallet = member_wallet + walletAmount;
-
-                                                                        if (results.length < 1) {
+                                                                        if (
+                                                                          results.length <
+                                                                          1
+                                                                        ) {
                                                                           let insertMemberRefferWalletHistory =
                                                                             " insert into member_reffer_wallet_history (m_userid,member_wallet,wallet_update_date,reffer_p_userid) values (?,?,?,?)";
                                                                           connection.query(
@@ -1853,11 +1870,19 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                               partnerid.partnerdate,
                                                                               partnerid.p_userid,
                                                                             ],
-                                                                            (err, results) => { }
+                                                                            (
+                                                                              err,
+                                                                              results
+                                                                            ) => {}
                                                                           );
                                                                         }
-                                                                        if (results.length > 0) {
-                                                                          console.log("1126");
+                                                                        if (
+                                                                          results.length >
+                                                                          0
+                                                                        ) {
+                                                                          console.log(
+                                                                            "1126"
+                                                                          );
                                                                           let updateMemberRefferWalletHistory =
                                                                             "update member_reffer_wallet_history set member_wallet =?, wallet_update_date =? where reffer_p_userid =?";
                                                                           connection.query(
@@ -1867,8 +1892,14 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                               partnerid.partnerdate,
                                                                               partnerid.p_userid,
                                                                             ],
-                                                                            (err, results) => {
-                                                                              console.log(results, "1129");
+                                                                            (
+                                                                              err,
+                                                                              results
+                                                                            ) => {
+                                                                              console.log(
+                                                                                results,
+                                                                                "1129"
+                                                                              );
                                                                             }
                                                                           );
                                                                         }
@@ -1877,21 +1908,46 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                           "select partner_count from mining_partner where p_userid = ?";
                                                                         connection.query(
                                                                           selectquery,
-                                                                          [partnerid.p_userid,],
-                                                                          (err, results) => {
-                                                                            let partner_count = results[0]?.partner_count;
-                                                                            console.log(results[0]?.partner_count, "1137");
+                                                                          [
+                                                                            partnerid.p_userid,
+                                                                          ],
+                                                                          (
+                                                                            err,
+                                                                            results
+                                                                          ) => {
+                                                                            let partner_count =
+                                                                              results[0]
+                                                                                ?.partner_count;
+                                                                            console.log(
+                                                                              results[0]
+                                                                                ?.partner_count,
+                                                                              "1137"
+                                                                            );
 
-                                                                            if (partner_count === 30) {
+                                                                            if (
+                                                                              partner_count ===
+                                                                              30
+                                                                            ) {
                                                                               let selectMemberRefferWalletHistory =
                                                                                 "select * from member_reffer_wallet_history where reffer_p_userid =?";
                                                                               connection.query(
                                                                                 selectMemberRefferWalletHistory,
-                                                                                [partnerid.p_userid,],
-                                                                                (err, results) => {
-                                                                                  let m_userid = results[0]?.m_userid;
-                                                                                  let member_wallet = results[0]?.member_wallet;
-                                                                                  let reffer_p_userid = results[0]?.reffer_p_userid;
+                                                                                [
+                                                                                  partnerid.p_userid,
+                                                                                ],
+                                                                                (
+                                                                                  err,
+                                                                                  results
+                                                                                ) => {
+                                                                                  let m_userid =
+                                                                                    results[0]
+                                                                                      ?.m_userid;
+                                                                                  let member_wallet =
+                                                                                    results[0]
+                                                                                      ?.member_wallet;
+                                                                                  let reffer_p_userid =
+                                                                                    results[0]
+                                                                                      ?.reffer_p_userid;
 
                                                                                   let insertMemberRefferWithdrawal =
                                                                                     "insert into member_reffer_withdrawal (m_userid,member_wallet,request_date,reffer_p_userid) values (?,?,?,?)";
@@ -1903,8 +1959,13 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                                       partnerid.partnerdate,
                                                                                       reffer_p_userid,
                                                                                     ],
-                                                                                    (err, results) => {
-                                                                                      if (!err) {
+                                                                                    (
+                                                                                      err,
+                                                                                      results
+                                                                                    ) => {
+                                                                                      if (
+                                                                                        !err
+                                                                                      ) {
                                                                                         let updateMemberRefferWalletHistory =
                                                                                           "update member_reffer_wallet_history set member_wallet =?, wallet_update_date =? where reffer_p_userid =?";
                                                                                         connection.query(
@@ -1914,7 +1975,10 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                                             partnerid.partnerdate,
                                                                                             partnerid.p_userid,
                                                                                           ],
-                                                                                          (err, results) => { }
+                                                                                          (
+                                                                                            err,
+                                                                                            results
+                                                                                          ) => {}
                                                                                         );
                                                                                       }
                                                                                     }
@@ -1939,38 +2003,66 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                         m_userid,
                                                                         partnerid.p_userid,
                                                                       ],
-                                                                      (err, results) => {
-                                                                        if (!err) {
-                                                                          if (partnerid.perDayAmounReal === 0) {
-                                                                            memberWalletSms(memberPhone,
+                                                                      (
+                                                                        err,
+                                                                        results
+                                                                      ) => {
+                                                                        if (
+                                                                          !err
+                                                                        ) {
+                                                                          if (
+                                                                            partnerid.perDayAmounReal ===
+                                                                            0
+                                                                          ) {
+                                                                            memberWalletSms(
+                                                                              memberPhone,
                                                                               {
-                                                                                type: "Member", userid: m_userid, amount: partnerid.perDayAmounReal,
+                                                                                type: "Member",
+                                                                                userid:
+                                                                                  m_userid,
+                                                                                amount:
+                                                                                  partnerid.perDayAmounReal,
                                                                               }
                                                                             );
                                                                           }
-                                                                          if (partnerid.perDayAmounReal != 0) {
-                                                                            memberWalletSms(memberPhone,
+                                                                          if (
+                                                                            partnerid.perDayAmounReal !=
+                                                                            0
+                                                                          ) {
+                                                                            memberWalletSms(
+                                                                              memberPhone,
                                                                               {
-                                                                                type: "Member", userid: m_userid, amount: walletAmount,
+                                                                                type: "Member",
+                                                                                userid:
+                                                                                  m_userid,
+                                                                                amount:
+                                                                                  walletAmount,
                                                                               }
                                                                             );
                                                                           }
 
-                                                                          let perday_member_wallet_amount = walletAmount;
+                                                                          let perday_member_wallet_amount =
+                                                                            walletAmount;
 
                                                                           let updatequery =
                                                                             "update create_member set member_wallet=?,wallet_update_date=?,member_count=?,perday_member_wallet_amount=?,added_wallet = ? where m_userid =?";
                                                                           connection.query(
                                                                             updatequery,
                                                                             [
-                                                                              member_wallet, partnerid.partnerdate,
+                                                                              member_wallet,
+                                                                              partnerid.partnerdate,
                                                                               member_count,
                                                                               perday_member_wallet_amount,
                                                                               added_wallet,
                                                                               m_userid,
                                                                             ],
-                                                                            (err, results) => {
-                                                                              if (!err) {
+                                                                            (
+                                                                              err,
+                                                                              results
+                                                                            ) => {
+                                                                              if (
+                                                                                !err
+                                                                              ) {
                                                                                 // if (activePartnerCount === 0) {
                                                                                 //     let setTotalWalletZero = "update create_member set member_count =?, member_wallet =?,perday_member_wallet_amount=? where m_userid =?";
                                                                                 //     connection.query(setTotalWalletZero, [member_count = 0, member_wallet = 0, perday_member_wallet_amount = 0, m_userid], (err, results) => {
@@ -1985,9 +2077,14 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                       }
                                                                     );
                                                                   } else {
-                                                                    return res.status(400).json({
-                                                                      messgae: "Something Went Wrong 5",
-                                                                    });
+                                                                    return res
+                                                                      .status(
+                                                                        400
+                                                                      )
+                                                                      .json({
+                                                                        messgae:
+                                                                          "Something Went Wrong 5",
+                                                                      });
                                                                   }
                                                                 }
                                                               );
@@ -2077,10 +2174,13 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                       (err, results) => {
                                         if (!err) {
                                           let p_userid = results[0]?.p_userid;
-                                          let partner_wallet = results[0]?.partner_wallet;
+                                          let partner_wallet =
+                                            results[0]?.partner_wallet;
 
-                                          let wallet_amount = results[0]?.wallet_amount;
-                                          let reffer_p_userid = results[0]?.reffer_p_userid;
+                                          let wallet_amount =
+                                            results[0]?.wallet_amount;
+                                          let reffer_p_userid =
+                                            results[0]?.reffer_p_userid;
 
                                           let insertquery =
                                             "insert into partner_reffer_withdrawal (partner_wallet,request_date,reffer_p_userid,p_userid) values(?,?,?,?)";
@@ -2105,7 +2205,8 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                   (err, results) => {
                                                     if (!err) {
                                                       if (
-                                                        month_count === 12 || month_count > 12
+                                                        month_count === 12 ||
+                                                        month_count > 12
                                                       ) {
                                                         let updatequery =
                                                           "update mining_partner set partner_status= ?,partner_wallet = ?,partner_count = ? where p_userid = ?";
@@ -2441,18 +2542,25 @@ exports.approveMemberRefferWithdrawalRequest = (req, res) => {
               return res.status(500).json({ message: "Database error" });
             }
 
-            const updateMemberWallet = "UPDATE create_member SET member_wallet = member_wallet - ? WHERE m_userid = ?";
+            const updateMemberWallet =
+              "UPDATE create_member SET member_wallet = member_wallet - ? WHERE m_userid = ?";
 
-            connection.query(updateMemberWallet, [member_wallet, m_userid], (err) => {
-              if (err) {
-                console.error(err);
-                return res.status(500).json({ message: "Database error" });
+            connection.query(
+              updateMemberWallet,
+              [member_wallet, m_userid],
+              (err) => {
+                if (err) {
+                  console.error(err);
+                  return res.status(500).json({ message: "Database error" });
+                }
+
+                return res
+                  .status(200)
+                  .json({
+                    message: "Member Referral Withdrawal Request Approved",
+                  });
               }
-
-            return res
-              .status(200)
-              .json({ message: "Member Referral Withdrawal Request Approved" });
-            })
+            );
           });
         });
       }
@@ -3425,10 +3533,7 @@ exports.approvePaymentRequestOfBd = async (req, res) => {
                 [id],
                 async (error) => {
                   if (error) {
-                    console.error(
-                      "Error deleting bd payment request:",
-                      error
-                    );
+                    console.error("Error deleting bd payment request:", error);
                     return res
                       .status(500)
                       .json({ message: "Internal Server Error" });
@@ -3442,14 +3547,18 @@ exports.approvePaymentRequestOfBd = async (req, res) => {
                     [paymentRequest.userId],
                     async (error) => {
                       if (error) {
-                        console.error("Error updating business developer:", error);
+                        console.error(
+                          "Error updating business developer:",
+                          error
+                        );
                         return res
                           .status(500)
                           .json({ message: "Internal Server Error" });
                       }
 
                       res.status(201).json({
-                        message: "Business developer payment request approved successfully",
+                        message:
+                          "Business developer payment request approved successfully",
                         bankName: userBankName, // Include the user's bank name in the response
                       });
                     }
@@ -3465,4 +3574,59 @@ exports.approvePaymentRequestOfBd = async (req, res) => {
     console.error("Error approving state payment request:", error);
     res.status(500).json({ message: "Internal server error" });
   }
+};  
+
+exports.uplaodAdharCardAndPancardMember = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!req.files["adhar_front_side"]) {
+      return res
+        .status(400)
+        .json({ message: "Aadhar card front side file is missing." });
+    }
+
+    if (!req.files["adhar_back_side"]) {
+      return res
+        .status(400)
+        .json({ message: "Aadhar card back side file is missing." });
+    }
+
+    if (!req.files["panCard"]) {
+      return res.status(400).json({ message: "Pan card file is missing." });
+    }
+
+    const adharFrontSideFile = req.files["adhar_front_side"][0];
+    const adharBackSideFile = req.files["adhar_back_side"][0];
+    const panCardFile = req.files["panCard"][0];
+
+    const adharFrontSideLocation = adharFrontSideFile.location;
+    const adharBackSideLocation = adharBackSideFile.location;
+    const panCardLocation = panCardFile.location;
+
+    const updatedData =
+      "UPDATE create_member SET adhar_front_side = ?, adhar_back_side = ?, panCard = ? WHERE m_userid = ?";
+
+    connection.query(
+      updatedData,
+      [adharFrontSideLocation, adharBackSideLocation, panCardLocation, userId],
+      (error, result) => {
+        if (error) {
+          console.log(error.message);
+          res.status(500).json({ message: "Internal server error" });
+        } else {
+          res
+            .status(200)
+            .json({
+              message: "Files uploaded successfully.",
+            });
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
+
+
