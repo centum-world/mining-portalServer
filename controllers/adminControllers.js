@@ -2554,11 +2554,9 @@ exports.approveMemberRefferWithdrawalRequest = (req, res) => {
                   return res.status(500).json({ message: "Database error" });
                 }
 
-                return res
-                  .status(200)
-                  .json({
-                    message: "Member Referral Withdrawal Request Approved",
-                  });
+                return res.status(200).json({
+                  message: "Member Referral Withdrawal Request Approved",
+                });
               }
             );
           });
@@ -3574,9 +3572,9 @@ exports.approvePaymentRequestOfBd = async (req, res) => {
     console.error("Error approving state payment request:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-};  
+};
 
-exports.uplaodAdharCardAndPancardMember = async (req, res) => {
+exports.uploadAdharCardFrontSideMember = async (req, res) => {
   try {
     const { userId } = req.body;
 
@@ -3586,40 +3584,24 @@ exports.uplaodAdharCardAndPancardMember = async (req, res) => {
         .json({ message: "Aadhar card front side file is missing." });
     }
 
-    if (!req.files["adhar_back_side"]) {
-      return res
-        .status(400)
-        .json({ message: "Aadhar card back side file is missing." });
-    }
-
-    if (!req.files["panCard"]) {
-      return res.status(400).json({ message: "Pan card file is missing." });
-    }
-
     const adharFrontSideFile = req.files["adhar_front_side"][0];
-    const adharBackSideFile = req.files["adhar_back_side"][0];
-    const panCardFile = req.files["panCard"][0];
 
     const adharFrontSideLocation = adharFrontSideFile.location;
-    const adharBackSideLocation = adharBackSideFile.location;
-    const panCardLocation = panCardFile.location;
 
     const updatedData =
-      "UPDATE create_member SET adhar_front_side = ?, adhar_back_side = ?, panCard = ? WHERE m_userid = ?";
+      "UPDATE create_member SET adhar_front_side = ? WHERE m_userid = ?";
 
     connection.query(
       updatedData,
-      [adharFrontSideLocation, adharBackSideLocation, panCardLocation, userId],
+      [adharFrontSideLocation, userId],
       (error, result) => {
         if (error) {
           console.log(error.message);
           res.status(500).json({ message: "Internal server error" });
         } else {
-          res
-            .status(200)
-            .json({
-              message: "Files uploaded successfully.",
-            });
+          res.status(200).json({
+            message: "Adhar card front side uploaded successfully.",
+          });
         }
       }
     );
@@ -3628,6 +3610,81 @@ exports.uplaodAdharCardAndPancardMember = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.uploadAdharCardBackSideMember = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!req.files["adhar_back_side"]) {
+      return res
+        .status(400)
+        .json({ message: "Aadhar card back side file is missing." });
+    }
+
+    const adharBackSideFile = req.files["adhar_back_side"][0];
+
+    const adharBackSideLocation = adharBackSideFile.location;
+
+    const updatedData =
+      "UPDATE create_member SET adhar_back_side = ? WHERE m_userid = ?";
+
+    connection.query(
+      updatedData,
+      [adharBackSideLocation, userId],
+      (error, result) => {
+        if (error) {
+          console.log(error.message);
+          res.status(500).json({ message: "Internal server error" });
+        } else {
+          res.status(200).json({
+            message: "Adhar card back side uploaded successfully.",
+          });
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.uploadPanCardMember = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!req.files["panCard"]) {
+      return res
+        .status(400)
+        .json({ message: "Pan card file is missing." });
+    }
+
+    const panCardFile = req.files["panCard"][0];
+
+    const panCardLocation = panCardFile.location;
+
+    const updatedData =
+      "UPDATE create_member SET panCard = ? WHERE m_userid = ?";
+
+    connection.query(
+      updatedData,
+      [panCardLocation, userId],
+      (error, result) => {
+        if (error) {
+          console.log(error.message);
+          res.status(500).json({ message: "Internal server error" });
+        } else {
+          res.status(200).json({
+            message: "Pan Card uploaded successfully.",
+          });
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 exports.uplaodAdharCardAndPancardBd = async (req, res) => {
   try {
@@ -3668,11 +3725,9 @@ exports.uplaodAdharCardAndPancardBd = async (req, res) => {
           console.log(error.message);
           res.status(500).json({ message: "Internal server error" });
         } else {
-          res
-            .status(200)
-            .json({
-              message: "Files uploaded successfully.",
-            });
+          res.status(200).json({
+            message: "Files uploaded successfully.",
+          });
         }
       }
     );
@@ -3682,4 +3737,47 @@ exports.uplaodAdharCardAndPancardBd = async (req, res) => {
   }
 };
 
+exports.uplaodAdharCardAndPancardFranchise = async (req, res) => {
+  try {
+    if (!req.files["adhar_front_side"]) {
+      return res
+        .status(400)
+        .json({ message: "Aadhar card front side file is missing." });
+    }
 
+    if (!req.files["adhar_back_side"]) {
+      return res
+        .status(400)
+        .json({ message: "Adhar card back side file is missing" });
+    }
+
+    if (!req.files["panCard"]) {
+      return res.status(400).json({ message: "Pan card file is missing" });
+    }
+
+    const adharFrontLocation = req.files["adhar_front_side"][0].location;
+    const adharBackLocation = req.files["adhar_back_side"][0].location;
+    const panCardLocation = req.files["panCard"].location;
+
+    const updatedData =
+      "update create_franchise set adhar_front_side = ? ,adhar_back_side= ?,panCard =? where franchiseId = ? ";
+
+    connection.query(
+      updatedData,
+      [adharFrontLocation, adharBackLocation, panCardLocation, userId],
+      (error, result) => {
+        if (error) {
+          console.log(error.message);
+          res.status(500).json({ message: "Internal server error" });
+        } else {
+          return res
+            .status(200)
+            .json({ message: "Files uploaded successfully" });
+        }
+      }
+    );
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

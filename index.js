@@ -141,8 +141,11 @@ const fetchParticularMemberApprovedWithdrawalHistory = require('./routes/fetch-p
 const fetchParticularPartner = require('./routes/fetch-particular-partner')
 const approvePaymentRequestOfFranchise = require('./routes/approve-payment-request-of-franchise')
 const approvePaymentRequestOfBd = require('./routes/approve-payment-request-of-bd')
-const uplaodAdharCardAndPancardMember = require('./routes/uplaod-adhar-card-and-pan-card-member')
+const uploadAdharCardFrontSideMember = require('./routes/uplaod-adhar-card-front-side-member')
+const uploadAdharCardBackSideMember = require('./routes/upload-adhar-card-back-side-member')
+const uploadPanCardMember = require('./routes/upload-pan-card-member')
 const uplaodAdharCardAndPancardBd = require('./routes/uplaod-adhar-card-and-pan-card-bd')
+const uplaodAdharCardAndPancardFranchise = require('./routes/uplaod-adhar-card-and-pan-card-franchise')
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
@@ -300,9 +303,11 @@ app.use('/admin',fetchParticularMemberWithdrawalRequest);
 app.use('/admin',fetchParticularMemberApprovedWithdrawalHistory);
 app.use('/admin', approvePaymentRequestOfFranchise)
 app.use('/admin', approvePaymentRequestOfBd)
-app.use('/admin', uplaodAdharCardAndPancardMember)
+app.use('/admin', uploadAdharCardFrontSideMember)
+app.use('/admin', uploadAdharCardBackSideMember)
 app.use('/admin', uplaodAdharCardAndPancardBd)
-
+app.use('/admin', uplaodAdharCardAndPancardFranchise)
+app.use('/admin', uploadPanCardMember)
 
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);
