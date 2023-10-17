@@ -148,6 +148,8 @@ const uploadAdharCardFrontSideBd = require('./routes/uplaod-adhar-card-front-sid
 const uploadAdharCardBackSideBd = require('./routes/upload-adhar-card-back-side-bd')
 const uploadPanCardBd = require('./routes/upload-pan-card-bd')
 const uplaodAdharCardFrontSideFranchise = require('./routes/uplaod-adhar-card-front-side-franchise')
+const uploadAdharCardBackSideFranchise = require('./routes/upload-adhar-card-back-side-franchise')
+const uploadPanCardFranchise = require('./routes/upload-pan-card-franchise')
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
@@ -313,6 +315,8 @@ app.use('/admin', uploadAdharCardBackSideBd)
 app.use('/admin', uploadPanCardBd)
 
 app.use('/admin', uplaodAdharCardFrontSideFranchise)
+app.use('/admin', uploadAdharCardBackSideFranchise)
+app.use('/admin', uploadPanCardFranchise)
 
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);
