@@ -3653,9 +3653,7 @@ exports.uploadPanCardMember = async (req, res) => {
     const { userId } = req.body;
 
     if (!req.files["panCard"]) {
-      return res
-        .status(400)
-        .json({ message: "Pan card file is missing." });
+      return res.status(400).json({ message: "Pan card file is missing." });
     }
 
     const panCardFile = req.files["panCard"][0];
@@ -3685,8 +3683,7 @@ exports.uploadPanCardMember = async (req, res) => {
   }
 };
 
-
-exports.uplaodAdharCardAndPancardBd = async (req, res) => {
+exports.uploadAdharCardFrontSideBd = async (req, res) => {
   try {
     const { userId } = req.body;
 
@@ -3696,37 +3693,23 @@ exports.uplaodAdharCardAndPancardBd = async (req, res) => {
         .json({ message: "Aadhar card front side file is missing." });
     }
 
-    if (!req.files["adhar_back_side"]) {
-      return res
-        .status(400)
-        .json({ message: "Aadhar card back side file is missing." });
-    }
-
-    if (!req.files["panCard"]) {
-      return res.status(400).json({ message: "Pan card file is missing." });
-    }
-
     const adharFrontSideFile = req.files["adhar_front_side"][0];
-    const adharBackSideFile = req.files["adhar_back_side"][0];
-    const panCardFile = req.files["panCard"][0];
 
     const adharFrontSideLocation = adharFrontSideFile.location;
-    const adharBackSideLocation = adharBackSideFile.location;
-    const panCardLocation = panCardFile.location;
 
     const updatedData =
-      "UPDATE create_bd SET adhar_front_side = ?, adhar_back_side = ?, panCard = ? WHERE businessDeveloperId = ?";
+      "UPDATE create_bd SET adhar_front_side = ? WHERE businessDeveloperId = ?";
 
     connection.query(
       updatedData,
-      [adharFrontSideLocation, adharBackSideLocation, panCardLocation, userId],
+      [adharFrontSideLocation, userId],
       (error, result) => {
         if (error) {
           console.log(error.message);
           res.status(500).json({ message: "Internal server error" });
         } else {
           res.status(200).json({
-            message: "Files uploaded successfully.",
+            message: "Adhar card front side uploaded successfully.",
           });
         }
       }
@@ -3737,7 +3720,80 @@ exports.uplaodAdharCardAndPancardBd = async (req, res) => {
   }
 };
 
-exports.uplaodAdharCardAndPancardFranchise = async (req, res) => {
+exports.uploadAdharCardBackSideBd = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!req.files["adhar_back_side"]) {
+      return res
+        .status(400)
+        .json({ message: "Aadhar card back side file is missing." });
+    }
+
+    const adharBackSideFile = req.files["adhar_back_side"][0];
+
+    const adharBackSideLocation = adharBackSideFile.location;
+
+    const updatedData =
+      "UPDATE create_bd SET adhar_back_side = ? WHERE businessDeveloperId = ?";
+
+    connection.query(
+      updatedData,
+      [adharBackSideLocation, userId],
+      (error, result) => {
+        if (error) {
+          console.log(error.message);
+          res.status(500).json({ message: "Internal server error" });
+        } else {
+          res.status(200).json({
+            message: "Adhar card back side uploaded successfully.",
+          });
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.uploadPanCardBd = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!req.files["panCard"]) {
+      return res.status(400).json({ message: "Pan card file is missing." });
+    }
+
+    const panCardFile = req.files["panCard"][0];
+
+    const panCardLocation = panCardFile.location;
+
+    const updatedData =
+      "UPDATE create_bd SET panCard = ? WHERE businessDeveloperId = ?";
+
+    connection.query(
+      updatedData,
+      [panCardLocation, userId],
+      (error, result) => {
+        if (error) {
+          console.log(error.message);
+          res.status(500).json({ message: "Internal server error" });
+        } else {
+          res.status(200).json({
+            message: "Pan Card uploaded successfully.",
+          });
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.uplaodAdharCardFrontSideFranchise = async (req, res) => {
+  const { userId } = req.body;
   try {
     if (!req.files["adhar_front_side"]) {
       return res
@@ -3745,26 +3801,14 @@ exports.uplaodAdharCardAndPancardFranchise = async (req, res) => {
         .json({ message: "Aadhar card front side file is missing." });
     }
 
-    if (!req.files["adhar_back_side"]) {
-      return res
-        .status(400)
-        .json({ message: "Adhar card back side file is missing" });
-    }
-
-    if (!req.files["panCard"]) {
-      return res.status(400).json({ message: "Pan card file is missing" });
-    }
-
     const adharFrontLocation = req.files["adhar_front_side"][0].location;
-    const adharBackLocation = req.files["adhar_back_side"][0].location;
-    const panCardLocation = req.files["panCard"].location;
 
     const updatedData =
-      "update create_franchise set adhar_front_side = ? ,adhar_back_side= ?,panCard =? where franchiseId = ? ";
+      "update create_franchise set adhar_front_side = ?  where franchiseId = ? ";
 
     connection.query(
       updatedData,
-      [adharFrontLocation, adharBackLocation, panCardLocation, userId],
+      [adharFrontLocation, userId],
       (error, result) => {
         if (error) {
           console.log(error.message);
@@ -3772,7 +3816,7 @@ exports.uplaodAdharCardAndPancardFranchise = async (req, res) => {
         } else {
           return res
             .status(200)
-            .json({ message: "Files uploaded successfully" });
+            .json({ message: "Adhar card front side uploaded successfully" });
         }
       }
     );
