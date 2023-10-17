@@ -142,6 +142,7 @@ const fetchParticularPartner = require('./routes/fetch-particular-partner')
 const approvePaymentRequestOfFranchise = require('./routes/approve-payment-request-of-franchise')
 const approvePaymentRequestOfBd = require('./routes/approve-payment-request-of-bd')
 const uplaodAdharCardAndPancardMember = require('./routes/uplaod-adhar-card-and-pan-card-member')
+const uplaodAdharCardAndPancardBd = require('./routes/uplaod-adhar-card-and-pan-card-bd')
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
@@ -300,6 +301,7 @@ app.use('/admin',fetchParticularMemberApprovedWithdrawalHistory);
 app.use('/admin', approvePaymentRequestOfFranchise)
 app.use('/admin', approvePaymentRequestOfBd)
 app.use('/admin', uplaodAdharCardAndPancardMember)
+app.use('/admin', uplaodAdharCardAndPancardBd)
 
 
 // --------------------state------------------------///
