@@ -4,15 +4,15 @@ const upload = require("../utils/aws");
 
 const { isAuthenticated, authorizeRole } = require("../middleware/checkAuth");
 const {
-    uploadPanCardFranchise,
+  uplaodAdharCardFrontSideSho,
 } = require("../controllers/adminControllers");
 
 router.put(
-  "/upload-pan-card-franchise",
-  upload.fields([{ name: "panCard" }]),
+  "/upload-adhar-card-front-side-sho",
+  upload.fields([{ name: "adhar_front_side" }]),
   isAuthenticated,
-  authorizeRole(["state", "admin"]),
-  uploadPanCardFranchise
+  authorizeRole([ "admin"]),
+  uplaodAdharCardFrontSideSho
 );
 
 module.exports = router;
