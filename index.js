@@ -192,6 +192,8 @@ const fetchWithdrawalSuccessHistory = require('./routes/bd/fetch-withdrawal-suce
 const businessDevTotalWithdrawal = require('./routes/bd/business-dev-total-withdrawal');
 const businessDevFetchPartnerTeam = require('./routes/bd/businessDev-fetch-partner-team');
 
+// --------------------------member------------------------//
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -364,5 +366,9 @@ app.use('/bd',fetchWithdrawalRequestHistroy);
 app.use('/bd',fetchWithdrawalSuccessHistory);
 app.use('/bd',businessDevTotalWithdrawal);
 app.use('/bd',businessDevFetchPartnerTeam);
+
+
+// --------------------------member--------------------//
+
 
 module.exports = app;
