@@ -20,10 +20,27 @@ const {
 // member Signup
 
 exports.memberSignup = (req, res, next) => {
-  let member = req.body;
-  let firstname = req.body.m_name;
-  let lastname = req.body.m_lname;
+  // Destructure the required fields from req.body
+  const {
+    m_name,
+    m_lname,
+    m_phone,
+    m_add,
+    m_refferid,
+    m_state,
+    m_email,
+    m_designation,
+    m_quali,
+    m_gender,
+    m_exp,
+    m_salary,
+    m_dob,
+    m_doj,
+    m_userid,
+    m_password,
+  } = req.body;
 
+  // Check if required files are present
   if (!req.files["adhar_front_side"]) {
     return res
       .status(400)
@@ -40,159 +57,137 @@ exports.memberSignup = (req, res, next) => {
     return res.status(400).json({ message: "Pan card file is missing." });
   }
 
+  // Get file locations
   const adharFrontSideFile = req.files["adhar_front_side"][0];
   const adharBackSideFile = req.files["adhar_back_side"][0];
   const panCardFile = req.files["panCard"][0];
-
   const adharFrontSideLocation = adharFrontSideFile.location;
   const adharBackSideLocation = adharBackSideFile.location;
   const panCardLocation = panCardFile.location;
 
+  // Check if user ID already exists
+  const checkUserIdExistQuery =
+    "SELECT * FROM create_member WHERE m_userid = ?";
 
-  let reffer_id = "";
+  connection.query(checkUserIdExistQuery, [m_userid], (error, results) => {
+    if (error) {
+      return res.status(500).json({ message: "Internal server error" });
+    }
 
-  const firstCharf = firstname.charAt(0).toUpperCase();
-  const firstCharl = lastname.charAt(0).toUpperCase();
+    if (results.length > 0) {
+      return res.status(400).json({ message: "User ID already exists" });
+    }
 
-  let selectRefferid = " select reffer_id from create_member";
-  connection.query(selectRefferid, (err, results) => {
-    if (!err) {
-      if (results.length <= 0) {
-        reffer_id = firstCharf + "" + firstCharl + "" + 9001;
-        let query = "select * from create_member where m_userid = ?";
-        connection.query(query, [member.m_userid], (err, results) => {
-          if (!err) {
-            if (results.length <= 0) {
-              let password = member.m_password;
+    // Check if the referred ID is valid
+    const isValidReferredIdQuery =
+      "SELECT * FROM create_bd WHERE referralId = ? ";
 
-              bcrypt.hash(member.m_password, 10, function (err, result) {
-                if (err) {
-                  throw err;
-                }
-                hash = result;
-                let query =
-                  "insert into create_member (m_name,m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_designation, m_quali, m_gender, m_exp, m_salary,m_dob, m_doj , m_userid, m_password, reffer_id, adhar_front_side, adhar_back_side, panCard) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,?,?)";
-                connection.query(
-                  query,
-                  [
-                    member.m_name,
-                    member.m_lname,
-                    member.m_phone,
-                    member.m_add,
-                    member.m_refferid,
-                    member.m_state,
-                    member.m_email,
-                    member.m_designation,
-                    member.m_quali,
-                    member.m_gender,
-                    member.m_exp,
-                    member.m_salary,
-                    member.m_dob,
-                    member.m_doj,
-                    member.m_userid,
-                    hash,
-                    reffer_id,
-                    adharFrontSideLocation,
-                    adharBackSideLocation,
-                    panCardLocation,
-                  ],
-                  (err, results) => {
-                    if (!err) {
-                      sms(member.m_phone, {
-                        type: "Member",
-                        userid: member.m_userid,
-                        password: password,
-                      });
+    connection.query(
+      isValidReferredIdQuery,
+      [m_refferid],
+      (error, referredResults) => {
+        if (error) {
+          return res.status(500).json({ message: "Internal server error" });
+        }
 
-                      return res.status(200).json({
-                        message: "Member added successfully",
-                      });
-                    } else {
-                      return res.status(500).json(err);
-                    }
-                  }
-                );
+        if (referredResults.length === 0) {
+          return res.status(400).json({ message: "Invalid referred ID" });
+        }
+
+        // Check name validity
+        if (!isValidName(m_name)) {
+          return res.status(422).json({
+            message: "Invalid first name format.",
+          });
+        }
+
+        if (!isValidName(m_lname)) {
+          return res.status(422).json({
+            message: "Invalid last name format.",
+          });
+        }
+
+        // Check phone validity
+        if (!isValidPhone(m_phone)) {
+          return res.status(422).json({
+            message:
+              "Invalid phone number format. Use 10 digits or include a country code.",
+          });
+        }
+
+        // Email validation
+        if (!isValidEmail(m_email)) {
+          return res.status(422).json({
+            message: "Invalid email format.",
+          });
+        }
+
+        // Password validation
+        if (!isValidPassword(m_password)) {
+          return res.status(422).json({
+            message:
+              "Password must be 8 to 15 characters long and contain at least one lowercase letter, one uppercase letter, and one digit.",
+          });
+        }
+
+        // Hash the password
+        bcrypt.hash(m_password, 10, function (err, result) {
+          if (err) {
+            return res.status(500).json({ message: "Internal server error" });
+          }
+          const hash = result;
+
+          // Insert member data into the database
+          const insertQuery =
+            "INSERT INTO create_member (m_name, m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_designation, m_quali, m_gender, m_exp, m_salary, m_dob, m_doj, m_userid, m_password, reffer_id, adhar_front_side, adhar_back_side, panCard) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+          connection.query(
+            insertQuery,
+            [
+              m_name,
+              m_lname,
+              m_phone,
+              m_add,
+              m_refferid,
+              m_state,
+              m_email,
+              m_designation,
+              m_quali,
+              m_gender,
+              m_exp,
+              m_salary,
+              m_dob,
+              m_doj,
+              m_userid,
+              hash,
+              "",
+              adharFrontSideLocation,
+              adharBackSideLocation,
+              panCardLocation,
+            ],
+            (err, results) => {
+              if (err) {
+                return res
+                  .status(500)
+                  .json({ message: "Internal server error" });
+              }
+
+              // Send an SMS with user details
+              let password = m_password;
+              sms(m_phone, {
+                type: "Member",
+                userid: m_userid,
+                password: password,
               });
-            } else {
-              return res.status(400).json({
-                message: "User ID already exist ! ",
+
+              return res.status(200).json({
+                message: "Member added successfully",
               });
             }
-          } else {
-            return res.status(500).json(err);
-          }
-        });
-      } else {
-        let reffer_id_length = results.length;
-        let findLastFourChar = results[reffer_id_length - 1].reffer_id;
-        let lastFourChars = findLastFourChar.slice(-4);
-        const num = parseInt(lastFourChars);
-        reffer_id = firstCharf + "" + firstCharl + "" + (num + 1);
-        let query = "select * from create_member where m_userid = ?";
-        connection.query(query, [member.m_userid], (err, results) => {
-          if (!err) {
-            if (results.length <= 0) {
-              let password = member.m_password;
-
-              bcrypt.hash(member.m_password, 10, function (err, result) {
-                if (err) {
-                  throw err;
-                }
-                hash = result;
-                let query =
-                  "insert into create_member (m_name,m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_designation, m_quali, m_gender, m_exp, m_salary,m_dob, m_doj , m_userid, m_password, reffer_id,  adhar_front_side, adhar_back_side, panCard) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,?,?)";
-                connection.query(
-                  query,
-                  [
-                    member.m_name,
-                    member.m_lname,
-                    member.m_phone,
-                    member.m_add,
-                    member.m_refferid,
-                    member.m_state,
-                    member.m_email,
-                    member.m_designation,
-                    member.m_quali,
-                    member.m_gender,
-                    member.m_exp,
-                    member.m_salary,
-                    member.m_dob,
-                    member.m_doj,
-                    member.m_userid,
-                    hash,
-                    reffer_id,
-                    adharFrontSideLocation,
-                    adharBackSideLocation,
-                    panCardLocation,
-                  ],
-                  (err, results) => {
-                    if (!err) {
-                      sms(member.m_phone, {
-                        type: "Member",
-                        userid: member.m_userid,
-                        password: password,
-                      });
-
-                      return res.status(200).json({
-                        message: "Member added successfully",
-                      });
-                    } else {
-                      return res.status(500).json(err);
-                    }
-                  }
-                );
-              });
-            } else {
-              return res.status(400).json({
-                message: "User ID already exist ! ",
-              });
-            }
-          } else {
-            return res.status(500).json(err);
-          }
+          );
         });
       }
-    }
+    );
   });
 };
 
@@ -297,7 +292,7 @@ exports.partnerSignup = (req, res, next) => {
                     p_refferal_id,
                     adharFrontSideLocation,
                     adharBackSideLocation,
-                    panCardLocation
+                    panCardLocation,
                   ],
                   (err, results) => {
                     if (!err) {
@@ -366,8 +361,7 @@ exports.partnerSignup = (req, res, next) => {
                     p_refferal_id,
                     adharFrontSideLocation,
                     adharBackSideLocation,
-                    panCardLocation
-
+                    panCardLocation,
                   ],
                   (err, results) => {
                     if (!err) {
@@ -841,7 +835,7 @@ exports.createBd = async (req, res) => {
       businessDeveloperId,
       referredId,
       businessCity,
-      state
+      state,
     } = req.body;
 
     // Check for missing files
@@ -850,13 +844,13 @@ exports.createBd = async (req, res) => {
         .status(400)
         .json({ message: "Adhar card front side file is missing." });
     }
-  
+
     if (!req.files["adhar_back_side"]) {
       return res
         .status(400)
         .json({ message: "Adhar card back side file is missing." });
     }
-  
+
     if (!req.files["panCard"]) {
       return res.status(400).json({ message: "Pan card file is missing." });
     }
@@ -866,9 +860,14 @@ exports.createBd = async (req, res) => {
     const panCardFile = req.files["panCard"][0];
 
     // Check if adharCard image is valid using isValidImage function
-    if (!isValidImage(adharCardBackFile.originalname) || !isValidImage(adharCardFrontFile.originalname) || !isValidImage(panCardFile.originalname)) {
+    if (
+      !isValidImage(adharCardBackFile.originalname) ||
+      !isValidImage(adharCardFrontFile.originalname) ||
+      !isValidImage(panCardFile.originalname)
+    ) {
       return res.status(422).json({
-        message: "Invalid image format. Images must be in jpeg, jpg, tiff, png, webp, or bmp format.",
+        message:
+          "Invalid image format. Images must be in jpeg, jpg, tiff, png, webp, or bmp format.",
       });
     }
 
@@ -886,7 +885,7 @@ exports.createBd = async (req, res) => {
       "referredId",
       "businessCity",
       "gender",
-      "state"
+      "state",
     ];
 
     const missingFields = requiredFields.filter((field) => !req.body[field]);
@@ -897,26 +896,37 @@ exports.createBd = async (req, res) => {
     }
 
     // Validate businessDeveloperId uniqueness
-    const checkBusinessDeveloperQuery = "SELECT businessDeveloperId FROM create_bd WHERE businessDeveloperId = ?";
-    const existingBusinessDeveloper = await queryAsync(checkBusinessDeveloperQuery, [businessDeveloperId]);
+    const checkBusinessDeveloperQuery =
+      "SELECT businessDeveloperId FROM create_bd WHERE businessDeveloperId = ?";
+    const existingBusinessDeveloper = await queryAsync(
+      checkBusinessDeveloperQuery,
+      [businessDeveloperId]
+    );
 
     if (existingBusinessDeveloper.length > 0) {
       return res.status(422).json({
-        message: "This Business Developer ID already exists. Please choose a unique ID.",
+        message:
+          "This Business Developer ID already exists. Please choose a unique ID.",
       });
     }
 
     // Check if referredId exists in your Frenchise table
-    const checkReferredIdQuery = "SELECT referralId FROM create_franchise WHERE referralId = ?";
-    const existingReferredId = await queryAsync(checkReferredIdQuery, [referredId]);
+    const checkReferredIdQuery =
+      "SELECT referralId FROM create_franchise WHERE referralId = ?";
+    const existingReferredId = await queryAsync(checkReferredIdQuery, [
+      referredId,
+    ]);
 
     if (existingReferredId.length === 0) {
-      return res.status(400).json({ message: "Invalid referredId. Please provide a valid referral Id." });
+      return res.status(400).json({
+        message: "Invalid referredId. Please provide a valid referral Id.",
+      });
     }
 
     if (!isValidPhone(phone)) {
       return res.status(422).json({
-        message: "Invalid phone number format. Use 10 digits or include country code.",
+        message:
+          "Invalid phone number format. Use 10 digits or include country code.",
       });
     }
 
@@ -934,13 +944,15 @@ exports.createBd = async (req, res) => {
 
     if (!isValidPassword(password)) {
       return res.status(422).json({
-        message: "Password must be 8 to 15 characters long and contain at least one lowercase letter, one uppercase letter, and one digit.",
+        message:
+          "Password must be 8 to 15 characters long and contain at least one lowercase letter, one uppercase letter, and one digit.",
       });
     }
 
     if (!isValidUserId(businessDeveloperId)) {
       return res.status(422).json({
-        message: "Business Developer Id Should have at least 1 letter and 1 digit, minimum length 6.",
+        message:
+          "Business Developer Id Should have at least 1 letter and 1 digit, minimum length 6.",
       });
     }
 
@@ -949,7 +961,6 @@ exports.createBd = async (req, res) => {
     const firstThreeDigits = `${fname.substring(0, 3).toUpperCase()}`;
     const randomDigits = Math.floor(1000 + Math.random() * 9000);
     const referralId = "BD" + "-" + firstThreeDigits + randomDigits;
-
 
     // Insert data into the database
     const insertBusinessDeveloperQuery = `
@@ -971,7 +982,7 @@ exports.createBd = async (req, res) => {
       referralId,
       referredId,
       businessCity,
-      state
+      state,
     ]);
 
     return res.status(201).json({
@@ -989,7 +1000,7 @@ exports.createBd = async (req, res) => {
         referralId,
         referredId,
         businessCity,
-        state
+        state,
       },
     });
   } catch (error) {
