@@ -130,6 +130,10 @@ connection.query(query, [bank.user_id, bank.holder_name, bank.account_no, bank.i
 
 };
 
+//make primary 
+
+
+
 //fetch-partner-bank-details
 
 exports.fetchPartnerBankDetails = (req, res) => {

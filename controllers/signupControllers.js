@@ -194,10 +194,28 @@ exports.memberSignup = (req, res, next) => {
 // Partner Signup
 
 exports.partnerSignup = (req, res, next) => {
-  let partner = req.body;
-  let firstname = req.body.p_name;
-  let lastname = req.body.p_lname;
+  // Destructure the required fields from req.body
+  const {
+    p_name,
+    p_lname,
+    p_aadhar,
+    p_phone,
+    p_email,
+    p_address,
+    p_state,
+    p_dob,
+    p_nominee_name,
+    p_nominee_aadhar,
+    p_nominee_phone,
+    p_dop,
+    p_liquidity,
+    terms,
+    p_userid,
+    p_password,
+    p_reffered_id
+  } = req.body;
 
+  // Check if required files are present
   if (!req.files["adhar_front_side"]) {
     return res
       .status(400)
@@ -222,216 +240,127 @@ exports.partnerSignup = (req, res, next) => {
   const adharBackSideLocation = adharBackSideFile.location;
   const panCardLocation = panCardFile.location;
 
-  const firstCharf = firstname.charAt(0).toUpperCase();
-  const firstCharl = lastname.charAt(0).toUpperCase();
-  let p_refferal_id = "";
+  // Validate partner data
   if (
-    !partner.p_reffered_id ||
-    !partner.p_name ||
-    !partner.p_lname ||
-    !partner.p_aadhar ||
-    !partner.p_phone ||
-    !partner.p_email ||
-    !partner.p_address ||
-    !partner.p_state ||
-    !partner.p_dob ||
-    !partner.p_nominee_name ||
-    !partner.p_nominee_aadhar ||
-    !partner.p_nominee_phone ||
-    !partner.p_dop ||
-    !partner.p_liquidity ||
-    !partner.terms ||
-    !partner.p_userid ||
-    !partner.p_password ||
-    !partner.p_refferal_id
+    !p_name ||
+    !p_lname ||
+    !p_aadhar ||
+    !p_phone ||
+    !p_email ||
+    !p_address ||
+    !p_state ||
+    !p_dob ||
+    !p_nominee_name ||
+    !p_nominee_aadhar ||
+    !p_nominee_phone ||
+    !p_dop ||
+    !p_liquidity ||
+    !terms ||
+    !p_userid ||
+    !p_password
   ) {
     return res.status(422).json({
-      message: "Please Fill all Details",
+      message: "Please fill in all required fields.",
     });
   }
 
-  let selectrefferid = "select p_refferal_id from mining_partner ";
-  connection.query(selectrefferid, (err, results) => {
-    if (!err) {
-      if (results.length <= 0) {
-        p_refferal_id = firstCharf + "" + firstCharl + "" + 9050;
-        console.log(p_refferal_id, "123");
-        let selectquery = " select * from mining_partner where p_userid = ?";
-        connection.query(selectquery, [partner.p_userid], (err, results) => {
-          if (!err) {
-            if (results.length <= 0) {
-              let password = partner.p_password;
+  // You can add more specific validations for each field if needed.
 
-              bcrypt.hash(partner.p_password, 10, function (err, result) {
-                if (err) {
-                  throw err;
-                }
-                hash = result;
-                let query =
-                  "insert into mining_partner(p_reffered_id ,p_name,p_lname ,p_aadhar,p_phone,p_email,p_address,p_state,p_dob,p_nominee_name,p_nominee_aadhar,p_nominee_phone,p_dop,p_liquidity, terms,p_userid,p_password, p_refferal_id,adhar_front_side, adhar_back_side, panCard) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,?,?)";
-                connection.query(
-                  query,
-                  [
-                    partner.p_reffered_id,
-                    partner.p_name,
-                    partner.p_lname,
-                    partner.p_aadhar,
-                    partner.p_phone,
-                    partner.p_email,
-                    partner.p_address,
-                    partner.p_state,
-                    partner.p_dob,
-                    partner.p_nominee_name,
-                    partner.p_nominee_aadhar,
-                    partner.p_nominee_phone,
-                    partner.p_dop,
-                    partner.p_liquidity,
-                    partner.terms,
-                    partner.p_userid,
-                    hash,
-                    p_refferal_id,
-                    adharFrontSideLocation,
-                    adharBackSideLocation,
-                    panCardLocation,
-                  ],
-                  (err, results) => {
-                    if (!err) {
-                      sms(partner.p_phone, {
-                        type: "Partner",
-                        userid: partner.p_userid,
-                        password: password,
-                      });
-                      return res.status(200).json({
-                        message: "mining partner added successfully",
-                      });
-                    } else {
-                      return res.status(500).json(err);
-                    }
-                  }
-                );
-              });
-            } else {
-              return res.status(400).json({
-                message: "Partner ID already exist!",
-              });
-            }
-          } else {
-            return res.status(500).json(err);
-          }
-        });
-      } else {
-        let reffer_id_length = results.length;
-        let findLastFourChar = results[reffer_id_length - 1].p_refferal_id;
-        let lastFourChars = findLastFourChar.slice(-4);
-        const num = parseInt(lastFourChars);
-        p_refferal_id = firstCharf + "" + firstCharl + "" + (num + 1);
-        let selectquery = " select * from mining_partner where p_userid = ?";
-        connection.query(selectquery, [partner.p_userid], (err, results) => {
-          if (!err) {
-            if (results.length <= 0) {
-              let password = partner.p_password;
+  //check referral id is valid or not
 
-              bcrypt.hash(partner.p_password, 10, function (err, result) {
-                if (err) {
-                  throw err;
-                }
-                hash = result;
-                let query =
-                  "insert into mining_partner(p_reffered_id ,p_name,p_lname ,p_aadhar,p_phone,p_email,p_address,p_state,p_dob,p_nominee_name,p_nominee_aadhar,p_nominee_phone,p_dop,p_liquidity, terms,p_userid,p_password, p_refferal_id,adhar_front_side, adhar_back_side, panCard) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-                connection.query(
-                  query,
-                  [
-                    partner.p_reffered_id,
-                    partner.p_name,
-                    partner.p_lname,
-                    partner.p_aadhar,
-                    partner.p_phone,
-                    partner.p_email,
-                    partner.p_address,
-                    partner.p_state,
-                    partner.p_dob,
-                    partner.p_nominee_name,
-                    partner.p_nominee_aadhar,
-                    partner.p_nominee_phone,
-                    partner.p_dop,
-                    partner.p_liquidity,
-                    partner.terms,
-                    partner.p_userid,
-                    hash,
-                    p_refferal_id,
-                    adharFrontSideLocation,
-                    adharBackSideLocation,
-                    panCardLocation,
-                  ],
-                  (err, results) => {
-                    if (!err) {
-                      sms(partner.p_phone, {
-                        type: "Partner",
-                        userid: partner.p_userid,
-                        password: password,
-                      });
-                      return res.status(200).json({
-                        message: "mining partner added successfully",
-                      });
-                    } else {
-                      return res.status(500).json(err);
-                    }
-                  }
-                );
-              });
-            } else {
-              return res.status(400).json({
-                message: "Partner ID already exist!",
-              });
-            }
-          } else {
-            return res.status(500).json(err);
-          }
-        });
-      }
+  const isValidReferredIdQuery = "SELECT * FROM create_member where reffer_id = ?"
+
+  connection.query(isValidReferredIdQuery, [ p_reffered_id ], (error, result)=> {
+    if (error) {
+      return res.status(500).json({ message: "Internal server error" });
     }
+
+    if (result.length === 0) {
+      return res.status(400).json({ message: "Invalid referred Id" });
+    }
+
+  })
+
+  // Check if user ID already exists
+  const checkUserIdExistQuery = "SELECT * FROM mining_partner WHERE p_userid = ?";
+
+  connection.query(checkUserIdExistQuery, [p_userid], (error, results) => {
+    if (error) {
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length > 0) {
+      return res.status(400).json({ message: "Partner ID already exists" });
+    }
+
+    // Generate a unique partner referral ID based on the name
+    const firstCharf = p_name.charAt(0).toUpperCase();
+    const firstCharl = p_lname.charAt(0).toUpperCase();
+    const p_refferal_id = firstCharf + firstCharl + Math.floor(Math.random() * 10000).toString();
+
+    // Hash the password
+    bcrypt.hash(p_password, 10, function (err, hash) {
+      if (err) {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+
+      // Insert partner data into the database
+      const insertQuery =
+        "INSERT INTO mining_partner (p_reffered_id, p_name, p_lname, p_aadhar, p_phone, p_email, p_address, p_state, p_dob, p_nominee_name, p_nominee_aadhar, p_nominee_phone, p_dop, p_liquidity, terms, p_userid, p_password, p_refferal_id, adhar_front_side, adhar_back_side, panCard) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+      connection.query(
+        insertQuery,
+        [
+          p_reffered_id,
+          p_name,
+          p_lname,
+          p_aadhar,
+          p_phone,
+          p_email,
+          p_address,
+          p_state,
+          p_dob,
+          p_nominee_name,
+          p_nominee_aadhar,
+          p_nominee_phone,
+          p_dop,
+          p_liquidity,
+          terms,
+          p_userid,
+          hash,
+          p_refferal_id,
+          adharFrontSideLocation,
+          adharBackSideLocation,
+          panCardLocation,
+        ],
+        (err, results) => {
+          if (err) {
+            return res.status(500).json({ message: "Internal server error" });
+          }
+
+          // Send an SMS with user details
+          let password = p_password;
+          sms(p_phone, {
+            type: "Partner",
+            userid: p_userid,
+            password: password,
+          });
+
+          return res.status(200).json({
+            message: "Mining partner added successfully",
+          });
+        }
+      );
+    });
   });
-  // let selectquery = "select * from mining_partner where p_userid = ?";
-  // connection.query(selectquery, [partner.p_userid], (err, results) => {
-  //     if (!err) {
-  //         if (results.length <= 0) {
-
-  //             let password = partner.p_password;
-
-  //             bcrypt.hash(partner.p_password, 10, function (err, result) {
-  //                 if (err) {
-  //                     throw (err);
-  //                 }
-  //                 hash = result;
-
-  //                 let query = "insert into mining_partner(p_reffered_id ,p_name,p_lname ,p_aadhar,p_phone,p_email,p_address,p_state,p_dob,p_nominee_name,p_nominee_aadhar,p_nominee_phone,p_dop,p_liquidity, terms,p_userid,p_password, p_refferal_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-  //                 connection.query(query, [partner.p_reffered_id, partner.p_name,partner.p_lname, partner.p_aadhar,
-  //                 partner.p_phone, partner.p_email, partner.p_address, partner.p_state, partner.p_dob, partner.p_nominee_name,
-  //                 partner.p_nominee_aadhar, partner.p_nominee_phone, partner.p_dop, partner.p_liquidity,
-  //                 partner.terms, partner.p_userid, hash, partner.p_refferal_id], (err, results) => {
-  //                     if (!err) {
-
-  //                          sms(partner.p_phone, { "type": 'Partner', "userid": partner.p_userid, "password": password })
-  //                         return res.status(200).json({
-  //                             message: "mining partner added successfully"
-  //                         });
-  //                     } else {
-  //                         return res.status(500).json(err);
-  //                     }
-  //                 });
-
-  //             })
-
-  //         } else {
-  //             return res.status(400).json({
-  //                 message: "Partner ID already exist!"
-  //             })
-  //         }
-  //     } else {
-  //         return res.status(500).json(err);
-  //     }
-  // });
 };
+
+// Function to generate a unique number
+// function generateUniqueNumber() {
+//   // Implement your logic to generate a unique number, e.g., timestamp, random number, etc.
+//   return Math.floor(Math.random() * 10000).toString();
+// }
+
 
 //create sho
 exports.createSHO = async (req, res) => {

@@ -10,7 +10,7 @@ const {
 router.post(
   "/make-primary-bank",
   isAuthenticated,
-  authorizeRole(["state","franchise", "admin", "bd"]),
+  authorizeRole(["state","franchise", "admin", "bd", "partner", "member"]),
   makePrimaryBank
 );
 
