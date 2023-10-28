@@ -107,30 +107,27 @@ exports.miningPartnerProfileDetails = (req, res) => {
 // Add Partner Bank Details
 
 exports.addPartnerBankDetails = (req, res) => {
-  let bank = req.body;
- let  query =
-    "insert into bank_details(user_id,holder_name,account_no,ifsc_code,branch_name,bank_name)  values (?,?,?,?,?,?)";
-  connection.query(
-    query,
-    [
-      bank.user_id,
-      bank.holder_name,
-      bank.account_no,
-      bank.ifsc_code,
-      bank.branch_name,
-      bank.bank_name,
-    ],
-    (err, results) => {
-      if (!err) {
-        return res.status(200).json({
-          message: "Bank Details Added successfully",
-          data: results,
-        });
-      } else {
-        return res.status(500).json(err);
-      }
-    }
-  );
+  const bank = req.body;
+
+// Check if any required details are missing
+if (!bank.user_id || !bank.holder_name || !bank.account_no || !bank.ifsc_code || !bank.branch_name || !bank.bank_name) {
+  return res.status(400).json({
+    message: "Please provide all necessary information.",
+  });
+}
+
+let query = "INSERT INTO bank_details(user_id, holder_name, account_no, ifsc_code, branch_name, bank_name) VALUES (?, ?, ?, ?, ?, ?)";
+connection.query(query, [bank.user_id, bank.holder_name, bank.account_no, bank.ifsc_code, bank.branch_name, bank.bank_name], (err, results) => {
+  if (!err) {
+    return res.status(200).json({
+      message: "Bank Details Added successfully",
+      data: results,
+    });
+  } else {
+    return res.status(500).json(err);
+  }
+});
+
 };
 
 //fetch-partner-bank-details
