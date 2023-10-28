@@ -106,9 +106,9 @@ exports.miningPartnerProfileDetails = (req, res) => {
 
 // Add Partner Bank Details
 
-exports.addPartnerBankBetails = (req, res) => {
+exports.addPartnerBankDetails = (req, res) => {
   let bank = req.body;
-  query =
+ let  query =
     "insert into bank_details(user_id,holder_name,account_no,ifsc_code,branch_name,bank_name)  values (?,?,?,?,?,?)";
   connection.query(
     query,

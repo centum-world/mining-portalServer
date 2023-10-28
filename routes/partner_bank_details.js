@@ -4,7 +4,7 @@ const router = express.Router();
 
 const partnerControllers = require('../controllers/partnerControllers'); 
 const checkAuthMiddleware = require('../middleware/checkAuth');
-router.post('/partner-bank-details',checkAuthMiddleware.checkAuth,partnerControllers.addPartnerBankBetails);
+router.post('/partner-bank-details',partnerControllers.addPartnerBankDetails);
 
 
 module.exports = router;
