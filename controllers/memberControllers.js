@@ -107,7 +107,7 @@ exports.fetchMemberDetails = (req, res) => {
 exports.addMemberBankDetails = (req, res) => {
   let bank = req.body;
   let query =
-    "insert into member_bank_details(user_id,holder_name,account_no,ifsc_code,branch_name,bank_name)  values (?,?,?,?,?,?)";
+    "insert into bank_details(user_id,holder_name,account_no,ifsc_code,branch_name,bank_name)  values (?,?,?,?,?,?)";
   connection.query(
     query,
     [
