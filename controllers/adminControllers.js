@@ -127,6 +127,7 @@ exports.createMember = (req, res) => {
         let lastFourChars = findLastFourChar.slice(-4);
         const num = parseInt(lastFourChars);
         reffer_id = firstCharf + "" + firstCharl + "" + (num + 1);
+        
         let query = "select * from create_member where m_userid = ?";
         connection.query(query, [member.m_userid], (err, results) => {
           if (!err) {

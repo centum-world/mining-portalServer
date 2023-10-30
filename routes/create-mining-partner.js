@@ -11,10 +11,10 @@ const adminControllers = require('../controllers/adminControllers');
 const checkAuthMiddleware = require('../middleware/checkAuth');
 
 
-router.post('/create-mining-partner',checkAuthMiddleware.checkAuth ,adminControllers.createMiningPartner);
+router.post('/create-mining-partner',checkAuthMiddleware.isAuthenticated,adminControllers.createMiningPartner);
 
 
 // fetch Mining Partner
-router.get('/create-mining-partner',checkAuthMiddleware.checkAuth,adminControllers.fetchMiningPartner);
+router.get('/fetch-mining-partner',checkAuthMiddleware.checkAuth,adminControllers.fetchMiningPartner);
 
 module.exports = router;

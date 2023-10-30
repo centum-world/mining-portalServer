@@ -109,30 +109,46 @@ exports.miningPartnerProfileDetails = (req, res) => {
 exports.addPartnerBankDetails = (req, res) => {
   const bank = req.body;
 
-// Check if any required details are missing
-if (!bank.user_id || !bank.holder_name || !bank.account_no || !bank.ifsc_code || !bank.branch_name || !bank.bank_name) {
-  return res.status(400).json({
-    message: "Please provide all necessary information.",
-  });
-}
-
-let query = "INSERT INTO bank_details(user_id, holder_name, account_no, ifsc_code, branch_name, bank_name) VALUES (?, ?, ?, ?, ?, ?)";
-connection.query(query, [bank.user_id, bank.holder_name, bank.account_no, bank.ifsc_code, bank.branch_name, bank.bank_name], (err, results) => {
-  if (!err) {
-    return res.status(200).json({
-      message: "Bank Details Added successfully",
-      data: results,
+  // Check if any required details are missing
+  if (
+    !bank.user_id ||
+    !bank.holder_name ||
+    !bank.account_no ||
+    !bank.ifsc_code ||
+    !bank.branch_name ||
+    !bank.bank_name
+  ) {
+    return res.status(400).json({
+      message: "Please provide all necessary information.",
     });
-  } else {
-    return res.status(500).json(err);
   }
-});
 
+  let query =
+    "INSERT INTO bank_details(user_id, holder_name, account_no, ifsc_code, branch_name, bank_name) VALUES (?, ?, ?, ?, ?, ?)";
+  connection.query(
+    query,
+    [
+      bank.user_id,
+      bank.holder_name,
+      bank.account_no,
+      bank.ifsc_code,
+      bank.branch_name,
+      bank.bank_name,
+    ],
+    (err, results) => {
+      if (!err) {
+        return res.status(200).json({
+          message: "Bank Details Added successfully",
+          data: results,
+        });
+      } else {
+        return res.status(500).json(err);
+      }
+    }
+  );
 };
 
-//make primary 
-
-
+//make primary
 
 //fetch-partner-bank-details
 
@@ -1194,54 +1210,112 @@ exports.helpAndSupport = (req, res) => {
 
 //fetch particular partner
 
-exports.fetchParticularPartner = async(req, res) => {
+exports.fetchParticularPartner = async (req, res) => {
   try {
-    const {userId} = req.body
+    const { userId } = req.body;
 
-    const findPartnerQuery = "SELECT * FROM mining_partner WHERE p_userid = ?"
-    connection.query(findPartnerQuery, [userId], (error, result)=> {
-      if(error){
-        console.log(error.message)
-        res.status(500).json({message: "Internal server error"})
+    const findPartnerQuery = "SELECT * FROM mining_partner WHERE p_userid = ?";
+    connection.query(findPartnerQuery, [userId], (error, result) => {
+      if (error) {
+        console.log(error.message);
+        res.status(500).json({ message: "Internal server error" });
       }
 
-      if(result.length ===0) {
-        return res.status(404).json({message: "Partner not found."})
+      if (result.length === 0) {
+        return res.status(404).json({ message: "Partner not found." });
       }
 
-      return res.status(200).json({message: "Partner fetched successfully.", result})
-
-    })
-    
+      return res
+        .status(200)
+        .json({ message: "Partner fetched successfully.", result });
+    });
   } catch (error) {
-    console.log(error.message)
-    res.status(500).json({message: "Internal server error"})
-    
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 //====================================================================
 
-exports.fetchPartnerByReferralIdOfPartner = async(req, res) => {
+exports.fetchPartnerByReferralIdOfPartner = async (req, res) => {
   try {
+    const { referralId } = req.body;
 
-    const {referralId} = req.body
+    const findPartnerQuery =
+      "select * from mining_partner where p_reffered_id = ?";
 
-    const findPartnerQuery = "select * from mining_partner where p_reffered_id = ?"
-
-    connection.query(findPartnerQuery, [referralId], (error, result)=> {
-      if(error){
-        console.log(error.message)
-        return res.status(500).json({message: "Internal server error"})
+    connection.query(findPartnerQuery, [referralId], (error, result) => {
+      if (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: "Internal server error" });
       }
 
-
-      return res.status(200).json({message: "Referred Partner fetched successfully", result})
-    })
-    
+      return res
+        .status(200)
+        .json({ message: "Referred Partner fetched successfully", result });
+    });
   } catch (error) {
-    return res.status(500).json({message: "Internal server error"})
-
+    return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
+exports.fetchPartnerReferWithdrawl = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    const findPartnerReferWithdrawlQuery =
+      "select * from partner_reffer_withdrawal where p_userid = ? ";
+    connection.query(
+      findPartnerReferWithdrawlQuery,
+      [userId],
+      (error, result) => {
+        if (error) {
+          console.log(error.message);
+          return res.status(500).json({ message: "Internal server errro" });
+        }
+
+        const finalResult = result[0];
+
+        return res
+          .status(200)
+          .json({
+            message: "fetched partner withdrawl succcessfully ",
+            finalResult,
+          });
+      }
+    );
+  } catch (error) {
+    console.log(error.message);
+
+    return res.status(500).json({ message: "Internal server errro" });
+  }
+};
+
+// exports.fetchPartnerWithdrawlToWithdrawlHistory = async(req, res) => {
+//   try {
+
+//     const {userId, } = req.body
+
+//     const findMemberReferWithdrawlToMemberReferWithdrawlHistoryQueryQuery =
+
+//     "Select * from partner_reffer_withdrawal where m_userid = ?"
+
+//     connection.query(findMemberReferWithdrawlToMemberReferWithdrawlHistoryQueryQuery, [userId], (error, result)=> {
+//       if(error){
+//         return res.status(500).json({message: "Internal server errro"})
+//       }
+
+//       const finalResult = result[0]
+
+//       const partnerWallet = finalResult.partner_wallet
+//       const requestDate = finalResult.request_date
+//       const refferuserid	= finalResult.reffer_p_userid
+
+//       const CreatewithdrawalHistoryQuery = "insert into (partner_wallet,reffer_p_userid,request_date, approve_date ) partner_reffer_withdrawal select (partner_wallet,request_date	, reffer_p_userid	)  "
+
+//     })
+
+//   } catch (error) {
+
+//   }
+// }
