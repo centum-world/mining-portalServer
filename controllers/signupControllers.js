@@ -268,18 +268,37 @@ exports.partnerSignup = (req, res, next) => {
 
   //check referral id is valid or not
 
-  const isValidReferredIdQuery = "SELECT * FROM create_member where reffer_id = ?"
+  const isValidReferredIdQuery = "SELECT * FROM create_member WHERE reffer_id = ?";
 
-  connection.query(isValidReferredIdQuery, [ p_reffered_id ], (error, result)=> {
+  connection.query(isValidReferredIdQuery, [p_reffered_id], (error, result) => {
     if (error) {
       return res.status(500).json({ message: "Internal server error" });
     }
-
+  
     if (result.length === 0) {
-      return res.status(400).json({ message: "Invalid referred Id" });
-    }
+    const  isThisPartnerRefferedId = "SELECT * FROM mining_partner where p_refferal_id = ? ";
+      connection.query(isThisPartnerRefferedId,[p_reffered_id],(err,result) => {
+        if(err){
+          return res.status(500).json({ message: "Internal server error" });
+        }
+        if(result.length ===0){
+          const isThisAdminRefferedId = "SELECT * FROM admin_login where reffer_id = ?";
+          connection.query(isThisAdminRefferedId,[p_reffered_id],(err,result) => {
+            if(err){
+              return res.status(500).json({message:"Internal server error"});
+            }
+            if(result.length === 0) {
+              return res.status(400).json({message:"Invalid reffered ID"})
+            }
+          })
+        }
+      })
 
-  })
+    } else {
+      return res.status(200).json({ message: "Valid referred ID" });
+    }
+  });
+  
 
   // Check if user ID already exists
   const checkUserIdExistQuery = "SELECT * FROM mining_partner WHERE p_userid = ?";
