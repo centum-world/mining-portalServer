@@ -1271,16 +1271,16 @@ exports.fetchPartnerReferWithdrawl = async (req, res) => {
       (error, result) => {
         if (error) {
           console.log(error.message);
-          return res.status(500).json({ message: "Internal server errro" });
+          return res.status(500).json({ message: "Internal server error" });
         }
 
-        const finalResult = result[0];
+      
 
         return res
           .status(200)
           .json({
             message: "fetched partner withdrawl succcessfully ",
-            finalResult,
+            result,
           });
       }
     );
@@ -1291,31 +1291,51 @@ exports.fetchPartnerReferWithdrawl = async (req, res) => {
   }
 };
 
-// exports.fetchPartnerWithdrawlToWithdrawlHistory = async(req, res) => {
-//   try {
+exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
+  try {
+    const { userId } = req.body;
 
-//     const {userId, } = req.body
+    const findMemberReferWithdrawlToMemberReferWithdrawlHistoryQuery = 
+      "SELECT * FROM partner_reffer_withdrawal WHERE m_userid = ?";
 
-//     const findMemberReferWithdrawlToMemberReferWithdrawlHistoryQueryQuery =
+    connection.query(findMemberReferWithdrawlToMemberReferWithdrawlHistoryQuery, [userId], (error, result) => {
+      if (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: "Internal server error" });
+      }
 
-//     "Select * from partner_reffer_withdrawal where m_userid = ?"
+      if (result.length > 0) {
+        const finalResult = result[0];
+        const partnerWallet = finalResult.partner_wallet;
+        const requestDate = finalResult.request_date;
+        const refferuserid = finalResult.reffer_p_userid;
 
-//     connection.query(findMemberReferWithdrawlToMemberReferWithdrawlHistoryQueryQuery, [userId], (error, result)=> {
-//       if(error){
-//         return res.status(500).json({message: "Internal server errro"})
-//       }
+        const createWithdrawalHistoryQuery = 
+          "INSERT INTO withdrawal_history (partner_wallet, request_date, reffer_p_userid) VALUES (?, ?, ?)";
+          
+        connection.query(createWithdrawalHistoryQuery, [partnerWallet, requestDate, refferuserid], (error, result) => {
+          if (error) {
+            console.log(error.message);
+            return res.status(500).json({ message: "Internal server error" });
+          }
+        });
 
-//       const finalResult = result[0]
+        const deletePartnerReferWithdrawalQuery = "DELETE FROM partner_reffer_withdrawal WHERE m_userid = ?";
 
-//       const partnerWallet = finalResult.partner_wallet
-//       const requestDate = finalResult.request_date
-//       const refferuserid	= finalResult.reffer_p_userid
+        connection.query(deletePartnerReferWithdrawalQuery, [userId], (error, result) => {
+          if (error) {
+            console.log(error.message);
+            return res.status(500).json({ message: "Internal server error" });
+          }
+        });
 
-//       const CreatewithdrawalHistoryQuery = "insert into (partner_wallet,reffer_p_userid,request_date, approve_date ) partner_reffer_withdrawal select (partner_wallet,request_date	, reffer_p_userid	)  "
-
-//     })
-
-//   } catch (error) {
-
-//   }
-// }
+        return res.status(200).json({ message: "Data moved and deleted successfully" });
+      } else {
+        return res.status(404).json({ message: "No data found for the specified user" });
+      }
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

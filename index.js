@@ -164,7 +164,7 @@ const updateSho = require('./routes/update-sho')
 const createPaymentRequest = require('./routes/state/create-sho-payment-request')
 const makePrimaryBank = require('./routes/state/make-primary-bank')
 const fetchPrimaryBank = require('./routes/state/fetch-primary-bank')
-
+const transferPartnerWithdrawlToWithdrawlHistory = require('./routes/transfer-Partner-Withdrawl-To-Withdrawl-History')
 // ------------------------------------------------------------//
 
 // ------------------------------franchise------------------------//
@@ -305,8 +305,10 @@ app.use("/mining", fetchParticularPartner)
 app.use("/mining", fetchPartnerByReferralIdOfPartner)
 
 app.use('/mining', fetchPartnerReferWithdrawl)
+app.use('/admin', transferPartnerWithdrawlToWithdrawlHistory)
 
 // --------------------------admin-------------------//
+app.use('/admin', transferPartnerWithdrawlToWithdrawlHistory)
 app.use('/admin',adminVerifyMember);
 app.use('/admin',adminBlockMember);
 app.use('/admin',adminFetchAllMiningPartner);
