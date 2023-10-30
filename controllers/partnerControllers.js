@@ -1220,5 +1220,28 @@ exports.fetchParticularPartner = async(req, res) => {
   }
 }
 
+//====================================================================
 
+exports.fetchPartnerByReferralIdOfPartner = async(req, res) => {
+  try {
+
+    const {referralId} = req.body
+
+    const findPartnerQuery = "select * from mining_partner where p_reffered_id = ?"
+
+    connection.query(findPartnerQuery, [referralId], (error, result)=> {
+      if(error){
+        console.log(error.message)
+        return res.status(500).json({message: "Internal server error"})
+      }
+
+
+      return res.status(200).json({message: "Referred Partner fetched successfully", result})
+    })
+    
+  } catch (error) {
+    return res.status(500).json({message: "Internal server error"})
+
+  }
+}
 
