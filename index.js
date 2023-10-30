@@ -123,6 +123,7 @@ const fetchAllSho = require('./routes/fetch-all-sho')
 const blockAndUnblockSho = require('./routes/block-and-unblock-sho')
 const verifySho = require('./routes/verify-sho')
 const updateMember = require('./routes/update-member') 
+const fetchPartnerByReferralIdOfPartner = require('./routes/fetchPartnerByReferralIdOfPartner')
 
 // -----------------------admin-----------------------------//
 const adminVerifyMember = require('./routes/admin-verify-member');
@@ -300,6 +301,7 @@ app.use("/admin", blockAndUnblockSho)
 app.use("/state", verifySho)
 app.use("/member", updateMember)
 app.use("/mining", fetchParticularPartner)
+app.use("/mining", fetchPartnerByReferralIdOfPartner)
 
 
 // --------------------------admin-------------------//
