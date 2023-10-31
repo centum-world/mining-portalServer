@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const forgetpasswordSms = require("../utils/forget-password-otp");
 const sms = require("../utils/successfull-add-sms");
+const email = require("../utils/withdrawal-email")
 const walletSms = require("../utils/wallet-amount-sms");
 const memberWalletSms = require("../utils/member-wallet-amount-sms");
 const {
@@ -1286,6 +1287,7 @@ exports.fetchPartnerReferWithdrawl = async (req, res) => {
     return res.status(500).json({ message: "Internal server errro" });
   }
 };
+
 exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
   let partnerId = req.body;
   console.log(partnerId.id, "1291");
@@ -1330,16 +1332,18 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
                       console.log(partnerPhone, "270");
                       email(partnerEmail, { withdrawalAmount: partner_wallet });
                     } else {
+                      console.error(err); // Add console error log here
                       return res.status(500).json({
                         message: "Something Went Wrong",
                       });
                     }
                   } catch (error) {
+                    console.error(error); // Add console error log here
                     return res.status(500).json(error);
                   }
                 }
               );
-                console.log(id)
+              console.log(id)
               let deletequery =
                 "delete from partner_reffer_withdrawal where id = ?";
               connection.query(deletequery, [id], (err, results) => {
@@ -1348,23 +1352,32 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
                   return res.status(200).json({
                     message: " Partner Reffer Withdrwal Request Approved",
                   });
+                } else {
+                  console.error(err); // Add console error log here
+                  return res.status(500).json({
+                    message: "Something Went Wrong",
+                  });
                 }
               });
             } else {
+              console.error(err); // Add console error log here
               return res.status(500).json({
                 message: "Something Went Wrong",
               });
             }
           } catch (error) {
+            console.error(error); // Add console error log here
             return res.status(500).json(error);
           }
         }
       );
     } else {
+      console.error(err); // Add console error log here
       return res.status(500).json(err);
     }
   });
 };
+
 
 exports.fetchPartnerReferWithdrawlHistory = async (req, res) => {
   try {
