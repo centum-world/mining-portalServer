@@ -1288,7 +1288,7 @@ exports.fetchPartnerReferWithdrawl = async (req, res) => {
 };
 exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
   let partnerId = req.body;
-  console.log(partnerId.id, "250");
+  console.log(partnerId.id, "1291");
   let query = "select * from partner_reffer_withdrawal where id = ? ";
   connection.query(query, [partnerId.id], (err, results) => {
     if (!err) {
@@ -1311,7 +1311,7 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
           request_date,
           approve_date,
           reffer_p_userid,
-          partnerId.p_userid,
+          p_userid,
         ],
         (err, results) => {
           console.log(p_userid);
@@ -1321,19 +1321,13 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
                 "select p_email,p_phone from mining_partner where p_userid = ?";
               connection.query(
                 selectquery,
-                [partnerId.p_userid],
+                [p_userid],
                 (err, results) => {
                   try {
                     if (!err) {
                       partnerEmail = results[0]?.p_email;
                       partnerPhone = results[0]?.p_phone;
                       console.log(partnerPhone, "270");
-                      // withdrawalSms(partnerPhone, {
-                      //   type: "Partner",
-                      //   userid: partnerId.p_userid,
-                      //   amount: partner_wallet,
-                      // });
-
                       email(partnerEmail, { withdrawalAmount: partner_wallet });
                     } else {
                       return res.status(500).json({
@@ -1345,11 +1339,12 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
                   }
                 }
               );
-
+                console.log(id)
               let deletequery =
                 "delete from partner_reffer_withdrawal where id = ?";
-              connection.query(deletequery, [partnerId], (err, results) => {
+              connection.query(deletequery, [id], (err, results) => {
                 if (!err) {
+                  console.log('hello, 1347')
                   return res.status(200).json({
                     message: " Partner Reffer Withdrwal Request Approved",
                   });
