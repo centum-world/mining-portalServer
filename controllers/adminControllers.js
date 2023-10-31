@@ -127,7 +127,7 @@ exports.createMember = (req, res) => {
         let lastFourChars = findLastFourChar.slice(-4);
         const num = parseInt(lastFourChars);
         reffer_id = firstCharf + "" + firstCharl + "" + (num + 1);
-        
+
         let query = "select * from create_member where m_userid = ?";
         connection.query(query, [member.m_userid], (err, results) => {
           if (!err) {
@@ -1052,7 +1052,6 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                   }
                 );
               }
-
             }
           );
         });
@@ -1289,7 +1288,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                     month_count,
                                                     partnerid.p_userid,
                                                   ],
-                                                  (err, results) => { }
+                                                  (err, results) => {}
                                                 );
                                               }
                                             }
@@ -1837,7 +1836,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                       (
                                                                         err,
                                                                         results
-                                                                      ) => { }
+                                                                      ) => {}
                                                                     );
                                                                     let selectMemberRefferWalletHistory =
                                                                       "select * from member_reffer_wallet_history where reffer_p_userid =?";
@@ -1875,7 +1874,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                             (
                                                                               err,
                                                                               results
-                                                                            ) => { }
+                                                                            ) => {}
                                                                           );
                                                                         }
                                                                         if (
@@ -1980,7 +1979,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                                                           (
                                                                                             err,
                                                                                             results
-                                                                                          ) => { }
+                                                                                          ) => {}
                                                                                         );
                                                                                       }
                                                                                     }
@@ -2106,7 +2105,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                           });
                                         } else {
                                         }
-                                      } catch (error) { }
+                                      } catch (error) {}
                                     }
                                   );
                                 } else {
@@ -3784,7 +3783,7 @@ exports.uploadPanCardBd = async (req, res) => {
         } else {
           res.status(200).json({
             message: "Pan Card uploaded successfully.",
-            // panCardFile: panCardLocation,// to send file in response 
+            // panCardFile: panCardLocation,// to send file in response
           });
         }
       }
@@ -4110,5 +4109,39 @@ exports.uploadPanCardPartner = async (req, res) => {
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.uploadBond = async (req, res) => {
+  try {
+    if (!req.files["bond"]) {
+      return res.status(400).json({ message: "Bond file is missing." });
+    }
+    const bondFile = req.files["bond"][0];
+    const bondLocation = bondFile.location;
+    
+    // Check if the file is a PDF
+    if (bondFile.mimetype !== "application/pdf") {
+      return res
+        .status(400)
+        .json({ message: "Bond file must be in PDF format." });
+    }
+    const insertBondQuery = `
+      INSERT INTO upload_bond (bond) VALUES (?)
+    `;
+
+    connection.query(insertBondQuery, [bondLocation], (error, result) => {
+      if (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+
+      return res
+        .status(200)
+        .json({ message: "Bond file updated successfully" });
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

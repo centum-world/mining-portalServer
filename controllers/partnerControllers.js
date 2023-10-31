@@ -1274,14 +1274,10 @@ exports.fetchPartnerReferWithdrawl = async (req, res) => {
           return res.status(500).json({ message: "Internal server error" });
         }
 
-      
-
-        return res
-          .status(200)
-          .json({
-            message: "fetched partner withdrawl succcessfully ",
-            result,
-          });
+        return res.status(200).json({
+          message: "fetched partner withdrawl succcessfully ",
+          result,
+        });
       }
     );
   } catch (error) {
@@ -1293,19 +1289,18 @@ exports.fetchPartnerReferWithdrawl = async (req, res) => {
 exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
   let partnerId = req.body;
   console.log(partnerId.id, "250");
-  let query =
-    "select * from partner_reffer_withdrawal where id = ? ";
+  let query = "select * from partner_reffer_withdrawal where id = ? ";
   connection.query(query, [partnerId.id], (err, results) => {
     if (!err) {
       //console.log(res);
-      console.log(results,1301 );
+      console.log(results, 1301);
 
       let partner_wallet = results[0]?.partner_wallet;
       let id = results[0]?.id;
       let request_date = results[0]?.request_date;
       let reffer_p_userid = results[0]?.reffer_p_userid;
       let p_userid = results[0]?.p_userid;
-      console.log(p_userid, 1308)
+      console.log(p_userid, 1308);
       let approve_date = new Date();
       let insertquery =
         "insert into partner_reffer_withdrawal_history (partner_wallet,request_date,approve_date,reffer_p_userid,p_userid) values (?,?,?,?,?)";
@@ -1319,7 +1314,7 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
           partnerId.p_userid,
         ],
         (err, results) => {
-          console.log(p_userid)
+          console.log(p_userid);
           try {
             if (!err) {
               let selectquery =
@@ -1376,7 +1371,6 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
   });
 };
 
-
 exports.fetchPartnerReferWithdrawlHistory = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -1392,12 +1386,10 @@ exports.fetchPartnerReferWithdrawlHistory = async (req, res) => {
           return res.status(500).json({ message: "Internal server error" });
         }
 
-        return res
-          .status(200)
-          .json({
-            message: "Fetched partner withdrawal history successfully",
-            result,
-          });
+        return res.status(200).json({
+          message: "Fetched partner withdrawal history successfully",
+          result,
+        });
       }
     );
   } catch (error) {
@@ -1406,5 +1398,6 @@ exports.fetchPartnerReferWithdrawlHistory = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 

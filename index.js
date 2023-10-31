@@ -158,7 +158,8 @@ const uploadPanCardSho = require('./routes/upload-pan-card-sho')
 const uplaodAdharCardFrontSidePartner = require('./routes/uplaod-adhar-card-front-side-partner')
 const uplaodAdharCardBackSidePartner = require('./routes/uplaod-adhar-card-back-side-partner')
 const uploadPanCardPartner = require('./routes/upload-pan-card-partner')
-const fetchPartnerReferWithdrawlHistory = require('./routes/fetchPartnerReferWithdrawlHistory')
+const fetchPartnerReferWithdrawlHistory = require('./routes/fetchPartnerReferWithdrawlHistory') 
+const uploadBond = require('./routes/upload_bond')
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
@@ -203,6 +204,7 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use("/admin", uploadBond)
 app.use("/admin", adminRoute);
 app.use("/admin", memberRoute);
 app.use("/admin", miningpartnerRoute);
