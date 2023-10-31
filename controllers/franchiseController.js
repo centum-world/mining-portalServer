@@ -535,3 +535,4 @@ exports.fetchPartnerMyTeam = async (req, res) => {
     });
   })
 }
+   
