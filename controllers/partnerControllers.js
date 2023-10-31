@@ -1377,3 +1377,34 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
 };
 
 
+exports.fetchPartnerReferWithdrawlHistory = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    const findPartnerReferWithdrawalHistoryQuery =
+      "select * from partner_reffer_withdrawal_history where p_userid = ?";
+    connection.query(
+      findPartnerReferWithdrawalHistoryQuery,
+      [userId],
+      (error, result) => {
+        if (error) {
+          console.log(error.message);
+          return res.status(500).json({ message: "Internal server error" });
+        }
+
+        return res
+          .status(200)
+          .json({
+            message: "Fetched partner withdrawal history successfully",
+            result,
+          });
+      }
+    );
+  } catch (error) {
+    console.log(error.message);
+
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
