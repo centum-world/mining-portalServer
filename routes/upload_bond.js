@@ -6,7 +6,7 @@ const { isAuthenticated, authorizeRole } = require("../middleware/checkAuth");
 
 const { uploadBond } = require("../controllers/adminControllers");
 
-router.put(
+router.post(
   "/upload-bond",
   upload.fields([{ name: "bond" }]),
   isAuthenticated,
