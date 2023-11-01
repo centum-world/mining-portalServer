@@ -4138,7 +4138,7 @@ exports.uploadBond = async (req, res) => {
 
       return res
         .status(200)
-        .json({ message: "Bond file updated successfully" });
+        .json({ message: "Bond file uploaded successfully" });
     });
   } catch (error) {
     console.log(error.message);
