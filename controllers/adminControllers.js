@@ -4161,7 +4161,7 @@ exports.fetchBond = async (req, res) => {
 
       return res
         .status(200)
-        .json({ message: "Bond file fetched successfully", data: result }); // Include the data in the response
+        .json({ message: "Bond file fetched successfully", data: result }); 
     });
   } catch (error) {
     console.log(error.message);
