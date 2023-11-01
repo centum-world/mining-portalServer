@@ -587,3 +587,63 @@ exports.fetchPrimarybank = async (req, res) => {
   }
 };
 
+exports.statePartnerMyTeam = async (req,res) => {
+  const { referralId } = req.body
+
+  const findFranchiseQuery = "SELECT * FROM create_franchise Where referredId = ?";
+
+  connection.query(findFranchiseQuery, [referralId], (error, result) => {
+    if (error) {
+      console.log(error);
+      return res.status(500).json({ message: "internal server error" });
+    }
+    if (result.length == 0) {
+      return res
+        .status(404)
+        .json({ message: "Franchise not found" });
+    }
+    const franchiseReferredIds = result.map((entry) => entry.referralId);
+    // console.log(businessReferredIds)
+
+    const findBdQuery = "SELECT * FROM create_bd WHERE referredId IN (?)";
+    connection.query(findBdQuery, [franchiseReferredIds], (err, bdResult) => {
+      if (err) {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      if (bdResult.length === 0) {
+        return res.status(404).json({ message: "No BD found" });
+      }
+
+      const bdDetails = bdResult;
+      const bdReferralId = bdDetails.map((businessDev) => businessDev.referralId);
+
+      const findMemberQuery = "SELECT * FROM create_member WHERE  m_refferid IN (?)";
+      connection.query(findMemberQuery, [bdReferralId], (err, memberResult) => {
+        if (err) {
+          return res.status(500).json({ message: "Internal server error" });
+        }
+        if (memberResult.length === 0) {
+          return res.status(404).json({ message: "No Partners found" });
+        }
+  
+        const memberDetails = memberResult;
+        const refferIds = memberDetails.map((member) => member.reffer_id);
+        const findPartnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      connection.query(findPartnerQuery, [refferIds], (err, partnerResult) => {
+        if (err) {
+          return res.status(500).json({ message: "Internal server error" });
+        }
+        if (partnerResult.length === 0) {
+          return res.status(404).json({ message: "No Partners found" });
+        }
+  
+        const partnerDetails = partnerResult;
+      
+        return res.status(200).json({ message: "Partner details fetched", partnerDetails });
+      });
+      });
+
+    });
+  })
+}
+
