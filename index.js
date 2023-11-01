@@ -9,6 +9,7 @@ const adminRoute = require("./routes/admin");
 const memberRoute = require("./routes/create-member");
 const miningpartnerRoute = require("./routes/create-mining-partner");
 
+const fetchBond = require('./routes/fetchBond')
 const memberLoginRoute = require("./routes/member-login");
 const memberPortalProfileDetailsRoute = require("./routes/fetch-member");
 const miningPartnerLoginRoute = require("./routes/mining-partner-login");
@@ -204,6 +205,7 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use("/admin", fetchBond)
 app.use("/admin", uploadBond)
 app.use("/admin", adminRoute);
 app.use("/admin", memberRoute);

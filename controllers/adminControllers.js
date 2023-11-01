@@ -4119,7 +4119,7 @@ exports.uploadBond = async (req, res) => {
     }
     const bondFile = req.files["bond"][0];
     const bondLocation = bondFile.location;
-    
+
     // Check if the file is a PDF
     if (bondFile.mimetype !== "application/pdf") {
       return res
@@ -4139,6 +4139,29 @@ exports.uploadBond = async (req, res) => {
       return res
         .status(200)
         .json({ message: "Bond file updated successfully" });
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//fetch bond
+exports.fetchBond = async (req, res) => {
+  try {
+    const findBondQuery = `
+      SELECT * FROM upload_bond
+    `;
+
+    connection.query(findBondQuery, (error, result) => {
+      if (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+
+      return res
+        .status(200)
+        .json({ message: "Bond file fetched successfully", data: result }); // Include the data in the response
     });
   } catch (error) {
     console.log(error.message);
