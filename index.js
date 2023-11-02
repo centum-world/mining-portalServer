@@ -168,6 +168,7 @@ const createPaymentRequest = require('./routes/state/create-sho-payment-request'
 const makePrimaryBank = require('./routes/state/make-primary-bank')
 const fetchPrimaryBank = require('./routes/state/fetch-primary-bank')
 const transferPartnerWithdrawlToWithdrawlHistory = require('./routes/transfer-Partner-Withdrawl-To-Withdrawl-History')
+const statePartnerMyTeam = require('./routes/state/my-partner-team'); 
 // ------------------------------------------------------------//
 
 // ------------------------------franchise------------------------//
@@ -351,6 +352,7 @@ app.use('/state', updateSho)
 app.use('/state', createPaymentRequest)
 app.use('/state', makePrimaryBank)
 app.use('/state', fetchPrimaryBank)
+app.use('/state',statePartnerMyTeam);
 
 // ---------------------------------------------------//
 
