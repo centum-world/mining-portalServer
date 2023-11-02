@@ -4199,3 +4199,32 @@ exports.fetchBond = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.queryResolve = async (req, res) => {
+  try {
+    const { status, id } = req.body;
+
+    const updateStatus = "UPDATE help_and_support SET status = ? WHERE id = ?";
+
+    connection.query(updateStatus, [status, id], (error, result) => {
+      if (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: "Internal server error." });
+      }
+
+      if (result.affectedRows === 1) {
+        if (status === true) {
+          return res.status(200).json({ message: "Query resolved successfully" });
+        } else if (status === false) {
+          return res.status(200).json({ message: "Query status changed to false" });
+        }
+      } else {
+        return res.status(200).json({ message: "No matching query found for update" });
+      }
+    });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+

@@ -9,6 +9,7 @@ const adminRoute = require("./routes/admin");
 const memberRoute = require("./routes/create-member");
 const miningpartnerRoute = require("./routes/create-mining-partner");
 
+const queryResolve = require('./routes/queryResolve')
 const fetchBond = require('./routes/fetchBond')
 const memberLoginRoute = require("./routes/member-login");
 const memberPortalProfileDetailsRoute = require("./routes/fetch-member");
@@ -315,6 +316,7 @@ app.use('/admin', transferPartnerWithdrawlToWithdrawlHistory)
 app.use('/admin', fetchPartnerReferWithdrawlHistory)
 
 // --------------------------admin-------------------//
+app.use('/admin', queryResolve)
 app.use('/admin', transferPartnerWithdrawlToWithdrawlHistory)
 app.use('/admin',adminVerifyMember);
 app.use('/admin',adminBlockMember);
