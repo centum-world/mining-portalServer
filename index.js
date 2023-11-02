@@ -162,6 +162,7 @@ const uplaodAdharCardBackSidePartner = require('./routes/uplaod-adhar-card-back-
 const uploadPanCardPartner = require('./routes/upload-pan-card-partner')
 const fetchPartnerReferWithdrawlHistory = require('./routes/fetchPartnerReferWithdrawlHistory') 
 const uploadBond = require('./routes/upload_bond')
+const fetchQuery = require("./routes/fetchQuery")
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
@@ -316,6 +317,7 @@ app.use('/admin', transferPartnerWithdrawlToWithdrawlHistory)
 app.use('/admin', fetchPartnerReferWithdrawlHistory)
 
 // --------------------------admin-------------------//
+app.use("/admin", fetchQuery)
 app.use('/admin', queryResolve)
 app.use('/admin', transferPartnerWithdrawlToWithdrawlHistory)
 app.use('/admin',adminVerifyMember);
