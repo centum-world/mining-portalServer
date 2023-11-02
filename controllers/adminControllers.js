@@ -4126,20 +4126,51 @@ exports.uploadBond = async (req, res) => {
         .status(400)
         .json({ message: "Bond file must be in PDF format." });
     }
-    const insertBondQuery = `
-      INSERT INTO upload_bond (bond) VALUES (?)
-    `;
 
-    connection.query(insertBondQuery, [bondLocation], (error, result) => {
+    const findBondQuery = "SELECT * FROM upload_bond" 
+    connection.query(findBondQuery, (error, result) => {
       if (error) {
         console.log(error.message);
         return res.status(500).json({ message: "Internal server error" });
       }
 
-      return res
-        .status(200)
-        .json({ message: "Bond file uploaded successfully" });
+      if(result.length === 0 || !result){
+
+        const insertBondQuery = `
+        INSERT INTO upload_bond (bond) VALUES (?)
+      `;
+  
+      connection.query(insertBondQuery, [bondLocation], (error, result) => {
+        if (error) {
+          console.log(error.message);
+          return res.status(500).json({ message: "Internal server error" });
+        }
+  
+        return res
+          .status(200)
+          .json({ message: "Bond file uploaded successfully" });
+      });
+
+      }
+
+      else{
+        const updateBondQuery = "UPDATE upload_bond SET BOND = ? LIMIT 1"
+        connection.query(updateBondQuery, [bondLocation], (error, result) => {
+          if (error) {
+            console.log(error.message);
+            return res.status(500).json({ message: "Internal server error" });
+          }
+      
+          return res
+            .status(200)
+            .json({ message: "Bond file updated successfully" });
+        });
+      }
+
+    
     });
+    
+ 
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ message: "Internal server error" });
