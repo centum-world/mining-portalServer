@@ -201,6 +201,7 @@ const businessDevTotalWithdrawal = require('./routes/bd/business-dev-total-withd
 const businessDevFetchPartnerTeam = require('./routes/bd/businessDev-fetch-partner-team');
 
 // --------------------------member------------------------//
+const memberWithdrawalRequest = require('./routes/member/member-withdrawal-request');
 
 const app = express();
 
@@ -386,6 +387,7 @@ app.use('/bd',businessDevFetchPartnerTeam);
 
 
 // --------------------------member--------------------//
+app.use('/member',memberWithdrawalRequest);
 
 
 module.exports = app;

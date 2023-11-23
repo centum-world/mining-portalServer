@@ -707,7 +707,7 @@ exports.createSHO = async (req, res) => {
     // Generate referralId
     const randomDigits = Math.floor(1000 + Math.random() * 9000);
     const firstThreeDigits = `${fname.substring(0, 3).toUpperCase()}`;
-    const referralId = "SH" + "-" + firstThreeDigits + randomDigits;
+    const referralId = "BMM" + "-" + firstThreeDigits + randomDigits;
 
     // Check if stateHandlerId already exists
     const checkStateHandlerQuery =

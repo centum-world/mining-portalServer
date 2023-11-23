@@ -914,6 +914,7 @@ exports.isPartnerActiveManualFromAdmin = (req, res) => {
 // doActivatePartnerManualFromAdmin
 exports.doActivatePartnerManualFromAdmin = (req, res) => {
   let partnerid = req.body;
+  console.log(partnerid,917)
   if (!partnerid) {
     return res.status(422).json({
       message: "No Data Found",
@@ -931,6 +932,7 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
           let liquidity = results[0]?.p_liquidity;
           let phone = results[0]?.p_phone;
           let referredIdOfPartner = results[0]?.p_reffered_id;
+
           // doPartnerActivateSms(phone, { liquidity: liquidity });
 
           const findMember = "Select * from create_member where reffer_id = ?";
@@ -946,12 +948,48 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
               }
               if (result.length > 0) {
                 const member = result[0];
-                const referredIdOfMember = member.m_refferid;
+                console.log(member);
+                let memberWallet = member.member_wallet;
+                let referralIdOfMember = member.reffer_id;
+                let memberid = member.m_userid;
+                console.log(referralIdOfMember, 955);
+                const amount = (liquidity * 10) / 100 
+                memberWallet += (liquidity * 10) / 100;
+                const date = new Date()
 
-                const findBdQuery =
-                  "select * from create_bd where referralId =? ";
+                const updateMemberWalletQuery =
+                  "UPDATE create_member SET member_wallet = ? WHERE reffer_id = ?";
+
                 connection.query(
-                  findBdQuery,
+                  updateMemberWalletQuery,
+                  [memberWallet, referralIdOfMember],
+                  (error, updateResult) => {
+                    if (error) {
+                      console.log(error.message);
+                      return res
+                        .status(500)
+                        .json({ message: "Internal server error." });
+                    }else{
+                      const insertIntoMyTeam = "insert into my_team (userid,amount,partnerid,credit_date) values(?,?,?,?)";
+                      connection.query(insertIntoMyTeam,[memberid,amount,partnerid.p_userid,date],(error,result)=>{
+                        if (error) {
+                          console.log(error.message);
+                          return res
+                            .status(500)
+                            .json({ message: "Internal server error." });
+                        }
+                      })
+                    }
+                  }
+                );
+
+                const referredIdOfMember = member.m_refferid;
+                console.log(referredIdOfMember, 974);
+
+                const findFranchiseQuery =
+                  "select * from create_franchise where referralId =? ";
+                connection.query(
+                  findFranchiseQuery,
                   [referredIdOfMember],
                   (error, result) => {
                     if (error) {
@@ -960,95 +998,248 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                         .status(500)
                         .json({ message: "Internal server error." });
                     }
+                    if (result.length > 0) {
+                      const franchise = result[0];
+                      console.log(franchise, 990);
+                      const referredIdOfFranchise = franchise.referredId;
+                      console.log(referredIdOfFranchise, 968);
+                      let franchiseWallet = franchise.franchiseWallet;
+                      const franchiseid = franchise.franchiseId;
+                      const amount = (liquidity * 5) / 100;
+                      franchiseWallet += (liquidity * 5) / 100;
+                      const date = new Date()
 
-                    let bdWallet = (liquidity * 4) / 100;
-
-                    const updateWalletForBd =
-                      "update create_bd set bdWallet = ? where referralId = ?";
-
-                    connection.query(
-                      updateWalletForBd,
-                      [bdWallet, referredIdOfMember],
-                      (error, result) => {
-                        if (error) {
-                          console.log(error.message);
-                          return res
-                            .status(500)
-                            .json({ message: "Internal server error." });
+                      const updateFranchiseWalletquery =
+                        "UPDATE create_franchise SET franchiseWallet = ? WHERE referredId = ?";
+                      connection.query(
+                        updateFranchiseWalletquery,
+                        [franchiseWallet, referredIdOfFranchise],
+                        (error, updateResult) => {
+                          if (error) {
+                            console.log(error.message);
+                            return res
+                              .status(500)
+                              .json({ message: "Internal server error." });
+                          }else{
+                           const insertFranchiseIntoMyTeam = "insert into my_team (userid,amount,partnerid,credit_date) values(?,?,?,?)";
+                            connection.query(insertFranchiseIntoMyTeam,[franchiseid,amount,partnerid.p_userid,date],(error,result)=>{
+                                if(error){
+                                  return res
+                                  .status(500)
+                                  .json({ message: "Internal server error." });
+                                }
+                            })
+                          }
                         }
-                      }
-                    );
+                      );
 
-                    const referredIdOfBd = result[0].referredId;
+                      const findBMMQuery =
+                        "select * from create_sho where referralId = ?";
+                      connection.query(
+                        findBMMQuery,
+                        [referredIdOfFranchise],
+                        (error, result) => {
+                          if (error) {
+                            return res
+                              .status(500)
+                              .json({ message: "internal server error." });
+                          }
+                          if (result.length > 0) {
+                            const bmm = result[0];
+                            console.log(bmm, 1018);
+                            const referralIdOfBmm = bmm.referralId;
+                            console.log(referralIdOfBmm, 1020);
+                            let stateHandlerWallet = bmm.stateHandlerWallet;
+                            const bmmId = bmm.stateHandlerId;
+                            const amount = (liquidity * 5) / 100;
+                            const date = new Date()
 
-                    const findFranchiseQuery =
-                      "select * from create_franchise where referralId= ?";
+                            stateHandlerWallet += (liquidity * 5) / 100;
 
-                    connection.query(
-                      findFranchiseQuery,
-                      [referredIdOfBd],
-                      (error, result) => {
-                        if (error) {
-                          console.log(error.message);
-                          return res
-                            .status(500)
-                            .json({ message: "Internal server error." });
-                        }
+                            const updateBmmWalletQuery =
+                              "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
 
-                        let franchiseShare = (liquidity * 3) / 100;
-
-                        const updateWalletForFranchise =
-                          "update create_franchise set franchiseWallet = ? where referralId = ?";
-                        connection.query(updateWalletForFranchise, [
-                          franchiseShare,
-                          referredIdOfBd,
-                          (error, result) => {
-                            if (error) {
-                              console.log(error.message);
-                              return res
-                                .status(500)
-                                .json({ message: "Internal server error." });
-                            }
-                          },
-                        ]);
-
-                        const franchise = result[0];
-                        const referredIdOfFranchise = franchise.referredId;
-
-                        const findShoQuery =
-                          "select * from create_sho where referralId = ?";
-                        connection.query(
-                          findShoQuery,
-                          [referredIdOfFranchise],
-                          (error, result) => {
-                            if (error) {
-                              console.log(error.message);
-                              return res
-                                .status(500)
-                                .json({ message: "Internal server error." });
-                            }
-
-                            const sho = result[0];
-                            const shoShare = (liquidity * 3) / 100;
-
-                            const updateWalletForSho =
-                              "update create_sho set stateHandlerWallet = ? where referralId = ?";
                             connection.query(
-                              updateWalletForSho,
-                              [shoShare, referredIdOfFranchise],
+                              updateBmmWalletQuery,
+                              [stateHandlerWallet, referralIdOfBmm],
                               (error, result) => {
                                 if (error) {
-                                  console.log(error.message);
-                                  return res
-                                    .status(500)
-                                    .json({ message: "Internal server error" });
+                                  return res.status(500).json({
+                                    message: "internal server error.",
+                                  });
+                                }else{
+                                  const insertBmmIntoMyTeam = "insert into my_team (userid,amount,partnerid,credit_date) values(?,?,?,?)";
+                                  connection.query(insertBmmIntoMyTeam,[bmmId,amount,partnerid.p_userid,date],(error,result)=>{
+                                    if (error) {
+                                
+                                      return res
+                                        .status(500)
+                                        .json({ message: "Internal server error." });
+                                    }
+                                  })
                                 }
                               }
                             );
                           }
-                        );
-                      }
-                    );
+                        }
+                      );
+                    }
+                  }
+                );
+              } else {
+                console.log("2nd condition");
+
+                console.log(referredIdOfPartner, 1044);
+
+                const findFranchiseQuery =
+                  "select * from create_franchise where referralId = ?";
+                connection.query(
+                  findFranchiseQuery,
+                  [referredIdOfPartner],
+                  (error, result) => {
+                    if (error) {
+                      return res
+                        .status(500)
+                        .json({ message: "internal server error." });
+                    }
+                    if (result.length > 0) {
+                      const franchise = result[0];
+                      console.log(franchise, 1053);
+
+                      let franchiseReferralId = franchise.referralId;
+                      let ReferredIdOfFranchise = franchise.referredId;
+
+                      let franchiseWallet = franchise.franchiseWallet;
+                      const franchiseid = franchise.franchiseId
+                      const amount = (liquidity * 5) / 100;
+                      franchiseWallet += (liquidity * 12) / 100;
+                      const date = new Date();
+                      const updateFranchiseWalletQuery =
+                        "update create_franchise set franchiseWallet =? where referralId = ? ";
+
+                      connection.query(
+                        updateFranchiseWalletQuery,
+                        [franchiseWallet, franchiseReferralId],
+                        (error, result) => {
+                          if (error) {
+                            return res
+                              .status(500)
+                              .json({ message: "internal server error." });
+                          }else{
+                           const  insertFranchiseIntoMyTeam = "insert into my_team (userid,amount,partnerid,credit_date) values(?,?,?,?)";
+                            connection.query(insertFranchiseIntoMyTeam,[franchiseid,amount,partnerid.p_userid,date],(error,result) => {
+                              if (error) {
+                                return res
+                                  .status(500)
+                                  .json({ message: "Internal server error." });
+                              }
+                            })
+                          }
+                        }
+                      );
+
+                      const findBMMQuery =
+                        "select * from create_sho where referralId = ?";
+
+                      connection.query(
+                        findBMMQuery,
+                        [ReferredIdOfFranchise],
+                        (error, result) => {
+                          if (error) {
+                            return res
+                              .status(500)
+                              .json({ message: "internal server error." });
+                          }
+                          if (result.length > 0) {
+                            const bmm = result[0];
+                            console.log(bmm, 1082);
+
+                            const referralIdOfBmm = bmm.referralId;
+
+                            let bmmWallet = bmm.stateHandlerWallet;
+                            const bmmId = bmm.stateHandlerId;
+                            const amount = (liquidity * 5) / 100;
+                            const date = new Date();
+                            bmmWallet += (liquidity * 5) / 100;
+
+                            const updateBmmWalletQuery =
+                              "update create_sho set stateHandlerWallet =? where referralId =?";
+
+                            connection.query(
+                              updateBmmWalletQuery,
+                              [bmmWallet, referralIdOfBmm],
+                              (error, result) => {
+                                if (error) {
+                                  return res.status(500).json({
+                                    message: "internal server error.",
+                                  });
+                                }else{
+                                 const insertBmmIntoMyTeam = "insert into my_team (userid,amount,partnerid,credit_date) values(?,?,?,?)";
+                                  connection.query(insertBmmIntoMyTeam,[bmmId,amount,partnerid.p_userid,date],(error,result) => {
+                                    if (error) {
+                          
+                                      return res
+                                        .status(500)
+                                        .json({ message: "Internal server error." });
+                                    }
+                                  })
+                                }
+                              }
+                            );
+                          }
+                        }
+                      );
+                    } else {
+                      console.log("3rd codition");
+
+                      console.log(referredIdOfPartner, 1044);
+
+                      const findFranchiseQuery =
+                        "select * from create_sho where referralId = ?";
+
+                      connection.query(
+                        findFranchiseQuery,
+                        [referredIdOfPartner],
+                        (error, result) => {
+                          if (error) {
+                            return res
+                              .status(500)
+                              .json({ message: "internal server error." });
+                          }
+                          if (result.length > 0) {
+                            const bmm = result[0];
+                            let bmmWallet = bmm.stateHandlerWallet;
+                            const bmmId = bmm.stateHandlerId;
+                            const amount = (liquidity * 5) / 100;
+                            const date = new Date();
+                            bmmWallet += (liquidity * 15) / 100;
+
+                            const referralIdOfBmm = bmm.referralId;
+                            console.log(bmm, 1125);
+
+                            const updateBmmWalletQuery =
+                              "update create_sho set stateHandlerWallet =? where referralId =?";
+
+                            connection.query(
+                              updateBmmWalletQuery,
+                              [bmmWallet, referralIdOfBmm],
+                              (error, result) => {
+                                if (error) {
+                                  return res.status(500).json({
+                                    message: "internal server error.",
+                                  });
+                                }else{
+                                 const  insertBmmIntoMyTeam = "insert into my_team (userid,amount,partnerid,credit_date) values(?,?,?,?)";
+                                  connection.query(insertBmmIntoMyTeam,[bmmId,amount,partnerid.p_userid,date],(error,result) => {
+
+                                  })
+                                }
+                              }
+                            );
+                          }
+                        }
+                      );
+                    }
                   }
                 );
               }
@@ -1158,63 +1349,6 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                   );
                 }
 
-                // if (partner_count === 30 || partner_count > 30) {
-
-                //     let insertquery = "insert into partner_withdrawal (partner_wallet,request_date,p_userid) values (?,?,?)";
-                //     connection.query(insertquery, [partner_wallet, request_date, partnerid.p_userid], (err, results) => {
-
-                //         if (!err) {
-
-                //             month_count = month_count + 1;
-                //             let updatequery = "update mining_partner set partner_wallet =?, partner_count=?,month_count=? where p_userid = ?";
-
-                //             connection.query(updatequery, [partner_wallet = 0, partner_count = 0, month_count, partnerid.p_userid], (err, results) => {
-
-                //                 try {
-                //                     if (!err) {
-                //                         // return res.status(200).json({
-                //                         //     message: "Mining Partner Set Zero "
-                //                         // })
-                //                         let selectquery = "select * from partner_reffer_wallet where reffer_p_userid = ?";
-                //                         connection.query(selectquery,[partnerid.p_userid],(err,results) =>{
-
-                //                             if(!err){
-                //                                 let p_userid = results[0]?.p_userid;
-                //                                 let partner_wallet = results[0]?.partner_wallet;
-                //                                 //console.log(partner_wallet,'1208');
-                //                                 let reffer_p_userid = results[0]?.reffer_p_userid;
-
-                //                                 let insertquery = "insert into partner_reffer_withdrawal (partner_wallet,request_date,reffer_p_userid,p_userid) values(?,?,?,?)";
-                //                                 connection.query(insertquery,[partner_wallet,request_date,reffer_p_userid,p_userid],(err,results) =>{
-                //                                     if(!err){
-                //                                         console.log('953');
-                //                                     }
-                //                                 })
-                //                             }
-                //                         })
-
-                //                     } else {
-                //                         return res.status(404).json({
-                //                             message: "Something Went Wrong 1"
-                //                         })
-                //                     }
-                //                 } catch (error) {
-
-                //                     return error;
-                //                 }
-                //             })
-
-                //             console.log(table_flag);
-                //         } else {
-
-                //             return res.status(500).json({
-                //                 message: "Internal Server Error"
-                //             })
-                //         }
-                //     })
-
-                // } /// 30 days condition
-
                 let selectquery1 =
                   "select month_count, p_phone from mining_partner where p_userid = ?";
                 connection.query(
@@ -1249,7 +1383,6 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                     partnerid.perDayAmounReal = 0;
                                   }
 
-                                  //let formatdate = partnerid.partnerdate.toLocaleString("en-US",{timeZone:"Asia/Kolkata"});
                                   let insertquery =
                                     "insert into partner_wallet_history (walletAmount,wallet_update_date,p_userid) values (?,?,?)";
                                   connection.query(
@@ -1318,303 +1451,215 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                         if (results[0]?.id) {
                                                           table_flag =
                                                             "mining_partner";
-                                                          if (
-                                                            table_flag ===
-                                                            "mining_partner"
-                                                          ) {
-                                                            let refferquery =
-                                                              "select p_reffered_id from mining_partner where p_userid = ?";
-                                                            connection.query(
-                                                              refferquery,
-                                                              [
-                                                                partnerid.p_userid,
-                                                              ],
-                                                              (
-                                                                err,
-                                                                results
-                                                              ) => {
-                                                                try {
-                                                                  console.log(
-                                                                    results[0]
-                                                                      .p_reffered_id
-                                                                  );
-                                                                  reffered_id =
-                                                                    results[0]
-                                                                      .p_reffered_id;
-                                                                  reffer_p_userid =
-                                                                    partnerid.p_userid;
-                                                                  //console.log(reffer_p_userid);
-                                                                  if (!err) {
-                                                                    let query =
-                                                                      "select p_userid,partner_wallet,partner_count from mining_partner where p_refferal_id = ?";
-                                                                    connection.query(
-                                                                      query,
-                                                                      [
-                                                                        reffered_id,
-                                                                      ],
-                                                                      (
-                                                                        err,
-                                                                        results
-                                                                      ) => {
-                                                                        let partner_wallet =
-                                                                          results[0]
-                                                                            .partner_wallet;
-                                                                        let partner_count =
-                                                                          results[0]
-                                                                            .partner_count;
-                                                                        let p_userid =
-                                                                          results[0]
-                                                                            .p_userid;
-                                                                        let walletAmount =
-                                                                          partnerid.refferal_Amount;
-                                                                        //partner_count = partner_count + 1;
-                                                                        //partner_wallet = partner_wallet + walletAmount;
-                                                                        //console.log(partner_wallet);
-                                                                        //let wallet_update_date = new Date();
-                                                                        // if (partnerid.perDayAmounReal === 0) {
-                                                                        //     partner_wallet = partner_wallet + 0;
-                                                                        //     walletAmount = 0;
-                                                                        // }
-                                                                        // if (partnerid.perDayAmounReal != 0) {
-                                                                        //     partner_wallet = partner_wallet + 375;
-                                                                        //     walletAmount = 375;
-                                                                        // }
+                                                          // if (
+                                                          //   table_flag ===
+                                                          //   "mining_partner"
+                                                          // ) {
+                                                          //   let refferquery =
+                                                          //     "select p_reffered_id from mining_partner where p_userid = ?";
+                                                          //   connection.query(
+                                                          //     refferquery,
+                                                          //     [
+                                                          //       partnerid.p_userid,
+                                                          //     ],
+                                                          //     (
+                                                          //       err,
+                                                          //       results
+                                                          //     ) => {
+                                                          //       try {
+                                                          //         console.log(
+                                                          //           results[0]
+                                                          //             .p_reffered_id
+                                                          //         );
+                                                          //         reffered_id =
+                                                          //           results[0]
+                                                          //             .p_reffered_id;
+                                                          //         reffer_p_userid =
+                                                          //           partnerid.p_userid;
 
-                                                                        //let updatequery = "update mining_partner set partner_wallet=?,wallet_update_date=? where p_refferal_id =?"
-                                                                        // connection.query(updatequery, [partner_wallet, partnerid.partnerdate, reffered_id], (err, results) => {
+                                                          //         if (!err) {
+                                                          //           let query =
+                                                          //             "select p_userid,partner_wallet,partner_count from mining_partner where p_refferal_id = ?";
+                                                          //           connection.query(
+                                                          //             query,
+                                                          //             [
+                                                          //               reffered_id,
+                                                          //             ],
+                                                          //             (
+                                                          //               err,
+                                                          //               results
+                                                          //             ) => {
+                                                          //               let partner_wallet =
+                                                          //                 results[0]
+                                                          //                   .partner_wallet;
+                                                          //               let partner_count =
+                                                          //                 results[0]
+                                                          //                   .partner_count;
+                                                          //               let p_userid =
+                                                          //                 results[0]
+                                                          //                   .p_userid;
+                                                          //               let walletAmount =
+                                                          //                 partnerid.refferal_Amount;
 
-                                                                        // try {
-                                                                        // if (!err) {
-                                                                        // return res.status(200).json({
-                                                                        //     message: "Mining Partner Updated Successfully"
-                                                                        // })
+                                                          //               let insertquery =
+                                                          //                 "insert into partner_reffer_wallet_history ( reffer_p_userid,wallet_amount,date,p_userid) values (?,?,?,?)";
+                                                          //               connection.query(
+                                                          //                 insertquery,
+                                                          //                 [
+                                                          //                   reffer_p_userid,
+                                                          //                   walletAmount,
+                                                          //                   partnerid.partnerdate,
+                                                          //                   p_userid,
+                                                          //                 ],
+                                                          //                 (
+                                                          //                   err,
+                                                          //                   results
+                                                          //                 ) => {
+                                                          //                   try {
+                                                          //                     if (
+                                                          //                       !err
+                                                          //                     ) {
+                                                          //                       console.log(
+                                                          //                         902
+                                                          //                       );
+                                                          //                       let insertRefferMonthlyPayout =
+                                                          //                         "insert into partner_reffer_withdrawal (reffer_p_userid,partner_wallet,request_date,p_userid) values(?,?,?,?)";
+                                                          //                       connection.query(
+                                                          //                         insertRefferMonthlyPayout,
+                                                          //                         [
+                                                          //                           reffer_p_userid,
+                                                          //                           walletAmount,
+                                                          //                           partnerid.partnerdate,
+                                                          //                           p_userid,
+                                                          //                         ],
+                                                          //                         (
+                                                          //                           err,
+                                                          //                           results
+                                                          //                         ) => {
+                                                          //                           if (
+                                                          //                             !err
+                                                          //                           ) {
+                                                          //                           }
+                                                          //                         }
+                                                          //                       );
+                                                          //                       let selectquery =
+                                                          //                         "select * from partner_reffer_wallet where reffer_p_userid = ?";
+                                                          //                       connection.query(
+                                                          //                         selectquery,
+                                                          //                         [
+                                                          //                           reffer_p_userid,
+                                                          //                         ],
+                                                          //                         (
+                                                          //                           err,
+                                                          //                           results
+                                                          //                         ) => {
+                                                          //                           let partner_wallet =
+                                                          //                             results[0]
+                                                          //                               ?.partner_wallet;
 
-                                                                        let insertquery =
-                                                                          "insert into partner_reffer_wallet_history ( reffer_p_userid,wallet_amount,date,p_userid) values (?,?,?,?)";
-                                                                        connection.query(
-                                                                          insertquery,
-                                                                          [
-                                                                            reffer_p_userid,
-                                                                            walletAmount,
-                                                                            partnerid.partnerdate,
-                                                                            p_userid,
-                                                                          ],
-                                                                          (
-                                                                            err,
-                                                                            results
-                                                                          ) => {
-                                                                            try {
-                                                                              if (
-                                                                                !err
-                                                                              ) {
-                                                                                console.log(
-                                                                                  902
-                                                                                );
-                                                                                let insertRefferMonthlyPayout =
-                                                                                  "insert into partner_reffer_withdrawal (reffer_p_userid,partner_wallet,request_date,p_userid) values(?,?,?,?)";
-                                                                                connection.query(
-                                                                                  insertRefferMonthlyPayout,
-                                                                                  [
-                                                                                    reffer_p_userid,
-                                                                                    walletAmount,
-                                                                                    partnerid.partnerdate,
-                                                                                    p_userid,
-                                                                                  ],
-                                                                                  (
-                                                                                    err,
-                                                                                    results
-                                                                                  ) => {
-                                                                                    if (
-                                                                                      !err
-                                                                                    ) {
-                                                                                    }
-                                                                                  }
-                                                                                );
-                                                                                let selectquery =
-                                                                                  "select * from partner_reffer_wallet where reffer_p_userid = ?";
-                                                                                connection.query(
-                                                                                  selectquery,
-                                                                                  [
-                                                                                    reffer_p_userid,
-                                                                                  ],
-                                                                                  (
-                                                                                    err,
-                                                                                    results
-                                                                                  ) => {
-                                                                                    let partner_wallet =
-                                                                                      results[0]
-                                                                                        ?.partner_wallet;
+                                                          //                           if (
+                                                          //                             partnerid.perDayAmounReal ===
+                                                          //                             0
+                                                          //                           ) {
+                                                          //                             partner_wallet =
+                                                          //                               partner_wallet +
+                                                          //                               0;
+                                                          //                             walletAmount = 0;
+                                                          //                           }
+                                                          //                           if (
+                                                          //                             partnerid.perDayAmounReal !=
+                                                          //                             0
+                                                          //                           ) {
+                                                          //                             partner_wallet =
+                                                          //                               partner_wallet +
+                                                          //                               partnerid.refferal_Amount;
+                                                          //                             walletAmount =
+                                                          //                               partnerid.refferal_Amount;
+                                                          //                           }
 
-                                                                                    if (
-                                                                                      partnerid.perDayAmounReal ===
-                                                                                      0
-                                                                                    ) {
-                                                                                      partner_wallet =
-                                                                                        partner_wallet +
-                                                                                        0;
-                                                                                      walletAmount = 0;
-                                                                                    }
-                                                                                    if (
-                                                                                      partnerid.perDayAmounReal !=
-                                                                                      0
-                                                                                    ) {
-                                                                                      partner_wallet =
-                                                                                        partner_wallet +
-                                                                                        partnerid.refferal_Amount;
-                                                                                      walletAmount =
-                                                                                        partnerid.refferal_Amount;
-                                                                                    }
+                                                          //                           if (
+                                                          //                             results.length ===
+                                                          //                             0
+                                                          //                           ) {
+                                                          //                             let insertquery =
+                                                          //                               "insert into partner_reffer_wallet (reffer_p_userid,wallet_amount,date,p_userid,partner_wallet) values (?,?,?,?,?)";
+                                                          //                             connection.query(
+                                                          //                               insertquery,
+                                                          //                               [
+                                                          //                                 reffer_p_userid,
+                                                          //                                 walletAmount,
+                                                          //                                 partnerid.partnerdate,
+                                                          //                                 p_userid,
+                                                          //                                 walletAmount,
+                                                          //                               ]
+                                                          //                             );
+                                                          //                           }
+                                                          //                           if (
+                                                          //                             results.length >
+                                                          //                             0
+                                                          //                           ) {
+                                                          //                             let updatequery =
+                                                          //                               "update partner_reffer_wallet set partner_wallet = ?, date = ? where reffer_p_userid = ?";
+                                                          //                             connection.query(
+                                                          //                               updatequery,
+                                                          //                               [
+                                                          //                                 partner_wallet,
+                                                          //                                 partnerid.partnerdate,
+                                                          //                                 reffer_p_userid,
+                                                          //                               ],
+                                                          //                               (
+                                                          //                                 err,
+                                                          //                                 results
+                                                          //                               ) => {
+                                                          //                                 if (
+                                                          //                                   !err
+                                                          //                                 ) {
+                                                          //                                   console.log(
+                                                          //                                     "898"
+                                                          //                                   );
+                                                          //                                 }
+                                                          //                               }
+                                                          //                             );
+                                                          //                           }
+                                                          //                         }
+                                                          //                       );
+                                                          //                     } else {
+                                                          //                       return res
+                                                          //                         .status(
+                                                          //                           404
+                                                          //                         )
+                                                          //                         .json(
+                                                          //                           {
+                                                          //                             message:
+                                                          //                               "Something Went Wrong",
+                                                          //                           }
+                                                          //                         );
+                                                          //                     }
+                                                          //                   } catch (error) {
+                                                          //                     return error;
+                                                          //                   }
+                                                          //                 }
+                                                          //               );
 
-                                                                                    if (
-                                                                                      results.length ===
-                                                                                      0
-                                                                                    ) {
-                                                                                      let insertquery =
-                                                                                        "insert into partner_reffer_wallet (reffer_p_userid,wallet_amount,date,p_userid,partner_wallet) values (?,?,?,?,?)";
-                                                                                      connection.query(
-                                                                                        insertquery,
-                                                                                        [
-                                                                                          reffer_p_userid,
-                                                                                          walletAmount,
-                                                                                          partnerid.partnerdate,
-                                                                                          p_userid,
-                                                                                          walletAmount,
-                                                                                        ]
-                                                                                      );
-                                                                                    }
-                                                                                    if (
-                                                                                      results.length >
-                                                                                      0
-                                                                                    ) {
-                                                                                      let updatequery =
-                                                                                        "update partner_reffer_wallet set partner_wallet = ?, date = ? where reffer_p_userid = ?";
-                                                                                      connection.query(
-                                                                                        updatequery,
-                                                                                        [
-                                                                                          partner_wallet,
-                                                                                          partnerid.partnerdate,
-                                                                                          reffer_p_userid,
-                                                                                        ],
-                                                                                        (
-                                                                                          err,
-                                                                                          results
-                                                                                        ) => {
-                                                                                          if (
-                                                                                            !err
-                                                                                          ) {
-                                                                                            console.log(
-                                                                                              "898"
-                                                                                            );
-                                                                                          }
-                                                                                        }
-                                                                                      );
-                                                                                    }
-                                                                                  }
-                                                                                );
-                                                                              } else {
-                                                                                return res
-                                                                                  .status(
-                                                                                    404
-                                                                                  )
-                                                                                  .json(
-                                                                                    {
-                                                                                      message:
-                                                                                        "Something Went Wrong",
-                                                                                    }
-                                                                                  );
-                                                                              }
-                                                                            } catch (error) {
-                                                                              return error;
-                                                                            }
-                                                                          }
-                                                                        );
-
-                                                                        //} else {
-                                                                        //return res.status(404).json({
-                                                                        // message: "Something Went Wrong"
-                                                                        //})
-                                                                        // }
-                                                                        //} catch (error) {
-                                                                        //return error;
-                                                                        //}
-
-                                                                        //});
-                                                                        //  not use 30 days
-                                                                        // if (partner_count === 30 || partner_count > 30) {
-
-                                                                        //     let insertquery = "insert into partner_withdrawal (partner_wallet,request_date,p_userid) values (?,?,?)";
-                                                                        //     connection.query(insertquery, [partner_wallet, request_date, p_userid], (err, results) => {
-
-                                                                        //         try {
-                                                                        //             if (!err) {
-                                                                        //                 let updatequery = "update mining_partner set partner_wallet =?, partner_count=? where p_userid = ?";
-                                                                        //                 connection.query(updatequery, [partner_wallet = 0, partner_count = 1, p_userid], (err, results) => {
-
-                                                                        //                     try {
-                                                                        //                         if (!err) {
-                                                                        //                             // return res.status(200).json({
-                                                                        //                             //     messgae: "Mining Partner Set To Zero"
-                                                                        //                             // })
-                                                                        //                             console.log('hiiii 941');
-                                                                        //                             let selectquery = "select * from partner_reffer_wallet where reffer_p_userid = ?";
-                                                                        //                             connection.query(selectquery,[partnerid.p_userid],(err,results) =>{
-
-                                                                        //                                 if(!err){
-                                                                        //                                     let p_userid = results[0]?.p_userid;
-                                                                        //                                     let partner_wallet = results[0]?.partner_wallet;
-                                                                        //                                     let reffer_p_userid = results[0]?.reffer_p_userid;
-
-                                                                        //                                     let insertquery = "insert into partner_reffer_withdrawal (partner_wallet,request_date,reffer_p_userid,p_userid) values(?,?,?,?)";
-                                                                        //                                     connection.query(insertquery,[partner_wallet,request_date,reffer_p_userid,p_userid],(err,results) =>{
-                                                                        //                                         if(!err){
-                                                                        //                                             console.log('953');
-                                                                        //                                         }
-                                                                        //                                     })
-                                                                        //                                 }
-                                                                        //                             })
-
-                                                                        //                         } else {
-                                                                        //                             return res.status(404).json({
-                                                                        //                                 messgae: "Something Went Wrong"
-                                                                        //                             })
-                                                                        //                         }
-                                                                        //                     } catch (error) {
-                                                                        //                         return error;
-                                                                        //                     }
-
-                                                                        //                 });
-                                                                        //             } else {
-                                                                        //                 return res.status(404).json({
-                                                                        //                     message: "Something Went Wrong"
-                                                                        //                 })
-                                                                        //             }
-
-                                                                        //         } catch (error) {
-
-                                                                        //             return error;
-                                                                        //         }
-
-                                                                        //     });
-                                                                        // }
-                                                                        // not use 30 days
-                                                                      }
-                                                                    );
-                                                                  } else {
-                                                                    return res
-                                                                      .status(
-                                                                        404
-                                                                      )
-                                                                      .json({
-                                                                        message:
-                                                                          "Something Went Wrong",
-                                                                      });
-                                                                  }
-                                                                } catch (error) {
-                                                                  return error;
-                                                                }
-                                                              }
-                                                            );
-                                                          }
+                                            
+                                                          //             }
+                                                          //           );
+                                                          //         } else {
+                                                          //           return res
+                                                          //             .status(
+                                                          //               404
+                                                          //             )
+                                                          //             .json({
+                                                          //               message:
+                                                          //                 "Something Went Wrong",
+                                                          //             });
+                                                          //         }
+                                                          //       } catch (error) {
+                                                          //         return error;
+                                                          //       }
+                                                          //     }
+                                                          //   );
+                                                          // }
                                                           // mining reffer close
                                                         }
                                                       }
@@ -1633,463 +1678,461 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                                             table_flag =
                                                               "create_member";
 
-                                                            if (
-                                                              table_flag ===
-                                                              "create_member"
-                                                            ) {
-                                                              let selectquery =
-                                                                "select m_userid,member_wallet,member_count,added_wallet,m_phone from create_member where reffer_id = ?";
-                                                              connection.query(
-                                                                selectquery,
-                                                                [reffered_id],
-                                                                (
-                                                                  err,
-                                                                  results
-                                                                ) => {
-                                                                  if (!err) {
-                                                                    let added_wallet =
-                                                                      results[0]
-                                                                        .added_wallet;
-                                                                    let member_wallet =
-                                                                      results[0]
-                                                                        .member_wallet;
-                                                                    let member_count =
-                                                                      results[0]
-                                                                        ?.member_count;
-                                                                    let m_userid =
-                                                                      results[0]
-                                                                        .m_userid;
-                                                                    let memberPhone =
-                                                                      results[0]
-                                                                        .m_phone;
-                                                                    let walletAmount =
-                                                                      partnerid.refferal_Amount;
+                                                            // if (
+                                                            //   table_flag ===
+                                                            //   "create_member"
+                                                            // ) {
+                                                            //   let selectquery =
+                                                            //     "select m_userid,member_wallet,member_count,added_wallet,m_phone from create_member where reffer_id = ?";
+                                                            //   connection.query(
+                                                            //     selectquery,
+                                                            //     [reffered_id],
+                                                            //     (
+                                                            //       err,
+                                                            //       results
+                                                            //     ) => {
+                                                            //       if (!err) {
+                                                            //         let added_wallet =
+                                                            //           results[0]
+                                                            //             .added_wallet;
+                                                            //         let member_wallet =
+                                                            //           results[0]
+                                                            //             .member_wallet;
+                                                            //         let member_count =
+                                                            //           results[0]
+                                                            //             ?.member_count;
+                                                            //         let m_userid =
+                                                            //           results[0]
+                                                            //             .m_userid;
+                                                            //         let memberPhone =
+                                                            //           results[0]
+                                                            //             .m_phone;
+                                                            //         let walletAmount =
+                                                            //           partnerid.refferal_Amount;
 
-                                                                    let memberdate_query =
-                                                                      "select * from member_wallet_history where m_userid = ? ";
-                                                                    connection.query(
-                                                                      memberdate_query,
-                                                                      [
-                                                                        m_userid,
-                                                                      ],
-                                                                      (
-                                                                        err,
-                                                                        results
-                                                                      ) => {
-                                                                        // console.log(results[0]?.wallet_update_date,'1033');
-                                                                        if (
-                                                                          !err
-                                                                        ) {
-                                                                          var i =
-                                                                            results.length -
-                                                                            1;
-                                                                          let check = false;
-                                                                          for (
-                                                                            j = 0;
-                                                                            j <=
-                                                                            i;
-                                                                            j++
-                                                                          ) {
-                                                                            var exist_date =
-                                                                              new Date(
-                                                                                results[
-                                                                                  j
-                                                                                ].wallet_update_date
-                                                                              );
-                                                                            var exist_date1 =
-                                                                              exist_date.toLocaleDateString();
+                                                            //         let memberdate_query =
+                                                            //           "select * from member_wallet_history where m_userid = ? ";
+                                                            //         connection.query(
+                                                            //           memberdate_query,
+                                                            //           [
+                                                            //             m_userid,
+                                                            //           ],
+                                                            //           (
+                                                            //             err,
+                                                            //             results
+                                                            //           ) => {
+                                                                        
+                                                            //             if (
+                                                            //               !err
+                                                            //             ) {
+                                                            //               var i =
+                                                            //                 results.length -
+                                                            //                 1;
+                                                            //               let check = false;
+                                                            //               for (
+                                                            //                 j = 0;
+                                                            //                 j <=
+                                                            //                 i;
+                                                            //                 j++
+                                                            //               ) {
+                                                            //                 var exist_date =
+                                                            //                   new Date(
+                                                            //                     results[
+                                                            //                       j
+                                                            //                     ].wallet_update_date
+                                                            //                   );
+                                                            //                 var exist_date1 =
+                                                            //                   exist_date.toLocaleDateString();
 
-                                                                            if (
-                                                                              entrydate ===
-                                                                              exist_date1
-                                                                            ) {
-                                                                              check = true;
-                                                                            }
-                                                                          }
-                                                                          if (
-                                                                            check
-                                                                          ) {
-                                                                            member_count =
-                                                                              member_count +
-                                                                              0;
-                                                                          } else {
-                                                                            member_count =
-                                                                              member_count +
-                                                                              1;
-                                                                          }
-                                                                        }
-                                                                      }
-                                                                    );
-                                                                    // added_wallet = added_wallet + (5 * activePartnerCount);
-                                                                    console.log(
-                                                                      member_wallet,
-                                                                      "557"
-                                                                    );
+                                                            //                 if (
+                                                            //                   entrydate ===
+                                                            //                   exist_date1
+                                                            //                 ) {
+                                                            //                   check = true;
+                                                            //                 }
+                                                            //               }
+                                                            //               if (
+                                                            //                 check
+                                                            //               ) {
+                                                            //                 member_count =
+                                                            //                   member_count +
+                                                            //                   0;
+                                                            //               } else {
+                                                            //                 member_count =
+                                                            //                   member_count +
+                                                            //                   1;
+                                                            //               }
+                                                            //             }
+                                                            //           }
+                                                            //         );
+                                                                    
+                                                            //         console.log(
+                                                            //           member_wallet,
+                                                            //           "557"
+                                                            //         );
 
-                                                                    if (
-                                                                      partnerid.perDayAmounReal ===
-                                                                      0
-                                                                    ) {
-                                                                      member_wallet =
-                                                                        member_wallet +
-                                                                        0;
-                                                                      walletAmount = 0;
-                                                                    }
+                                                            //         if (
+                                                            //           partnerid.perDayAmounReal ===
+                                                            //           0
+                                                            //         ) {
+                                                            //           member_wallet =
+                                                            //             member_wallet +
+                                                            //             0;
+                                                            //           walletAmount = 0;
+                                                            //         }
 
-                                                                    if (
-                                                                      partnerid.perDayAmounReal !==
-                                                                      0
-                                                                    ) {
-                                                                      member_wallet =
-                                                                        member_wallet +
-                                                                        partnerid.refferal_Amount;
-                                                                      walletAmount =
-                                                                        partnerid.refferal_Amount;
-                                                                    }
+                                                            //         if (
+                                                            //           partnerid.perDayAmounReal !==
+                                                            //           0
+                                                            //         ) {
+                                                            //           member_wallet =
+                                                            //             member_wallet +
+                                                            //             partnerid.refferal_Amount;
+                                                            //           walletAmount =
+                                                            //             partnerid.refferal_Amount;
+                                                            //         }
 
-                                                                    // member_count = member_count + 1;
-                                                                    let wallet_update_date =
-                                                                      new Date();
+                                                                    
+                                                            //         let wallet_update_date =
+                                                            //           new Date();
 
-                                                                    if (
-                                                                      member_count ===
-                                                                      30
-                                                                    ) {
-                                                                      let insertquery =
-                                                                        "insert into member_withdrawal(member_wallet,request_date,m_userid) values(?,?,?)";
-                                                                      connection.query(
-                                                                        insertquery,
-                                                                        [
-                                                                          member_wallet,
-                                                                          request_date,
-                                                                          m_userid,
-                                                                        ],
-                                                                        (
-                                                                          err,
-                                                                          results
-                                                                        ) => {
-                                                                          if (
-                                                                            !err
-                                                                          ) {
-                                                                            let perday_member_wallet_amount =
-                                                                              walletAmount;
-                                                                            let updatequery =
-                                                                              "update create_member set member_count =?, member_wallet =?,perday_member_wallet_amount=?,added_wallet = ? where m_userid =?";
-                                                                            connection.query(
-                                                                              updatequery,
-                                                                              [
-                                                                                (member_count = 0),
-                                                                                (member_wallet = 0),
-                                                                                (perday_member_wallet_amount = 0),
-                                                                                (added_wallet = 0),
-                                                                                m_userid,
-                                                                              ],
-                                                                              (
-                                                                                err,
-                                                                                results
-                                                                              ) => {
-                                                                                if (
-                                                                                  !err
-                                                                                ) {
-                                                                                  // Success
-                                                                                } else {
-                                                                                  return res
-                                                                                    .status(
-                                                                                      400
-                                                                                    )
-                                                                                    .json(
-                                                                                      {
-                                                                                        message:
-                                                                                          "Something Went Wrong 3",
-                                                                                      }
-                                                                                    );
-                                                                                }
-                                                                              }
-                                                                            );
-                                                                          } else {
-                                                                            return res
-                                                                              .status(
-                                                                                400
-                                                                              )
-                                                                              .json(
-                                                                                {
-                                                                                  message:
-                                                                                    "Something Went Wrong 4",
-                                                                                }
-                                                                              );
-                                                                          }
-                                                                        }
-                                                                      );
-                                                                    }
+                                                            //         if (
+                                                            //           member_count ===
+                                                            //           30
+                                                            //         ) {
+                                                            //           let insertquery =
+                                                            //             "insert into member_withdrawal(member_wallet,request_date,m_userid) values(?,?,?)";
+                                                            //           connection.query(
+                                                            //             insertquery,
+                                                            //             [
+                                                            //               member_wallet,
+                                                            //               request_date,
+                                                            //               m_userid,
+                                                            //             ],
+                                                            //             (
+                                                            //               err,
+                                                            //               results
+                                                            //             ) => {
+                                                            //               if (
+                                                            //                 !err
+                                                            //               ) {
+                                                            //                 let perday_member_wallet_amount =
+                                                            //                   walletAmount;
+                                                            //                 let updatequery =
+                                                            //                   "update create_member set member_count =?, member_wallet =?,perday_member_wallet_amount=?,added_wallet = ? where m_userid =?";
+                                                            //                 connection.query(
+                                                            //                   updatequery,
+                                                            //                   [
+                                                            //                     (member_count = 0),
+                                                            //                     (member_wallet = 0),
+                                                            //                     (perday_member_wallet_amount = 0),
+                                                            //                     (added_wallet = 0),
+                                                            //                     m_userid,
+                                                            //                   ],
+                                                            //                   (
+                                                            //                     err,
+                                                            //                     results
+                                                            //                   ) => {
+                                                            //                     if (
+                                                            //                       !err
+                                                            //                     ) {
+                                                            //                       // Success
+                                                            //                     } else {
+                                                            //                       return res
+                                                            //                         .status(
+                                                            //                           400
+                                                            //                         )
+                                                            //                         .json(
+                                                            //                           {
+                                                            //                             message:
+                                                            //                               "Something Went Wrong 3",
+                                                            //                           }
+                                                            //                         );
+                                                            //                     }
+                                                            //                   }
+                                                            //                 );
+                                                            //               } else {
+                                                            //                 return res
+                                                            //                   .status(
+                                                            //                     400
+                                                            //                   )
+                                                            //                   .json(
+                                                            //                     {
+                                                            //                       message:
+                                                            //                         "Something Went Wrong 4",
+                                                            //                     }
+                                                            //                   );
+                                                            //               }
+                                                            //             }
+                                                            //           );
+                                                            //         }
 
-                                                                    //------------------------------------
-                                                                    let insertMemberRefferMonthlyPayout =
-                                                                      "insert into  member_reffer_withdrawal (reffer_p_userid,member_wallet,request_date,m_userid) values (?,?,?,?)";
-                                                                    connection.query(
-                                                                      insertMemberRefferMonthlyPayout,
-                                                                      [
-                                                                        partnerid.p_userid,
-                                                                        walletAmount,
-                                                                        partnerid.partnerdate,
-                                                                        m_userid,
-                                                                      ],
-                                                                      (
-                                                                        err,
-                                                                        results
-                                                                      ) => {}
-                                                                    );
-                                                                    let selectMemberRefferWalletHistory =
-                                                                      "select * from member_reffer_wallet_history where reffer_p_userid =?";
-                                                                    connection.query(
-                                                                      selectMemberRefferWalletHistory,
-                                                                      [
-                                                                        partnerid.p_userid,
-                                                                      ],
-                                                                      (
-                                                                        err,
-                                                                        results
-                                                                      ) => {
-                                                                        let member_wallet =
-                                                                          results[0]
-                                                                            ?.member_wallet;
+                                                            //         //------------------------------------
+                                                            //         let insertMemberRefferMonthlyPayout =
+                                                            //           "insert into  member_reffer_withdrawal (reffer_p_userid,member_wallet,request_date,m_userid) values (?,?,?,?)";
+                                                            //         connection.query(
+                                                            //           insertMemberRefferMonthlyPayout,
+                                                            //           [
+                                                            //             partnerid.p_userid,
+                                                            //             walletAmount,
+                                                            //             partnerid.partnerdate,
+                                                            //             m_userid,
+                                                            //           ],
+                                                            //           (
+                                                            //             err,
+                                                            //             results
+                                                            //           ) => {}
+                                                            //         );
+                                                            //         let selectMemberRefferWalletHistory =
+                                                            //           "select * from member_reffer_wallet_history where reffer_p_userid =?";
+                                                            //         connection.query(
+                                                            //           selectMemberRefferWalletHistory,
+                                                            //           [
+                                                            //             partnerid.p_userid,
+                                                            //           ],
+                                                            //           (
+                                                            //             err,
+                                                            //             results
+                                                            //           ) => {
+                                                            //             let member_wallet =
+                                                            //               results[0]
+                                                            //                 ?.member_wallet;
 
-                                                                        member_wallet =
-                                                                          member_wallet +
-                                                                          walletAmount;
+                                                            //             member_wallet =
+                                                            //               member_wallet +
+                                                            //               walletAmount;
 
-                                                                        if (
-                                                                          results.length <
-                                                                          1
-                                                                        ) {
-                                                                          let insertMemberRefferWalletHistory =
-                                                                            " insert into member_reffer_wallet_history (m_userid,member_wallet,wallet_update_date,reffer_p_userid) values (?,?,?,?)";
-                                                                          connection.query(
-                                                                            insertMemberRefferWalletHistory,
-                                                                            [
-                                                                              m_userid,
-                                                                              walletAmount,
-                                                                              partnerid.partnerdate,
-                                                                              partnerid.p_userid,
-                                                                            ],
-                                                                            (
-                                                                              err,
-                                                                              results
-                                                                            ) => {}
-                                                                          );
-                                                                        }
-                                                                        if (
-                                                                          results.length >
-                                                                          0
-                                                                        ) {
-                                                                          console.log(
-                                                                            "1126"
-                                                                          );
-                                                                          let updateMemberRefferWalletHistory =
-                                                                            "update member_reffer_wallet_history set member_wallet =?, wallet_update_date =? where reffer_p_userid =?";
-                                                                          connection.query(
-                                                                            updateMemberRefferWalletHistory,
-                                                                            [
-                                                                              member_wallet,
-                                                                              partnerid.partnerdate,
-                                                                              partnerid.p_userid,
-                                                                            ],
-                                                                            (
-                                                                              err,
-                                                                              results
-                                                                            ) => {
-                                                                              console.log(
-                                                                                results,
-                                                                                "1129"
-                                                                              );
-                                                                            }
-                                                                          );
-                                                                        }
+                                                            //             if (
+                                                            //               results.length <
+                                                            //               1
+                                                            //             ) {
+                                                            //               let insertMemberRefferWalletHistory =
+                                                            //                 " insert into member_reffer_wallet_history (m_userid,member_wallet,wallet_update_date,reffer_p_userid) values (?,?,?,?)";
+                                                            //               connection.query(
+                                                            //                 insertMemberRefferWalletHistory,
+                                                            //                 [
+                                                            //                   m_userid,
+                                                            //                   walletAmount,
+                                                            //                   partnerid.partnerdate,
+                                                            //                   partnerid.p_userid,
+                                                            //                 ],
+                                                            //                 (
+                                                            //                   err,
+                                                            //                   results
+                                                            //                 ) => {}
+                                                            //               );
+                                                            //             }
+                                                            //             if (
+                                                            //               results.length >
+                                                            //               0
+                                                            //             ) {
+                                                            //               console.log(
+                                                            //                 "1126"
+                                                            //               );
+                                                            //               let updateMemberRefferWalletHistory =
+                                                            //                 "update member_reffer_wallet_history set member_wallet =?, wallet_update_date =? where reffer_p_userid =?";
+                                                            //               connection.query(
+                                                            //                 updateMemberRefferWalletHistory,
+                                                            //                 [
+                                                            //                   member_wallet,
+                                                            //                   partnerid.partnerdate,
+                                                            //                   partnerid.p_userid,
+                                                            //                 ],
+                                                            //                 (
+                                                            //                   err,
+                                                            //                   results
+                                                            //                 ) => {
+                                                            //                   console.log(
+                                                            //                     results,
+                                                            //                     "1129"
+                                                            //                   );
+                                                            //                 }
+                                                            //               );
+                                                            //             }
 
-                                                                        let selectquery =
-                                                                          "select partner_count from mining_partner where p_userid = ?";
-                                                                        connection.query(
-                                                                          selectquery,
-                                                                          [
-                                                                            partnerid.p_userid,
-                                                                          ],
-                                                                          (
-                                                                            err,
-                                                                            results
-                                                                          ) => {
-                                                                            let partner_count =
-                                                                              results[0]
-                                                                                ?.partner_count;
-                                                                            console.log(
-                                                                              results[0]
-                                                                                ?.partner_count,
-                                                                              "1137"
-                                                                            );
+                                                            //             let selectquery =
+                                                            //               "select partner_count from mining_partner where p_userid = ?";
+                                                            //             connection.query(
+                                                            //               selectquery,
+                                                            //               [
+                                                            //                 partnerid.p_userid,
+                                                            //               ],
+                                                            //               (
+                                                            //                 err,
+                                                            //                 results
+                                                            //               ) => {
+                                                            //                 let partner_count =
+                                                            //                   results[0]
+                                                            //                     ?.partner_count;
+                                                            //                 console.log(
+                                                            //                   results[0]
+                                                            //                     ?.partner_count,
+                                                            //                   "1137"
+                                                            //                 );
 
-                                                                            if (
-                                                                              partner_count ===
-                                                                              30
-                                                                            ) {
-                                                                              let selectMemberRefferWalletHistory =
-                                                                                "select * from member_reffer_wallet_history where reffer_p_userid =?";
-                                                                              connection.query(
-                                                                                selectMemberRefferWalletHistory,
-                                                                                [
-                                                                                  partnerid.p_userid,
-                                                                                ],
-                                                                                (
-                                                                                  err,
-                                                                                  results
-                                                                                ) => {
-                                                                                  let m_userid =
-                                                                                    results[0]
-                                                                                      ?.m_userid;
-                                                                                  let member_wallet =
-                                                                                    results[0]
-                                                                                      ?.member_wallet;
-                                                                                  let reffer_p_userid =
-                                                                                    results[0]
-                                                                                      ?.reffer_p_userid;
+                                                            //                 if (
+                                                            //                   partner_count ===
+                                                            //                   30
+                                                            //                 ) {
+                                                            //                   let selectMemberRefferWalletHistory =
+                                                            //                     "select * from member_reffer_wallet_history where reffer_p_userid =?";
+                                                            //                   connection.query(
+                                                            //                     selectMemberRefferWalletHistory,
+                                                            //                     [
+                                                            //                       partnerid.p_userid,
+                                                            //                     ],
+                                                            //                     (
+                                                            //                       err,
+                                                            //                       results
+                                                            //                     ) => {
+                                                            //                       let m_userid =
+                                                            //                         results[0]
+                                                            //                           ?.m_userid;
+                                                            //                       let member_wallet =
+                                                            //                         results[0]
+                                                            //                           ?.member_wallet;
+                                                            //                       let reffer_p_userid =
+                                                            //                         results[0]
+                                                            //                           ?.reffer_p_userid;
 
-                                                                                  let insertMemberRefferWithdrawal =
-                                                                                    "insert into member_reffer_withdrawal (m_userid,member_wallet,request_date,reffer_p_userid) values (?,?,?,?)";
-                                                                                  connection.query(
-                                                                                    insertMemberRefferWithdrawal,
-                                                                                    [
-                                                                                      m_userid,
-                                                                                      member_wallet,
-                                                                                      partnerid.partnerdate,
-                                                                                      reffer_p_userid,
-                                                                                    ],
-                                                                                    (
-                                                                                      err,
-                                                                                      results
-                                                                                    ) => {
-                                                                                      if (
-                                                                                        !err
-                                                                                      ) {
-                                                                                        let updateMemberRefferWalletHistory =
-                                                                                          "update member_reffer_wallet_history set member_wallet =?, wallet_update_date =? where reffer_p_userid =?";
-                                                                                        connection.query(
-                                                                                          updateMemberRefferWalletHistory,
-                                                                                          [
-                                                                                            (member_wallet = 0),
-                                                                                            partnerid.partnerdate,
-                                                                                            partnerid.p_userid,
-                                                                                          ],
-                                                                                          (
-                                                                                            err,
-                                                                                            results
-                                                                                          ) => {}
-                                                                                        );
-                                                                                      }
-                                                                                    }
-                                                                                  );
-                                                                                }
-                                                                              );
-                                                                            }
-                                                                          }
-                                                                        );
-                                                                      }
-                                                                    );
+                                                            //                       let insertMemberRefferWithdrawal =
+                                                            //                         "insert into member_reffer_withdrawal (m_userid,member_wallet,request_date,reffer_p_userid) values (?,?,?,?)";
+                                                            //                       connection.query(
+                                                            //                         insertMemberRefferWithdrawal,
+                                                            //                         [
+                                                            //                           m_userid,
+                                                            //                           member_wallet,
+                                                            //                           partnerid.partnerdate,
+                                                            //                           reffer_p_userid,
+                                                            //                         ],
+                                                            //                         (
+                                                            //                           err,
+                                                            //                           results
+                                                            //                         ) => {
+                                                            //                           if (
+                                                            //                             !err
+                                                            //                           ) {
+                                                            //                             let updateMemberRefferWalletHistory =
+                                                            //                               "update member_reffer_wallet_history set member_wallet =?, wallet_update_date =? where reffer_p_userid =?";
+                                                            //                             connection.query(
+                                                            //                               updateMemberRefferWalletHistory,
+                                                            //                               [
+                                                            //                                 (member_wallet = 0),
+                                                            //                                 partnerid.partnerdate,
+                                                            //                                 partnerid.p_userid,
+                                                            //                               ],
+                                                            //                               (
+                                                            //                                 err,
+                                                            //                                 results
+                                                            //                               ) => {}
+                                                            //                             );
+                                                            //                           }
+                                                            //                         }
+                                                            //                       );
+                                                            //                     }
+                                                            //                   );
+                                                            //                 }
+                                                            //               }
+                                                            //             );
+                                                            //           }
+                                                            //         );
 
-                                                                    //--------------------------------------
+                                                            //         let insertquery =
+                                                            //           "insert into member_wallet_history(walletAmount,wallet_update_date,m_userid,reffer_user) values (?,?,?,?)";
+                                                            //         connection.query(
+                                                            //           insertquery,
+                                                            //           [
+                                                            //             walletAmount,
+                                                            //             partnerid.partnerdate,
+                                                            //             m_userid,
+                                                            //             partnerid.p_userid,
+                                                            //           ],
+                                                            //           (
+                                                            //             err,
+                                                            //             results
+                                                            //           ) => {
+                                                            //             if (
+                                                            //               !err
+                                                            //             ) {
+                                                            //               if (
+                                                            //                 partnerid.perDayAmounReal ===
+                                                            //                 0
+                                                            //               ) {
+                                                            //                 memberWalletSms(
+                                                            //                   memberPhone,
+                                                            //                   {
+                                                            //                     type: "Member",
+                                                            //                     userid:
+                                                            //                       m_userid,
+                                                            //                     amount:
+                                                            //                       partnerid.perDayAmounReal,
+                                                            //                   }
+                                                            //                 );
+                                                            //               }
+                                                            //               if (
+                                                            //                 partnerid.perDayAmounReal !=
+                                                            //                 0
+                                                            //               ) {
+                                                            //                 memberWalletSms(
+                                                            //                   memberPhone,
+                                                            //                   {
+                                                            //                     type: "Member",
+                                                            //                     userid:
+                                                            //                       m_userid,
+                                                            //                     amount:
+                                                            //                       walletAmount,
+                                                            //                   }
+                                                            //                 );
+                                                            //               }
 
-                                                                    let insertquery =
-                                                                      "insert into member_wallet_history(walletAmount,wallet_update_date,m_userid,reffer_user) values (?,?,?,?)";
-                                                                    connection.query(
-                                                                      insertquery,
-                                                                      [
-                                                                        walletAmount,
-                                                                        partnerid.partnerdate,
-                                                                        m_userid,
-                                                                        partnerid.p_userid,
-                                                                      ],
-                                                                      (
-                                                                        err,
-                                                                        results
-                                                                      ) => {
-                                                                        if (
-                                                                          !err
-                                                                        ) {
-                                                                          if (
-                                                                            partnerid.perDayAmounReal ===
-                                                                            0
-                                                                          ) {
-                                                                            memberWalletSms(
-                                                                              memberPhone,
-                                                                              {
-                                                                                type: "Member",
-                                                                                userid:
-                                                                                  m_userid,
-                                                                                amount:
-                                                                                  partnerid.perDayAmounReal,
-                                                                              }
-                                                                            );
-                                                                          }
-                                                                          if (
-                                                                            partnerid.perDayAmounReal !=
-                                                                            0
-                                                                          ) {
-                                                                            memberWalletSms(
-                                                                              memberPhone,
-                                                                              {
-                                                                                type: "Member",
-                                                                                userid:
-                                                                                  m_userid,
-                                                                                amount:
-                                                                                  walletAmount,
-                                                                              }
-                                                                            );
-                                                                          }
+                                                            //               let perday_member_wallet_amount =
+                                                            //                 walletAmount;
 
-                                                                          let perday_member_wallet_amount =
-                                                                            walletAmount;
-
-                                                                          let updatequery =
-                                                                            "update create_member set member_wallet=?,wallet_update_date=?,member_count=?,perday_member_wallet_amount=?,added_wallet = ? where m_userid =?";
-                                                                          connection.query(
-                                                                            updatequery,
-                                                                            [
-                                                                              member_wallet,
-                                                                              partnerid.partnerdate,
-                                                                              member_count,
-                                                                              perday_member_wallet_amount,
-                                                                              added_wallet,
-                                                                              m_userid,
-                                                                            ],
-                                                                            (
-                                                                              err,
-                                                                              results
-                                                                            ) => {
-                                                                              if (
-                                                                                !err
-                                                                              ) {
-                                                                                // if (activePartnerCount === 0) {
-                                                                                //     let setTotalWalletZero = "update create_member set member_count =?, member_wallet =?,perday_member_wallet_amount=? where m_userid =?";
-                                                                                //     connection.query(setTotalWalletZero, [member_count = 0, member_wallet = 0, perday_member_wallet_amount = 0, m_userid], (err, results) => {
-                                                                                //         if (!err) {
-                                                                                //         }
-                                                                                //     })
-                                                                                // }
-                                                                              }
-                                                                            }
-                                                                          );
-                                                                        }
-                                                                      }
-                                                                    );
-                                                                  } else {
-                                                                    return res
-                                                                      .status(
-                                                                        400
-                                                                      )
-                                                                      .json({
-                                                                        messgae:
-                                                                          "Something Went Wrong 5",
-                                                                      });
-                                                                  }
-                                                                }
-                                                              );
-                                                            }
+                                                            //               let updatequery =
+                                                            //                 "update create_member set member_wallet=?,wallet_update_date=?,member_count=?,perday_member_wallet_amount=?,added_wallet = ? where m_userid =?";
+                                                            //               connection.query(
+                                                            //                 updatequery,
+                                                            //                 [
+                                                            //                   member_wallet,
+                                                            //                   partnerid.partnerdate,
+                                                            //                   member_count,
+                                                            //                   perday_member_wallet_amount,
+                                                            //                   added_wallet,
+                                                            //                   m_userid,
+                                                            //                 ],
+                                                            //                 (
+                                                            //                   err,
+                                                            //                   results
+                                                            //                 ) => {
+                                                            //                   if (
+                                                            //                     !err
+                                                            //                   ) {
+                                                            //                     // if (activePartnerCount === 0) {
+                                                            //                     //     let setTotalWalletZero = "update create_member set member_count =?, member_wallet =?,perday_member_wallet_amount=? where m_userid =?";
+                                                            //                     //     connection.query(setTotalWalletZero, [member_count = 0, member_wallet = 0, perday_member_wallet_amount = 0, m_userid], (err, results) => {
+                                                            //                     //         if (!err) {
+                                                            //                     //         }
+                                                            //                     //     })
+                                                            //                     // }
+                                                            //                   }
+                                                            //                 }
+                                                            //               );
+                                                            //             }
+                                                            //           }
+                                                            //         );
+                                                            //       } else {
+                                                            //         return res
+                                                            //           .status(
+                                                            //             400
+                                                            //           )
+                                                            //           .json({
+                                                            //             messgae:
+                                                            //               "Something Went Wrong 5",
+                                                            //           });
+                                                            //       }
+                                                            //     }
+                                                            //   );
+                                                            // }
                                                           }
                                                         }
                                                       }
@@ -2480,12 +2523,12 @@ exports.fetchMemberRefferWithdrawalRequestFromAdmin = (req, res) => {
 
 // approveMemberRefferWithdrawalRequest
 exports.approveMemberRefferWithdrawalRequest = (req, res) => {
-  const partnerId = req.body;
-  console.log(partnerId.id, "250");
+  const member = req.body;
+  console.log(member.id, "250");
   const query =
-    "SELECT member_wallet, request_date, id, reffer_p_userid, m_userid FROM member_reffer_withdrawal WHERE id = ?";
+    "SELECT * FROM payment_request WHERE id = ?";
 
-  connection.query(query, [partnerId.id], (err, results) => {
+  connection.query(query, [member.id], (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ message: "Database error" });
@@ -2495,15 +2538,15 @@ exports.approveMemberRefferWithdrawalRequest = (req, res) => {
       return res.status(404).json({ message: "Withdrawal request not found" });
     }
 
-    const { member_wallet, id, request_date, reffer_p_userid, m_userid } =
+    const { amount, id, requestDate,userId,paymentBy } =
       results[0];
-    const approve_date = new Date();
+    const approveDate = new Date();
     const insertQuery =
-      "INSERT INTO member_reffer_withdrawal_history (member_wallet, request_date, approve_date, reffer_p_userid, m_userid) VALUES (?, ?, ?, ?, ?)";
+      "INSERT INTO payment_approve (userId,amount, requestDate, approveDate,bankName) VALUES (?, ?, ?, ?,?)";
 
     connection.query(
       insertQuery,
-      [member_wallet, request_date, approve_date, reffer_p_userid, m_userid],
+      [userId,amount, requestDate, approveDate,paymentBy],
       (err) => {
         if (err) {
           console.error(err);
@@ -2513,7 +2556,7 @@ exports.approveMemberRefferWithdrawalRequest = (req, res) => {
         const selectQuery =
           "SELECT m_email, m_phone FROM create_member WHERE m_userid = ?";
 
-        connection.query(selectQuery, [partnerId.m_userid], (err, results) => {
+        connection.query(selectQuery, [userId], (err, results) => {
           if (err) {
             console.error(err);
             return res.status(500).json({ message: "Database error" });
@@ -2533,33 +2576,19 @@ exports.approveMemberRefferWithdrawalRequest = (req, res) => {
           //   amount: member_wallet,
           // });
 
-          email(memberEmail, { withdrawalAmount: member_wallet });
+          email(memberEmail, { withdrawalAmount: amount });
 
           const deleteQuery =
-            "DELETE FROM member_reffer_withdrawal WHERE id = ?";
+            "DELETE FROM payment_request WHERE id = ?";
           connection.query(deleteQuery, [id], (err) => {
             if (err) {
               console.error(err);
               return res.status(500).json({ message: "Database error" });
+            }else{
+              return res.status(200).json({
+                message:"Withdrawal Request approved"
+              })
             }
-
-            const updateMemberWallet =
-              "UPDATE create_member SET member_wallet = member_wallet - ? WHERE m_userid = ?";
-
-            connection.query(
-              updateMemberWallet,
-              [member_wallet, m_userid],
-              (err) => {
-                if (err) {
-                  console.error(err);
-                  return res.status(500).json({ message: "Database error" });
-                }
-
-                return res.status(200).json({
-                  message: "Member Referral Withdrawal Request Approved",
-                });
-              }
-            );
           });
         });
       }
@@ -4127,50 +4156,42 @@ exports.uploadBond = async (req, res) => {
         .json({ message: "Bond file must be in PDF format." });
     }
 
-    const findBondQuery = "SELECT * FROM upload_bond" 
+    const findBondQuery = "SELECT * FROM upload_bond";
     connection.query(findBondQuery, (error, result) => {
       if (error) {
         console.log(error.message);
         return res.status(500).json({ message: "Internal server error" });
       }
 
-      if(result.length === 0 || !result){
-
+      if (result.length === 0 || !result) {
         const insertBondQuery = `
         INSERT INTO upload_bond (bond) VALUES (?)
       `;
-  
-      connection.query(insertBondQuery, [bondLocation], (error, result) => {
-        if (error) {
-          console.log(error.message);
-          return res.status(500).json({ message: "Internal server error" });
-        }
-  
-        return res
-          .status(200)
-          .json({ message: "Bond file uploaded successfully" });
-      });
 
-      }
+        connection.query(insertBondQuery, [bondLocation], (error, result) => {
+          if (error) {
+            console.log(error.message);
+            return res.status(500).json({ message: "Internal server error" });
+          }
 
-      else{
-        const updateBondQuery = "UPDATE upload_bond SET BOND = ? LIMIT 1"
+          return res
+            .status(200)
+            .json({ message: "Bond file uploaded successfully" });
+        });
+      } else {
+        const updateBondQuery = "UPDATE upload_bond SET BOND = ? LIMIT 1";
         connection.query(updateBondQuery, [bondLocation], (error, result) => {
           if (error) {
             console.log(error.message);
             return res.status(500).json({ message: "Internal server error" });
           }
-      
+
           return res
             .status(200)
             .json({ message: "Bond file updated successfully" });
         });
       }
-
-    
     });
-    
- 
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ message: "Internal server error" });
@@ -4192,7 +4213,7 @@ exports.fetchBond = async (req, res) => {
 
       return res
         .status(200)
-        .json({ message: "Bond file fetched successfully", data: result }); 
+        .json({ message: "Bond file fetched successfully", data: result });
     });
   } catch (error) {
     console.log(error.message);
@@ -4214,12 +4235,18 @@ exports.queryResolve = async (req, res) => {
 
       if (result.affectedRows === 1) {
         if (status === true) {
-          return res.status(200).json({ message: "Query resolved successfully" });
+          return res
+            .status(200)
+            .json({ message: "Query resolved successfully" });
         } else if (status === false) {
-          return res.status(200).json({ message: "Query status changed to false" });
+          return res
+            .status(200)
+            .json({ message: "Query status changed to false" });
         }
       } else {
-        return res.status(200).json({ message: "No matching query found for update" });
+        return res
+          .status(200)
+          .json({ message: "No matching query found for update" });
       }
     });
   } catch (error) {
@@ -4233,7 +4260,9 @@ exports.fetchQuery = async (req, res) => {
     const { p_userid } = req.body;
 
     if (!p_userid) {
-      return res.status(400).json({ message: "Missing p_userid in the request." });
+      return res
+        .status(400)
+        .json({ message: "Missing p_userid in the request." });
     }
 
     const fetchQuerySQL = "SELECT * FROM help_and_support WHERE p_userid = ?";
@@ -4241,18 +4270,23 @@ exports.fetchQuery = async (req, res) => {
     connection.query(fetchQuerySQL, [p_userid], (error, result) => {
       if (error) {
         console.log(error.message);
-        return res.status(500).json({ message: "Failed to fetch queries. Internal server error." });
+        return res
+          .status(500)
+          .json({ message: "Failed to fetch queries. Internal server error." });
       }
 
       if (result.length === 0) {
-        return res.status(404).json({ message: "No queries found for the given p_userid." });
+        return res
+          .status(404)
+          .json({ message: "No queries found for the given p_userid." });
       }
 
-      return res.status(200).json({ message: "Queries fetched successfully.", data: result });
+      return res
+        .status(200)
+        .json({ message: "Queries fetched successfully.", data: result });
     });
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-

@@ -620,5 +620,47 @@ exports.updateMember = async (req, res) => {
   }
 };
 
+exports.memberWithdrawalRequest = async(req,res) => {
+  const {memberId,amount,bank} = req.body;
+  let query = "select member_wallet from create_member where m_userid = ? ";
+  connection.query(query, [memberId], (err, results) => {
+    if(err){
+      return res
+      .status(500)
+      .json({ message: "Internal server error." });
+    }
+    if(results.length > 0){
+      const memberWallet = results[0]?.member_wallet;
+      // console.log(memberWallet)
+      const updatedWallet = memberWallet-amount
+      const date = new Date();
+      // console.log(updatedWallet,635)
+      const updateQuery = "update create_member set member_wallet = ? where m_userid = ?";
+      connection.query(updateQuery,[updatedWallet,memberId],
+        (err, results) => {
+          if(err){
+            return res
+            .status(500)
+            .json({ message: "Internal server error." });
+          }else{
+            // let insertQuery = "insert into member_withdrawal(m_userid,member_wallet,request_date) values(?,?,?)"
+            let insertQuery = "insert into payment_request (userId,amount,requestDate,paymentBy) values(?,?,?,?)";
+            connection.query(insertQuery,[memberId,amount,date,bank],(error,result) => {
+              if (error) {
+                return res
+                  .status(500)
+                  .json({ message: "Internal server error." });
+              }else{
+                return res
+                .status(200)
+                .json({ message: "Withdrawal request placed successfully" });
+              }
+            })
+          }
+        })
+    }
+  })
+}
+
 
 
