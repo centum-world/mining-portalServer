@@ -143,7 +143,7 @@ exports.fetchMemberBankDetails = (req, res) => {
       });
     } else {
       return res.status(500).json({
-        message:"Internal Server error"
+        message: "Internal Server error",
       });
     }
   });
@@ -315,14 +315,13 @@ exports.fetchSumOfMemberWalletOfMonth = (req, res) => {
 //fetch-member-approve-withdrawal-history-for-member
 
 exports.fetchMemberApproveWithdrawalHistoryForMember = (req, res) => {
-  const memberId = req.body;
-  let query =
-    "select * from member_reffer_withdrawal_history where m_userid = ? ";
-  connection.query(query, [memberId.m_userid], (err, results) => {
+  const { memberId } = req.body;
+  let query = "select * from payment_approve where userId = ? ";
+  connection.query(query, [memberId], (err, results) => {
     if (!err) {
       return res.status(200).json({
         message:
-          "Fetched Member Withdrawal History for Particular Member successfully",
+          " Member Withdrawal History Fetched Successfully ",
         data: results,
       });
     } else {
@@ -352,9 +351,9 @@ exports.fetchSumOfMemberTotalWithdrawalForMember = (req, res) => {
 //fetch-member-withdrawal-request
 
 exports.fetchMemberWithdrawalRequest = (req, res) => {
-  const memberId = req.body;
-  let query = "select * from member_reffer_withdrawal where m_userid = ? ";
-  connection.query(query, [memberId.m_userid], (err, results) => {
+  const { memberId } = req.body;
+  let query = "select * from payment_request where userId = ? ";
+  connection.query(query, [memberId], (err, results) => {
     if (!err) {
       return res.status(200).json({
         message: "Fetched Member Withdrawal Request successfully",
@@ -552,23 +551,35 @@ exports.updateMember = async (req, res) => {
     } = req.body;
 
     // Check for required fields
-    if (!m_name || !m_lname || !m_add || !m_phone || !m_email || !m_gender || !m_state || !m_userid) {
+    if (
+      !m_name ||
+      !m_lname ||
+      !m_add ||
+      !m_phone ||
+      !m_email ||
+      !m_gender ||
+      !m_state ||
+      !m_userid
+    ) {
       return res.status(400).json({
-        message: "All fields (m_name, m_lname, m_add, m_phone, m_email, m_gender, m_state, m_userid) are required.",
+        message:
+          "All fields (m_name, m_lname, m_add, m_phone, m_email, m_gender, m_state, m_userid) are required.",
       });
     }
 
     // Validate name format
     if (!isValidName(m_name) || !isValidName(m_lname)) {
       return res.status(422).json({
-        message: "Invalid name format. Name and last name should be valid names.",
+        message:
+          "Invalid name format. Name and last name should be valid names.",
       });
     }
 
     // Validate phone number format
     if (!isValidPhone(m_phone)) {
       return res.status(422).json({
-        message: "Invalid phone number format. Use 10 digits or include a country code.",
+        message:
+          "Invalid phone number format. Use 10 digits or include a country code.",
       });
     }
 
@@ -620,47 +631,51 @@ exports.updateMember = async (req, res) => {
   }
 };
 
-exports.memberWithdrawalRequest = async(req,res) => {
-  const {memberId,amount,bank} = req.body;
+exports.memberWithdrawalRequest = async (req, res) => {
+  const { memberId, amount, bank } = req.body;
   let query = "select member_wallet from create_member where m_userid = ? ";
   connection.query(query, [memberId], (err, results) => {
-    if(err){
-      return res
-      .status(500)
-      .json({ message: "Internal server error." });
+    if (err) {
+      return res.status(500).json({ message: "Internal server error." });
     }
-    if(results.length > 0){
+    if (results.length > 0) {
       const memberWallet = results[0]?.member_wallet;
       // console.log(memberWallet)
-      const updatedWallet = memberWallet-amount
+      const updatedWallet = memberWallet - amount;
       const date = new Date();
       // console.log(updatedWallet,635)
-      const updateQuery = "update create_member set member_wallet = ? where m_userid = ?";
-      connection.query(updateQuery,[updatedWallet,memberId],
+      const updateQuery =
+        "update create_member set member_wallet = ? where m_userid = ?";
+      connection.query(
+        updateQuery,
+        [updatedWallet, memberId],
         (err, results) => {
-          if(err){
-            return res
-            .status(500)
-            .json({ message: "Internal server error." });
-          }else{
+          if (err) {
+            return res.status(500).json({ message: "Internal server error." });
+          } else {
             // let insertQuery = "insert into member_withdrawal(m_userid,member_wallet,request_date) values(?,?,?)"
-            let insertQuery = "insert into payment_request (userId,amount,requestDate,paymentBy) values(?,?,?,?)";
-            connection.query(insertQuery,[memberId,amount,date,bank],(error,result) => {
-              if (error) {
-                return res
-                  .status(500)
-                  .json({ message: "Internal server error." });
-              }else{
-                return res
-                .status(200)
-                .json({ message: "Withdrawal request placed successfully" });
+            let insertQuery =
+              "insert into payment_request (userId,amount,requestDate,paymentBy) values(?,?,?,?)";
+            connection.query(
+              insertQuery,
+              [memberId, amount, date, bank],
+              (error, result) => {
+                if (error) {
+                  return res
+                    .status(500)
+                    .json({ message: "Internal server error." });
+                } else {
+                  return res
+                    .status(200)
+                    .json({
+                      message: "Withdrawal request placed successfully",
+                    });
+                }
               }
-            })
+            );
           }
-        })
+        }
+      );
     }
-  })
-}
-
-
-
+  });
+};

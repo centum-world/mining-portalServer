@@ -636,10 +636,10 @@ exports.fetchSumOfMemberWalletForMonthForAdmin = (req, res) => {
 // fetch-member-withdrawal-request-to-admin
 
 exports.fetchMemberWithdrawalRequestToAdmin = (req, res) => {
-  //const partnerId = req.body;
+  const {memberId} = req.body;
   let query =
-    "select  m_userid,member_wallet,request_date,id from member_withdrawal ";
-  connection.query(query, (err, results) => {
+    "select * from payment_request where userId = ? ";
+  connection.query(query,[memberId], (err, results) => {
     if (!err) {
       return res.status(200).json({
         message: "Fetched Member Withdrawal Request to Admin successfully",
@@ -2507,9 +2507,10 @@ exports.fetchPartnerRefferalApproveWithdrawal = (req, res) => {
 
 // fetchMemberRefferWithdrawalRequestFromAdmin
 exports.fetchMemberRefferWithdrawalRequestFromAdmin = (req, res) => {
+  const {memberId} = req.body;
   let query =
-    "select m_userid,member_wallet,request_date,id,reffer_p_userid from member_reffer_withdrawal ";
-  connection.query(query, (err, results) => {
+    "select * from payment_request where userId = ? ";
+  connection.query(query,[memberId], (err, results) => {
     if (!err) {
       return res.status(200).json({
         message: "Fetched Member Refferal Withdrawal Request successfully",
@@ -3274,10 +3275,10 @@ exports.fetchAllBd = async (req, res) => {
 
 // fetchParticularMemberWithdrawalRequest
 exports.fetchParticularMemberWithdrawalRequest = async (req, res) => {
-  const memberId = req.body;
+  const { memberId } = req.body;
   try {
-    let query = "select * from member_reffer_withdrawal where m_userid = ?";
-    connection.query(query, [memberId.m_userid], (err, results) => {
+    let query = "select * from payment_request where userId = ?";
+    connection.query(query, [memberId], (err, results) => {
       if (!err) {
         return res.status(200).json({
           message: "Fetched Member Withdrawal Request to Admin successfully",
@@ -3298,10 +3299,10 @@ exports.fetchParticularMemberWithdrawalRequest = async (req, res) => {
 
 // fetchParticularMemberApprovedWithdrawalHistory
 exports.fetchParticularMemberApprovedWithdrawalHistory = async (req, res) => {
-  let memberId = req.body;
+  let{ memberId }= req.body;
   let query =
-    "select * from member_reffer_withdrawal_history where m_userid =? ";
-  connection.query(query, [memberId.m_userid], (err, results) => {
+    "select * from payment_approve where userId =? ";
+  connection.query(query, [memberId], (err, results) => {
     if (!err) {
       return res.status(200).json({
         message: "Fetched Partner Withdrawal History data successfully",

@@ -1,10 +1,9 @@
 const express = require('express');
-const connection = require('../config/database');
 const router = express.Router();
 
 const adminControllers = require('../controllers/adminControllers');
-const checkAuthMiddleware = require('../middleware/checkAuth');
+const { isAuthenticated, authorizeRole } = require("../middleware/checkAuth");
 
-router.get('/fetch-member-reffer-withdrawal-request-from-admin',checkAuthMiddleware.checkAuth,
+router.post('/fetch-member-reffer-withdrawal-request-from-admin',isAuthenticated,authorizeRole(["admin"]),
 adminControllers.fetchMemberRefferWithdrawalRequestFromAdmin);
 module.exports = router;
