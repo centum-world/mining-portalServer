@@ -4291,3 +4291,20 @@ exports.fetchQuery = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// memberReferralPayoutHistory
+exports.memberReferralPayoutHistory = async (req ,res) => {
+  const {userid} = req.body;
+  let query = "select * from my_team where userid = ? ";
+  connection.query(query, [userid], (err, results) => {
+    if (!err) {
+      return res.status(200).json({
+        message:
+          "Referral Payout History Fetched Successfully ",
+        data: results,
+      });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}
