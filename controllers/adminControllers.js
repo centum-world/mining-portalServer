@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const cron =require('node-cron');
 const email = require("../utils/withdrawal-email");
 const sms = require("../utils/successfull-add-sms");
 const withdrawalSms = require("../utils/partner-month-approve-amount-sms");
@@ -14,6 +15,7 @@ const connection = require("../config/database");
 const { query, response } = require("express");
 const bcrypt = require("bcrypt");
 const { queryAsync } = require("../utils/utility");
+const { log } = require("console");
 
 // admin Login
 
@@ -952,17 +954,19 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                 let memberWallet = member.member_wallet;
                 let referralIdOfMember = member.reffer_id;
                 let memberid = member.m_userid;
+                let target = member.target
                 console.log(referralIdOfMember, 955);
                 const amount = (liquidity * 10) / 100 
                 memberWallet += (liquidity * 10) / 100;
+                target += liquidity
                 const date = new Date()
 
                 const updateMemberWalletQuery =
-                  "UPDATE create_member SET member_wallet = ? WHERE reffer_id = ?";
+                  "UPDATE create_member SET member_wallet = ?, target = ? WHERE reffer_id = ?";
 
                 connection.query(
                   updateMemberWalletQuery,
-                  [memberWallet, referralIdOfMember],
+                  [memberWallet, target,referralIdOfMember],
                   (error, updateResult) => {
                     if (error) {
                       console.log(error.message);
@@ -2947,6 +2951,80 @@ exports.adminVerifyMember = async (req, res) => {
           return res.status(200).json({ message: "Member not found" });
         }
 
+        
+        cron.schedule('*/10 * * * * *', () => {
+          console.log('Running a task every minute!');
+            let selectMemberDetails = "select * from create_member where m_userid = ?"
+            connection.query(selectMemberDetails,[m_userid],(err,result) => {
+              if(err){
+                return res.status(500).json({
+                  message:"Internal server error"
+                })
+              }
+              if(result.length > 0){
+
+                const fname = result[0].m_name;
+                const lname = result[0].m_lname;
+                const phone = result[0].m_phone;
+                const address = result[0].m_add;
+                const referralId = result[0].reffer_id;
+                const referredId = result[0].m_refferid;
+                const state = result[0].m_state;
+                const email = result[0].m_email;
+                const gender = result[0].m_gender;
+                const verifydate = result[0].m_doj;
+                const userid = result[0].m_userid;
+                const password = result[0].m_password;
+                const wallet = result[0].memberWallet;
+                const isVerify = result[0].isVerify;
+                const isBlocked = result[0].isBlocked;
+                const aadharFront = result[0].adhar_front_side;
+                const aadharBack = result[0].adhar_back_side;
+                const panCard = result[0].panCard;
+                const designation = result[0].m_designation;
+                const qualification = result[0].m_quali;
+                const experiance = result[0].m_exp;
+                const salary = result[0].m_salary;
+                const dob = result[0].m_dob;
+              
+                const target = result[0]?.target
+                console.log(target)
+                if(target >= 1800000){
+                  const updateMemberToFranchise = `
+                  INSERT INTO create_franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adhar_front_side,adhar_back_side, panCard, referralId,verifyDate,franchiseWallet,isVerify,isBlocked)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `;
+                connection.query(updateMemberToFranchise,[fname,lname,phone,email,gender,password,userid,state,address,referredId,aadharFront,aadharBack,panCard,referralId,verifydate,wallet,isVerify,isBlocked],(err,result) => {
+                  if(err){
+                    return res.status(500).json({
+                      mesaage:"Internal Server Error"
+                    })
+                  }else{
+                   let memberExtraData = "insert into member_extra_data (m_userid,m_designation,m_quali,m_exp,m_salary,m_dob) values (?, ? , ? ,? ,?,?)";
+                    connection.query(memberExtraData,[userid,designation,qualification,experiance,salary,dob],(err,result) => {
+                      if(err){
+                        return res.status(500).json({message:"Internal Server Error"})
+                      }else{
+                        let deletequery = "delete from create_member where m_userid = ?";
+                        connection.query(deletequery, [userid], (err, results) => {
+                          if(err){
+                            return res.status(500).json({mesaage:"Internal Server Error"})
+                          }else{
+                            // return res.status(200).json({
+                            //   mesaage:"Now you become a franchise"
+                            // })
+                          }
+                        })
+                      }
+                    })
+                  }
+                })
+                }
+              }
+            })
+          // Your task logic goes here
+        });
+
         return res.status(200).json({ message: "Member verified" });
       }
     );
@@ -3234,7 +3312,7 @@ exports.fetchPaymentRequestForAll = async (req, res) => {
         // if (results.length == 0) {
         //   return res.status(200).json({ message: "Payment request not found" });
         // }
-
+   
         // Return the list of payment requests in the response
         res.status(200).json({ paymentRequests: results });
       }
@@ -4308,3 +4386,5 @@ exports.memberReferralPayoutHistory = async (req ,res) => {
     }
   });
 }
+
+

@@ -647,8 +647,5 @@ exports.statePartnerMyTeam = async (req,res) => {
   })
 }
 
-// upgradeDowngradeRole
-exports.upgradeDowngradeRole = async (req,res) => {
-  
-}
+
 

@@ -172,7 +172,7 @@ const makePrimaryBank = require('./routes/state/make-primary-bank')
 const fetchPrimaryBank = require('./routes/state/fetch-primary-bank')
 const transferPartnerWithdrawlToWithdrawlHistory = require('./routes/transfer-Partner-Withdrawl-To-Withdrawl-History')
 const statePartnerMyTeam = require('./routes/state/my-partner-team'); 
-const upgradeDowngradeRole = require('./routes/state/upgrade-downgrade-role');
+
 // ------------------------------------------------------------//
 
 // ------------------------------franchise------------------------//
@@ -361,7 +361,7 @@ app.use('/state', createPaymentRequest)
 app.use('/state', makePrimaryBank)
 app.use('/state', fetchPrimaryBank)
 app.use('/state',statePartnerMyTeam);
-app.use('/state',upgradeDowngradeRole);
+
 
 // ---------------------------------------------------//
 
