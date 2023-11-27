@@ -649,3 +649,25 @@ exports.statePartnerMyTeam = async (req,res) => {
 
 
 
+exports.fetchPartnerByReferralId = async (req, res) => {
+  try {
+    const { referralId } = req.body;
+
+    const partnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id = ?";
+
+    const [partnerRows] = await connection.promise().query(partnerQuery, [referralId]);
+
+    if (partnerRows.length === 0) {
+      res.status(200).json({ message: 'No partners found for the given referralId' });
+    } else {
+      res.status(200).json({ message: "Partners fetched successfully", partners: partnerRows });
+    }
+
+  } catch (error) {
+    console.error('Error fetching partners:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+
