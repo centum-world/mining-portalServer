@@ -1214,7 +1214,7 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                             const bmm = result[0];
                             let bmmWallet = bmm.stateHandlerWallet;
                             const bmmId = bmm.stateHandlerId;
-                            const amount = (liquidity * 5) / 100;
+                            const amount = (liquidity * 15) / 100;
                             const date = new Date();
                             bmmWallet += (liquidity * 15) / 100;
 
