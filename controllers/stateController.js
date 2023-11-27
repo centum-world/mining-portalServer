@@ -104,10 +104,9 @@ exports.fetchAllStateOfSHO = async (req, res) => {
   }
 };
 
-
 exports.fetchAllOwnFranchiseInState = async (req, res) => {
   try {
-    const { referralId } = req.body; 
+    const { referralId } = req.body;
 
     if (!referralId) {
       return res.status(404).json({ message: "Referral Id is required" });
@@ -168,9 +167,7 @@ exports.CreateBankDetailsForSho = async (req, res) => {
       }
 
       if (result.length === 0) {
-        return res
-          .status(404)
-          .json({ message: "User not found" });
+        return res.status(404).json({ message: "User not found" });
       }
 
       // User exists, proceed to insert bank details
@@ -204,32 +201,31 @@ exports.CreateBankDetailsForSho = async (req, res) => {
 exports.fetchOwnBankDetails = async (req, res) => {
   try {
     const { userId } = req.body;
-  
+
     if (!userId) {
       return res.status(400).json({ message: "userId is required" });
     }
-  
+
     const bankDetailsQuery = "SELECT * FROM bank_details WHERE user_id = ?";
-  
+
     connection.query(bankDetailsQuery, [userId], (error, result) => {
       if (error) {
         console.error("Error fetching bank details:", error);
         return res.status(500).json({ message: "Internal Server Error" });
       }
-  
+
       if (result.length === 0) {
         return res
           .status(204)
           .json({ message: "No bank details found for the given userId" });
       }
-  
+
       return res.status(200).json({ message: "Bank details fetched", result });
     });
   } catch (error) {
     console.error("Error in try-catch block:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
   }
-  
 };
 
 exports.updateSho = async (req, res) => {
@@ -292,7 +288,7 @@ exports.updateSho = async (req, res) => {
 
     // Construct the SQL query to update the sho
 
-    const state = selectedState.join(',');
+    const state = selectedState.join(",");
     const updateShoQuery =
       "UPDATE create_sho SET fname=?, lname=?, email=?, phone=?, gender=?, selectedState=? WHERE stateHandlerId=?";
 
@@ -495,7 +491,6 @@ exports.createPaymentRequest = async (req, res) => {
   }
 };
 
-
 exports.makePrimaryBank = async (req, res) => {
   try {
     const { user_id, bank_name } = req.body;
@@ -564,33 +559,38 @@ exports.fetchPrimarybank = async (req, res) => {
     const fetchPrimaryBankQuery =
       "SELECT * FROM bank_details WHERE user_id = ? AND isPrimary = 1";
 
-    connection.query(fetchPrimaryBankQuery, [user_id], async (error, results) => {
-      if (error) {
-        console.error("Error fetching primary bank:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
-      }
+    connection.query(
+      fetchPrimaryBankQuery,
+      [user_id],
+      async (error, results) => {
+        if (error) {
+          console.error("Error fetching primary bank:", error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
 
-      // Check if a primary bank was found
-      if (results.length === 0) {
-        return res
-          .status(404)
-          .json({ message: "No primary bank found for the user" });
-      }
+        // Check if a primary bank was found
+        if (results.length === 0) {
+          return res
+            .status(404)
+            .json({ message: "No primary bank found for the user" });
+        }
 
-      // Return the primary bank details in the response
-      const primaryBank = results[0];
-      res.status(200).json({ primaryBank });
-    });
+        // Return the primary bank details in the response
+        const primaryBank = results[0];
+        res.status(200).json({ primaryBank });
+      }
+    );
   } catch (error) {
     console.error("Error in fetchPrimarybank try-catch block:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-exports.statePartnerMyTeam = async (req,res) => {
-  const { referralId } = req.body
+exports.statePartnerMyTeam = async (req, res) => {
+  const { referralId } = req.body;
 
-  const findFranchiseQuery = "SELECT * FROM create_franchise Where referredId = ?";
+  const findFranchiseQuery =
+    "SELECT * FROM create_franchise Where referredId = ?";
 
   connection.query(findFranchiseQuery, [referralId], (error, result) => {
     if (error) {
@@ -598,9 +598,7 @@ exports.statePartnerMyTeam = async (req,res) => {
       return res.status(500).json({ message: "internal server error" });
     }
     if (result.length == 0) {
-      return res
-        .status(404)
-        .json({ message: "Franchise not found" });
+      return res.status(404).json({ message: "Franchise not found" });
     }
     const franchiseReferredIds = result.map((entry) => entry.referralId);
     // console.log(businessReferredIds)
@@ -615,9 +613,12 @@ exports.statePartnerMyTeam = async (req,res) => {
       }
 
       const bdDetails = bdResult;
-      const bdReferralId = bdDetails.map((businessDev) => businessDev.referralId);
+      const bdReferralId = bdDetails.map(
+        (businessDev) => businessDev.referralId
+      );
 
-      const findMemberQuery = "SELECT * FROM create_member WHERE  m_refferid IN (?)";
+      const findMemberQuery =
+        "SELECT * FROM create_member WHERE  m_refferid IN (?)";
       connection.query(findMemberQuery, [bdReferralId], (err, memberResult) => {
         if (err) {
           return res.status(500).json({ message: "Internal server error" });
@@ -625,29 +626,33 @@ exports.statePartnerMyTeam = async (req,res) => {
         if (memberResult.length === 0) {
           return res.status(404).json({ message: "No Partners found" });
         }
-  
+
         const memberDetails = memberResult;
         const refferIds = memberDetails.map((member) => member.reffer_id);
-        const findPartnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
-      connection.query(findPartnerQuery, [refferIds], (err, partnerResult) => {
-        if (err) {
-          return res.status(500).json({ message: "Internal server error" });
-        }
-        if (partnerResult.length === 0) {
-          return res.status(404).json({ message: "No Partners found" });
-        }
-  
-        const partnerDetails = partnerResult;
-      
-        return res.status(200).json({ message: "Partner details fetched", partnerDetails });
-      });
-      });
+        const findPartnerQuery =
+          "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+        connection.query(
+          findPartnerQuery,
+          [refferIds],
+          (err, partnerResult) => {
+            if (err) {
+              return res.status(500).json({ message: "Internal server error" });
+            }
+            if (partnerResult.length === 0) {
+              return res.status(404).json({ message: "No Partners found" });
+            }
 
+            const partnerDetails = partnerResult;
+
+            return res
+              .status(200)
+              .json({ message: "Partner details fetched", partnerDetails });
+          }
+        );
+      });
     });
-  })
-}
-
-
+  });
+};
 
 exports.fetchPartnerByReferralId = async (req, res) => {
   try {
@@ -655,19 +660,25 @@ exports.fetchPartnerByReferralId = async (req, res) => {
 
     const partnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id = ?";
 
-    const [partnerRows] = await connection.promise().query(partnerQuery, [referralId]);
+    const [partnerRows] = await connection
+      .promise()
+      .query(partnerQuery, [referralId]);
 
     if (partnerRows.length === 0) {
-      res.status(200).json({ message: 'No partners found for the given referralId' });
-    } else {
-      res.status(200).json({ message: "Partners fetched successfully", partners: partnerRows });
+      return res
+        .status(200)
+        .json({ message: "No partners found for the given referralId" });
     }
 
+    return res
+      .status(200)
+      .json({
+        message: "Partners fetched successfully",
+        partners: partnerRows,
+      });
   } catch (error) {
-    console.error('Error fetching partners:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error("Error fetching partners:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
-
 
