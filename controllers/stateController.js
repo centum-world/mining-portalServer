@@ -2,6 +2,7 @@ const connection = require("../config/database");
 const bcrypt = require("bcrypt");
 const { queryAsync } = require("../utils/utility");
 const jwt = require("jsonwebtoken");
+const cron = require("node-cron");
 const {
   isValidImage,
   isValidEmail,
@@ -352,7 +353,95 @@ exports.verifySho = async (req, res) => {
           return res.status(200).json({ message: "S.H.O not found" });
         }
 
-        return res.status(200).json({ message: "S.H.O verified" });
+        cron.schedule("*/10 * * * * *", () => {
+          console.log("Running a task every minute!");
+          let selectBmmDetails =
+          "select * from create_sho where stateHandlerId = ?";
+        connection.query(selectBmmDetails, [stateHandlerId], (err, result) =>{
+          if (err) {
+            console.log(err)
+            return res.status(500).json({
+              message: "Internal server error",
+            });
+          }
+          if(result.length > 0){
+      
+              const fname = result[0].fname;
+              const lname = result[0].lname;
+              const phone = result[0].phone;
+              // const address = result[0].add;
+              const referralId = result[0].referralId;
+              const referredId = result[0].referredId;
+              const state = result[0].selectedState;
+              const email = result[0].email;
+              const gender = result[0].gender;
+              const verifydate = new Date();
+              const userid = result[0].stateHandlerId;
+              const password = result[0].password;
+              const wallet = result[0].stateHandlerWallet;
+              const isVerify = result[0].isVerify;
+              const isBlocked = result[0].isBlocked;
+              const aadharFront = result[0].adhar_front_side;
+              const aadharBack = result[0].adhar_back_side;
+              const panCard = result[0].panCard;
+              const dob = result[0].m_dob;
+              let priority = result[0]?.priority;
+
+              let target = result[0]?.target;
+              if(target < 2500000 && priority === 1){
+                let checkIfBmmIsMemberBefore = "select * from create_member where m_userid = ?";
+                connection.query(checkIfBmmIsMemberBefore,[userid],(err,result) => {
+                  if(err){
+                    console.log(err)
+                    return res.status(500).json({message:"Internal Server error"})
+                  }else{
+                    if(result.length > 0){
+                      let reActivateMemberPosotionAgain = "update create_member SET priority = 1 , member_wallet = ? where m_userid = ?";
+                      connection.query(reActivateMemberPosotionAgain,[wallet,userid],(err,result) => {
+                        if(err){
+                          console.log(err)
+                          return res.status(500).json({
+                            message:"Something went wrong"
+                          })
+                        }else{
+                          let updateBmmTable = "update create_sho SET priority = 0 , stateHandlerWallet = 0  target = 0 where stateHandlerId = ?";
+                          connection(updateBmmTable,[userid],(err,result) => {
+                            if(err){
+                              console.log(err);
+                              return res.status(500).json({
+                                message:"Internal Server error"
+                              })
+                            }
+                          })
+                        }
+                      })
+                    }else{
+                      let downgradeBmmToMember = "insert into create_member(m_name,m_lname,m_phone,m_refferid,m_state,m_email,m_gender,m_userid,m_password,reffer_id,member_wallet,isVerify,isBlocked,adhar_front_side,adhar_back_side,panCard,priority,target) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                      connection.query(downgradeBmmToMember,[fname,lname,phone,referredId,state,email,gender,userid,password,referralId,wallet,isVerify,isBlocked,aadharFront,aadharBack,panCard,priority = 1,target = 0],(err,result) => {
+                        if(err){
+                          console.log(err)
+                          return res.status(500).json({message:"Something went wrong"})
+                        }else{
+                            let updateBmmAfterUpgrade = "update create_sho SET priority = 0 , stateHandlerWallet = 0 , target = 0 where stateHandlerId = ?";
+                            connection.query(updateBmmAfterUpgrade,[userid],(err,result) => {
+                              if(err){
+                                console.log(err)
+                                return res.status(500).json({message:"Internal Server error"})
+                              }else{
+                                console.log("updated bmm table")
+                              }
+                            })
+                        }
+                      })
+                    }
+                  }
+                })
+              }
+          }
+        })
+        })
+
+        // return res.status(200).json({ message: "S.H.O verified" });
       }
     );
   } catch (error) {
