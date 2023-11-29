@@ -80,7 +80,7 @@ exports.memberSignup = (req, res, next) => {
 
     // Check if the referred ID is valid
     const isValidReferredIdQuery =
-      "SELECT * FROM create_bd WHERE referralId = ? ";
+      "SELECT * FROM create_franchise WHERE referralId = ? ";
 
     connection.query(
       isValidReferredIdQuery,
