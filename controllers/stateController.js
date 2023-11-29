@@ -24,45 +24,45 @@ exports.loginSHO = async (req, res) => {
     }
 
     const findUserQuery = "SELECT * from create_sho WHERE stateHandlerId =?";
-    const [user] = await queryAsync(findUserQuery, [userid]);
+    const [user] = await connection.promise().query(findUserQuery, [userid]);
     if (!user) {
       return res
         .status(400)
         .json({ message: "Invalid State Handler  Id  or password." });
     }
 
-    // if (user[0].priority === 0) {
-    //   const findFranchiseQuery =
-    //     "SELECT * FROM create_franchise WHERE franchiseId =?";
+    if (user[0].priority === 0) {
+      const findFranchiseQuery =
+        "SELECT * FROM create_franchise WHERE franchiseId =?";
 
-    //   const [franchise] = await connection
-    //     .promise()
-    //     .query(findFranchiseQuery, [userid]);
+      const [franchise] = await connection
+        .promise()
+        .query(findFranchiseQuery, [userid]);
 
-    //   if (franchise && franchise.length > 0 && franchise[0].priority === 1) {
-    //     return res
-    //       .status(400)
-    //       .json({
-    //         message:
-    //           "Now, you have become a Franchise. Please login from Franchise dashboard.",
-    //       });
-    //   }
+      if (franchise && franchise.length > 0 && franchise[0].priority === 1) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Now, you have become a Franchise. Please login from Franchise dashboard.",
+          });
+      }
 
-    //   const findMemberQuery = "SELECT * FROM create_member WHERE m_userid =?";
+      const findMemberQuery = "SELECT * FROM create_member WHERE m_userid =?";
 
-    //   const [member] = await connection
-    //     .promise()
-    //     .query(findMemberQuery, [userid]);
+      const [member] = await connection
+        .promise()
+        .query(findMemberQuery, [userid]);
 
-    //   if (member && member.length > 0 && member[0].priority === 1) {
-    //     return res
-    //       .status(400)
-    //       .json({
-    //         message:
-    //           "Now, you have become a member. Please login from member dashboard.",
-    //       });
-    //   }
-    // }
+      if (member && member.length > 0 && member[0].priority === 1) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Now, you have become a member. Please login from member dashboard.",
+          });
+      }
+    }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {

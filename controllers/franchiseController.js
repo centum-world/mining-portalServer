@@ -24,12 +24,45 @@ exports.loginFranchise = async (req, res) => {
     }
 
     const findUserQuery = "SELECT * from create_franchise WHERE franchiseId=?";
-    const [user] = await queryAsync(findUserQuery, [userid]);
+    const [user] = await connection.promise().query(findUserQuery, [userid]);
 
     if (!user) {
       return res
         .status(400)
         .json({ message: "Invalid Franchise Id or password" });
+    }
+
+    if (user[0].priority === 0) {
+      const findBmmQuery =
+        "SELECT * FROM create_sho WHERE stateHandlerId =?";
+
+      const [bmm] = await connection
+        .promise()
+        .query(findBmmQuery, [userid]);
+
+      if (bmm && bmm.length > 0 && bmm[0].priority === 1) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Now, you have become a Business Marketing Manager. Please login from BMM dashboard.",
+          });
+      }
+
+      const findMemberQuery = "SELECT * FROM create_member WHERE m_userid =?";
+
+      const [member] = await connection
+        .promise()
+        .query(findMemberQuery, [userid]);
+
+      if (member && member.length > 0 && member[0].priority === 1) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Now, you have become a member. Please login from member dashboard.",
+          });
+      }
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
