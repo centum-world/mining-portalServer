@@ -4543,3 +4543,93 @@ exports.memberReferralPayoutHistory = async (req, res) => {
     }
   });
 };
+
+// fetchUnVerifiedMember
+exports.fetchUnVerifiedMember = async (req,res) => {
+  let query = "select * FROM create_member WHERE isVerify = 0 ";
+  connection.query(query, (err, results) => {
+    if (!err) {
+      return res.status(200).json({
+        message: "All unVerified Member Fetched successfully",
+        data: results,
+      });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}
+
+// fetchUnVerifiedFranchise
+exports.fetchUnVerifiedFranchise = async (req, res) => {
+  let query = "select * FROM create_franchise WHERE isVerify = 0 ";
+  connection.query(query, (err, results) => {
+    if (!err) {
+      return res.status(200).json({
+        message: "All unVerified Franchise Fetched successfully",
+        data: results,
+      });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}
+
+// fetchUnVerifiedBmm
+exports.fetchUnVerifiedBmm = async (req,res) => {
+  let query = "select * FROM create_sho WHERE isVerify = 0 ";
+  connection.query(query, (err, results) => {
+    if (!err) {
+      return res.status(200).json({
+        message: "All unVerified BMM Fetched successfully",
+        data: results,
+      });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}
+
+// fetchVerifiedMember
+exports.fetchVerifiedMember = async (req,res) => {
+  let query = "select * FROM create_member WHERE isVerify = 1 ";
+  connection.query(query, (err, results) => {
+    if (!err) {
+      return res.status(200).json({
+        message: "All Verified Franchise Fetched successfully",
+        data: results,
+      });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}
+
+// fetchVerifiedBmm
+exports.fetchVerifiedBmm = async (req,res) => {
+  let query = "select * FROM create_sho WHERE isVerify = 1 ";
+  connection.query(query, (err, results) => {
+    if (!err) {
+      return res.status(200).json({
+        message: "All Verified BMM Fetched successfully",
+        data: results,
+      });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}
+
+// fetchVerifiedFranchise
+exports.fetchVerifiedFranchise = async (req,res) => {
+  let query = "select * FROM create_franchise WHERE isVerify = 1 ";
+  connection.query(query, (err, results) => {
+    if (!err) {
+      return res.status(200).json({
+        message: "All Verified Franchise Fetched successfully",
+        data: results,
+      });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}
