@@ -16,76 +16,94 @@ const {
   isValidUserId,
 } = require("../utils/validation");
 
-// hash compare password
+// exports.memberLogin = async (req, res) => {
+//   const { m_userid, m_password } = req.body;
 
-exports.memberLogin = (req, res) => {
-  const member = req.body;
-  let query =
-    "select m_userid, m_password,reffer_id from create_member where m_userid=?";
-  connection.query(query, [member.m_userid], (err, results) => {
-    if (!err) {
-      if (results.length > 0) {
-        bcrypt.compare(
-          member.m_password,
-          results[0].m_password,
-          function (err, result) {
-            if (result) {
-              console.log("success");
-              const response = {
-                m_userid: results[0].m_userid,
-                role: "member",
-              };
-              const accessToken = jwt.sign(response, process.env.ACCESS_TOKEN, {
-                expiresIn: "8h",
-              });
-              res.status(200).json({
-                token: accessToken,
-                message: "Successfully logedIn",
-                data: results,
-              });
-            } else {
-              return res
-                .status(401)
-                .json({ message: "Incorrect username or password" });
-            }
-          }
-        );
-      } else {
-        return res.status(401).json({ message: "Invalid Credentials" });
-      }
-    } else {
-      return res.status(500).json({ message: "Server Error" });
+//   try {
+//     const query = "SELECT m_userid, m_password, reffer_id FROM create_member WHERE m_userid=?";
+//     const [results] = await connection.promise().query(query, [m_userid]);
+
+//     if (results.length > 0) {
+//       const passwordMatch = await bcrypt.compare(m_password, results[0].m_password);
+
+//       if (passwordMatch) {
+//         console.log("success");
+//         const response = {
+//           m_userid: results[0].m_userid,
+//           role: "member",
+//         };
+
+//         const accessToken = jwt.sign(response, process.env.ACCESS_TOKEN, {
+//           expiresIn: "8h",
+//         });
+
+//         res.status(200).json({
+//           token: accessToken,
+//           message: "Successfully loggedIn",
+//           data: results,
+//         });
+//       } else {
+//         res.status(401).json({ message: "Incorrect username or password" });
+//       }
+//     } else {
+//       res.status(401).json({ message: "Invalid Credentials" });
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// };
+
+exports.memberLogin = async (req, res) => {
+  const { m_userid, m_password } = req.body;
+
+  try {
+    // Check if required fields are missing
+    if (!m_userid || !m_password) {
+      return res.status(422).json({ message: "Please provide user ID and password." });
     }
-  });
+
+    const findMemberQuery = "SELECT * FROM create_member WHERE m_userid =?";
+
+    const [member] = await connection.promise().query(findMemberQuery, [m_userid]);
+
+    if (!member || member.length === 0) {
+      return res.status(400).json({ message: "Invalid User ID or password." });
+    }
+
+    if (member[0].priority === 0) {
+      const findFranchiseQuery = "SELECT * FROM create_franchise WHERE franchiseId =?";
+
+      const [franchise] = await connection.promise().query(findFranchiseQuery, [m_userid]);
+
+      if (franchise && franchise.length > 0 && franchise[0].priority === 1) {
+        return res.status(400).json({ message: "Now, you have become a Franchise. Please login from Franchise dashboard." });
+      }
+
+      const findBMMQuery = "SELECT * FROM create_sho WHERE stateHandlerId =?";
+
+      const [bmm] = await connection.promise().query(findBMMQuery, [m_userid]);
+
+      if (bmm && bmm.length > 0 && bmm[0].priority === 1) {
+        return res.status(400).json({ message: "Now, you have become Business Marketing Manager. Please login from BMM dashboard." });
+      }
+    }
+
+    const passwordMatch = await bcrypt.compare(m_password, member[0].m_password);
+
+    if (!passwordMatch) {
+      return res.status(400).json({ message: "Invalid User ID or password." });
+    }
+
+    // Generate jwt token
+    const token = jwt.sign({ m_userid: member[0].m_userid, role: "member" }, process.env.ACCESS_TOKEN);
+
+    return res.status(200).json({ message: "Login successfully", member, token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
-
-// exports.memberLogin = (req,res,next)=>{
-
-//     const member = req.body;
-//     query = "select m_userid, m_password,reffer_id  from create_member where m_userid=?";
-//     connection.query(query,[member.m_userid], (err, results)=>{
-//         if(!err){
-//             if(results.length <= 0 || results[0].m_password != member.m_password){
-//                 return res.status(401).json({message:"Incorrect username or password"});
-//             }else if(results[0].m_password == member.m_password){
-//                 const response = {m_userid: results[0].m_userid}
-
-//                 const accessToken = jwt.sign(response, process.env.ACCESS_TOKEN,{expiresIn:'8h'})
-//                 res.status(200).json({
-//                     token:accessToken,
-//                     message:"Successfully logedIn",
-//                     data:results
-
-//                     });
-//             }else{
-//                 return res.status(400).json({message:"Something went wrong"});
-//             }
-
-//         }else{
-//             return res.status(500).json(err);
-//         }
-//     })
-// }
 
 //Fetch Member Details
 exports.fetchMemberDetails = (req, res) => {
@@ -320,8 +338,7 @@ exports.fetchMemberApproveWithdrawalHistoryForMember = (req, res) => {
   connection.query(query, [memberId], (err, results) => {
     if (!err) {
       return res.status(200).json({
-        message:
-          " Member Withdrawal History Fetched Successfully ",
+        message: " Member Withdrawal History Fetched Successfully ",
         data: results,
       });
     } else {
@@ -665,11 +682,9 @@ exports.memberWithdrawalRequest = async (req, res) => {
                     .status(500)
                     .json({ message: "Internal server error." });
                 } else {
-                  return res
-                    .status(200)
-                    .json({
-                      message: "Withdrawal request placed successfully",
-                    });
+                  return res.status(200).json({
+                    message: "Withdrawal request placed successfully",
+                  });
                 }
               }
             );
