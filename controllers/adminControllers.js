@@ -2999,7 +2999,7 @@ exports.adminVerifyMember = async (req, res) => {
               const userid = result[0].m_userid;
               const password = result[0].m_password;
               const wallet = result[0]?.member_wallet;
-              const isVerify = result[0].isVerify;
+              let isVerify = result[0].isVerify;
               const isBlocked = result[0].isBlocked;
               const aadharFront = result[0].adhar_front_side;
               const aadharBack = result[0].adhar_back_side;
@@ -3069,7 +3069,7 @@ exports.adminVerifyMember = async (req, res) => {
                             referralId,
                             // verifydate,
                             wallet,
-                            isVerify = 0,
+                            (isVerify = 0),
                             isBlocked,
                             userType
                           ],
