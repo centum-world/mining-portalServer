@@ -175,14 +175,15 @@ exports.verifyFranchise = async (req, res) => {
                 const panCard = result[0].panCard;
                 const dob = result[0].m_dob;
                 let priority = result[0]?.priority;
+                let userType = result[0]?.userType;
 
                 let target = result[0]?.target;
                 console.log(target);
                 if (target >= 2500000 && priority === 1) {
                   console.log("hiii");
                   const updateFranchiseToBMM = `
-                  INSERT INTO create_sho (fname, lname, phone, email, gender, password, stateHandlerId, selectedState,referredId, adhar_front_side,adhar_back_side, panCard, referralId,stateHandlerWallet,isVerify,isBlocked)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  INSERT INTO create_sho (fname, lname, phone, email, gender, password, stateHandlerId, selectedState,referredId, adhar_front_side,adhar_back_side, panCard, referralId,stateHandlerWallet,isVerify,isBlocked,userType)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
                   connection.query(
                     updateFranchiseToBMM,
@@ -201,8 +202,9 @@ exports.verifyFranchise = async (req, res) => {
                       panCard,
                       referralId,
                       wallet,
-                      isVerify,
+                      isVerify = 0,
                       isBlocked,
+                      userType
                     ],
                     (err, result) => {
                       if (err) {
@@ -213,7 +215,7 @@ exports.verifyFranchise = async (req, res) => {
                       } else {
                         console.log("hiiii");
                         const updateFranchiseTable =
-                          "UPDATE create_franchise SET priority = 0 , target = 0  WHERE franchiseId = ?";
+                          "UPDATE create_franchise SET priority = 0 , target = 0, isVerify = 0  WHERE franchiseId = ?";
                         connection.query(
                           updateFranchiseTable,
                           [userid],
@@ -258,7 +260,7 @@ exports.verifyFranchise = async (req, res) => {
                                   .json({ message: "Internal Server error" });
                               } else {
                                 const updateFranchiseTable =
-                                  "update create_franchise SET franchiseWallet = 0 where franchiseId = ?";
+                                  "update create_franchise SET priority = 0, franchiseWallet = 0, isVerify = 0 where franchiseId = ?";
                                 connection.query(
                                   updateFranchiseTable,
                                   [userid],
@@ -282,7 +284,7 @@ exports.verifyFranchise = async (req, res) => {
                           );
                         } else {
                           let downgradeFranchiseToMember =
-                            "insert into create_member(m_name,m_lname,m_phone,m_refferid,m_state,m_email,m_gender,m_userid,m_password,reffer_id,member_wallet,isVerify,isBlocked,adhar_front_side,adhar_back_side,panCard,priority,target) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                            "insert into create_member(m_name,m_lname,m_phone,m_refferid,m_state,m_email,m_gender,m_userid,m_password,reffer_id,member_wallet,isVerify,isBlocked,adhar_front_side,adhar_back_side,panCard,priority,target,userType) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                           connection.query(
                             downgradeFranchiseToMember,
                             [
@@ -297,13 +299,14 @@ exports.verifyFranchise = async (req, res) => {
                               password,
                               referralId,
                               wallet,
-                              isVerify,
+                              (isVerify = 0),
                               isBlocked,
                               aadharFront,
                               aadharBack,
                               panCard,
                               (priority = 1),
                               (target = 0),
+                              userType
                             ],
                             (err, result) => {
                               if (err) {
@@ -313,7 +316,7 @@ exports.verifyFranchise = async (req, res) => {
                                   .json({ message: "Internal Server" });
                               } else {
                                 let updateFranchiseTable =
-                                  "update create_franchise SET priority = 0 ,franchiseWallet = 0, target = 0 where franchiseId = ?";
+                                  "update create_franchise SET priority = 0 ,franchiseWallet = 0, target = 0, isVerify = 0 where franchiseId = ?";
                                 connection.query(
                                   updateFranchiseTable,
                                   [userid],
