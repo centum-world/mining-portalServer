@@ -3007,6 +3007,7 @@ exports.adminVerifyMember = async (req, res) => {
               const salary = result[0].m_salary;
               const dob = result[0].m_dob;
               const priority = result[0]?.priority;
+              const userType = result[0].userType
 
               const target = result[0]?.target;
               console.log(wallet, 3015);
@@ -3043,8 +3044,8 @@ exports.adminVerifyMember = async (req, res) => {
                         })
                       } else {
                         const updateMemberToFranchise = `
-                  INSERT INTO create_franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adhar_front_side,adhar_back_side, panCard, referralId,franchiseWallet,isVerify,isBlocked)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  INSERT INTO create_franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adhar_front_side,adhar_back_side, panCard, referralId,franchiseWallet,isVerify,isBlocked,userType)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
                         connection.query(
                           updateMemberToFranchise,
@@ -3067,6 +3068,7 @@ exports.adminVerifyMember = async (req, res) => {
                             wallet,
                             isVerify,
                             isBlocked,
+                            userType
                           ],
                           (err, result) => {
                             if (err) {
@@ -3106,7 +3108,7 @@ exports.adminVerifyMember = async (req, res) => {
                                         } else {
                                           // console.log(result[0],3069)
                                           const franchiseReferralId =
-                                            result[0].referralId;
+                                            result[0]?.referralId;
                                           console.log(
                                             franchiseReferralId,
                                             3071
