@@ -98,7 +98,7 @@ exports.memberLogin = async (req, res) => {
     // Generate jwt token
     const token = jwt.sign({ m_userid: member[0].m_userid, role: "member" }, process.env.ACCESS_TOKEN);
 
-    return res.status(200).json({ message: "Login successfully", member, token });
+    return res.status(200).json({ message: "Login successfully", data:member, token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
