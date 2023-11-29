@@ -23,15 +23,18 @@ exports.loginSHO = async (req, res) => {
         .json({ message: "Please provide State Handler  Id  and password." });
     }
 
-    const findUserQuery = "SELECT * from create_sho WHERE stateHandlerId =?";
-    const [user] = await connection.promise().query(findUserQuery, [userid]);
-    if (!user) {
+    const findBMMQuery = "SELECT * from create_sho WHERE stateHandlerId =?";
+
+    const [bmm] = await connection.promise().query(findBMMQuery, [userid]);
+    if (!bmm || bmm.length === 0) {
       return res
         .status(400)
         .json({ message: "Invalid State Handler  Id  or password." });
     }
 
-    if (user[0].priority === 0) {
+    const user = bmm[0];
+
+    if (user.priority === 0) {
       const findFranchiseQuery =
         "SELECT * FROM create_franchise WHERE franchiseId =?";
 
@@ -40,12 +43,10 @@ exports.loginSHO = async (req, res) => {
         .query(findFranchiseQuery, [userid]);
 
       if (franchise && franchise.length > 0 && franchise[0].priority === 1) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Now, you have become a Franchise. Please login from Franchise dashboard.",
-          });
+        return res.status(400).json({
+          message:
+            "Now, you have become a Franchise. Please login from Franchise dashboard.",
+        });
       }
 
       const findMemberQuery = "SELECT * FROM create_member WHERE m_userid =?";
@@ -55,13 +56,14 @@ exports.loginSHO = async (req, res) => {
         .query(findMemberQuery, [userid]);
 
       if (member && member.length > 0 && member[0].priority === 1) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Now, you have become a member. Please login from member dashboard.",
-          });
+        return res.status(400).json({
+          message:
+            "Now, you have become a member. Please login from member dashboard.",
+        });
       }
+      return res
+        .status(400)
+        .json({ message: "You are upgraded or downgraded." });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
@@ -506,11 +508,9 @@ exports.verifySho = async (req, res) => {
                                   (err, result) => {
                                     if (err) {
                                       console.log(err);
-                                      return res
-                                        .status(500)
-                                        .json({
-                                          message: "Internal Server error",
-                                        });
+                                      return res.status(500).json({
+                                        message: "Internal Server error",
+                                      });
                                     } else {
                                       console.log("updated bmm table");
                                     }

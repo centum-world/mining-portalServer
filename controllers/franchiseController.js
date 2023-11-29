@@ -23,30 +23,30 @@ exports.loginFranchise = async (req, res) => {
         .json({ message: "Please provide Franchise  Id  and password." });
     }
 
-    const findUserQuery = "SELECT * from create_franchise WHERE franchiseId=?";
-    const [user] = await connection.promise().query(findUserQuery, [userid]);
+    const findFranchiseQuery =
+      "SELECT * from create_franchise WHERE franchiseId=?";
+    const [franchise] = await connection
+      .promise()
+      .query(findFranchiseQuery, [userid]);
 
-    if (!user) {
+    if (!franchise || franchise.length === 0) {
       return res
         .status(400)
         .json({ message: "Invalid Franchise Id or password" });
     }
 
-    if (user[0].priority === 0) {
-      const findBmmQuery =
-        "SELECT * FROM create_sho WHERE stateHandlerId =?";
+    const user = franchise[0];
 
-      const [bmm] = await connection
-        .promise()
-        .query(findBmmQuery, [userid]);
+    if (user.priority === 0) {
+      const findBmmQuery = "SELECT * FROM create_sho WHERE stateHandlerId =?";
+
+      const [bmm] = await connection.promise().query(findBmmQuery, [userid]);
 
       if (bmm && bmm.length > 0 && bmm[0].priority === 1) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Now, you have become a Business Marketing Manager. Please login from BMM dashboard.",
-          });
+        return res.status(400).json({
+          message:
+            "Now, you have become a Business Marketing Manager. Please login from BMM dashboard.",
+        });
       }
 
       const findMemberQuery = "SELECT * FROM create_member WHERE m_userid =?";
@@ -56,13 +56,14 @@ exports.loginFranchise = async (req, res) => {
         .query(findMemberQuery, [userid]);
 
       if (member && member.length > 0 && member[0].priority === 1) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Now, you have become a member. Please login from member dashboard.",
-          });
+        return res.status(400).json({
+          message:
+            "Now, you have become a member. Please login from member dashboard.",
+        });
       }
+      return res
+        .status(400)
+        .json({ message: "You are upgraded or downgraded." });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
@@ -142,144 +143,209 @@ exports.verifyFranchise = async (req, res) => {
           console.log("Running a task every minute!");
           let selectFranchiseDetails =
             "select * from create_franchise where franchiseId = ?";
-          connection.query(selectFranchiseDetails, [franchiseId], (err, result) => {
-            if (err) {
-              console.log(err)
-              return res.status(500).json({
-                message: "Internal server error",
-              });
-            }
-            if (result.length > 0) {
-              console.log("hii")
-              const fname = result[0].fname;
-              const lname = result[0].lname;
-              const phone = result[0].phone;
-              // const address = result[0].add;
-              const referralId = result[0].referralId;
-              const referredId = result[0].referredId;
-              const state = result[0].franchiseState;
-              const email = result[0].email;
-              const gender = result[0].gender;
-              const verifydate = new Date();
-              const userid = result[0].franchiseId;
-              const password = result[0].password;
-              const wallet = result[0].franchiseWallet;
-              const isVerify = result[0].isVerify;
-              const isBlocked = result[0].isBlocked;
-              const aadharFront = result[0].adhar_front_side;
-              const aadharBack = result[0].adhar_back_side;
-              const panCard = result[0].panCard;
-              const dob = result[0].m_dob;
-              let priority = result[0]?.priority;
+          connection.query(
+            selectFranchiseDetails,
+            [franchiseId],
+            (err, result) => {
+              if (err) {
+                console.log(err);
+                return res.status(500).json({
+                  message: "Internal server error",
+                });
+              }
+              if (result.length > 0) {
+                console.log("hii");
+                const fname = result[0].fname;
+                const lname = result[0].lname;
+                const phone = result[0].phone;
+                // const address = result[0].add;
+                const referralId = result[0].referralId;
+                const referredId = result[0].referredId;
+                const state = result[0].franchiseState;
+                const email = result[0].email;
+                const gender = result[0].gender;
+                const verifydate = new Date();
+                const userid = result[0].franchiseId;
+                const password = result[0].password;
+                const wallet = result[0].franchiseWallet;
+                const isVerify = result[0].isVerify;
+                const isBlocked = result[0].isBlocked;
+                const aadharFront = result[0].adhar_front_side;
+                const aadharBack = result[0].adhar_back_side;
+                const panCard = result[0].panCard;
+                const dob = result[0].m_dob;
+                let priority = result[0]?.priority;
 
-              let target = result[0]?.target;
-              console.log(target);
-              if (target >= 2500000 && priority === 1) {
-                console.log("hiii")
-                const updateFranchiseToBMM = `
+                let target = result[0]?.target;
+                console.log(target);
+                if (target >= 2500000 && priority === 1) {
+                  console.log("hiii");
+                  const updateFranchiseToBMM = `
                   INSERT INTO create_sho (fname, lname, phone, email, gender, password, stateHandlerId, selectedState,referredId, adhar_front_side,adhar_back_side, panCard, referralId,stateHandlerWallet,isVerify,isBlocked)
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
-                connection.query(
-                  updateFranchiseToBMM,
-                  [
-                    fname,
-                    lname,
-                    phone,
-                    email,
-                    gender,
-                    password,
-                    userid,
-                    state,
-                    referredId,
-                    aadharFront,
-                    aadharBack,
-                    panCard,
-                    referralId,
-                    wallet,
-                    isVerify,
-                    isBlocked,
-                  ],
-                  (err, result) => {
-                    if (err) {
-                      console.log(err)
-                      return res.status(500).json({
-                        mesaage: "Internal Server Error",
-                      });
-                    } else {
-                      console.log("hiiii")
-                      const updateFranchiseTable =
-                        "UPDATE create_franchise SET priority = 0 , target = 0  WHERE franchiseId = ?";
-                      connection.query(
-                        updateFranchiseTable,
-                        [userid],
-                        (err, result) => {
-                          if (err) {
-                            console.log(err)
-                            return res
-                              .status(500)
-                              .json({ message: "Something went to wrong" });
-                          }
-                        }
-                      );
-                    }
-                  }
-                );
-              }
-              if(target < 1800000 && priority === 1){
-                const selectFranchiseIntoMember = "select * from create_member where m_userid = ?"
-                connection.query(selectFranchiseIntoMember,[userid],(err,result) => {
-                  if(err){
-                    console.log(err)
-                    return res.status(500).json({message:"Internal Server error"})
-                  }else{
-                  if(result.length > 0){
-                    const wallet = result[0].franchiseWallet
-                    const updateFranchiseToMember = "update create_member SET priority = 1 ,member_wallet = ? where m_userid = ?";
-                    connection.query(updateFranchiseToMember,[wallet,userid],(err,result) => {
-                      if(err){
-                        console.log(err)
-                        return res.status(500).json({message:"Internal Server error"})
-                      }else{
-                        const updateFranchiseTable = "update create_franchise SET franchiseWallet = 0 where franchiseId = ?";
-                        connection.query(updateFranchiseTable,[userid],(err,result) => {
-                          if(err){
-                            console.log(err)
-                            return res.status(500).json({message:"Internal Server error"})
-                          }else{
-                            console.log("once again you become member Now")
-                          }
-                        })
-                      }
-                    })
-                  }else{
-                    let downgradeFranchiseToMember = "insert into create_member(m_name,m_lname,m_phone,m_refferid,m_state,m_email,m_gender,m_userid,m_password,reffer_id,member_wallet,isVerify,isBlocked,adhar_front_side,adhar_back_side,panCard,priority,target) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                    connection.query(downgradeFranchiseToMember,[fname,lname,phone,referredId,state,email,gender,userid,password,referralId,wallet,isVerify,isBlocked,aadharFront,aadharBack,panCard,priority = 1,target = 0],(err,result) => {
-                      if(err){
+                  connection.query(
+                    updateFranchiseToBMM,
+                    [
+                      fname,
+                      lname,
+                      phone,
+                      email,
+                      gender,
+                      password,
+                      userid,
+                      state,
+                      referredId,
+                      aadharFront,
+                      aadharBack,
+                      panCard,
+                      referralId,
+                      wallet,
+                      isVerify,
+                      isBlocked,
+                    ],
+                    (err, result) => {
+                      if (err) {
                         console.log(err);
-                        return res.status(500).json({message:"Internal Server"})
-                      }else{
-                        let updateFranchiseTable = "update create_franchise SET priority = 0 ,franchiseWallet = 0, target = 0 where franchiseId = ?";
-                        connection.query(updateFranchiseTable,[userid],(err,result) => {
-                          if(err){
-                            console.log(err)
-                            return res.status(500).json({message:"Internal Server error"})
-                          }else{
-                            console.log("Franchise Updated successfully")
+                        return res.status(500).json({
+                          mesaage: "Internal Server Error",
+                        });
+                      } else {
+                        console.log("hiiii");
+                        const updateFranchiseTable =
+                          "UPDATE create_franchise SET priority = 0 , target = 0  WHERE franchiseId = ?";
+                        connection.query(
+                          updateFranchiseTable,
+                          [userid],
+                          (err, result) => {
+                            if (err) {
+                              console.log(err);
+                              return res
+                                .status(500)
+                                .json({ message: "Something went to wrong" });
+                            }
                           }
-                        })
+                        );
                       }
-                    })
-                  }
-                  }
-                })
+                    }
+                  );
+                }
+                if (target < 1800000 && priority === 1) {
+                  const selectFranchiseIntoMember =
+                    "select * from create_member where m_userid = ?";
+                  connection.query(
+                    selectFranchiseIntoMember,
+                    [userid],
+                    (err, result) => {
+                      if (err) {
+                        console.log(err);
+                        return res
+                          .status(500)
+                          .json({ message: "Internal Server error" });
+                      } else {
+                        if (result.length > 0) {
+                          const wallet = result[0].franchiseWallet;
+                          const updateFranchiseToMember =
+                            "update create_member SET priority = 1 ,member_wallet = ? where m_userid = ?";
+                          connection.query(
+                            updateFranchiseToMember,
+                            [wallet, userid],
+                            (err, result) => {
+                              if (err) {
+                                console.log(err);
+                                return res
+                                  .status(500)
+                                  .json({ message: "Internal Server error" });
+                              } else {
+                                const updateFranchiseTable =
+                                  "update create_franchise SET franchiseWallet = 0 where franchiseId = ?";
+                                connection.query(
+                                  updateFranchiseTable,
+                                  [userid],
+                                  (err, result) => {
+                                    if (err) {
+                                      console.log(err);
+                                      return res
+                                        .status(500)
+                                        .json({
+                                          message: "Internal Server error",
+                                        });
+                                    } else {
+                                      console.log(
+                                        "once again you become member Now"
+                                      );
+                                    }
+                                  }
+                                );
+                              }
+                            }
+                          );
+                        } else {
+                          let downgradeFranchiseToMember =
+                            "insert into create_member(m_name,m_lname,m_phone,m_refferid,m_state,m_email,m_gender,m_userid,m_password,reffer_id,member_wallet,isVerify,isBlocked,adhar_front_side,adhar_back_side,panCard,priority,target) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                          connection.query(
+                            downgradeFranchiseToMember,
+                            [
+                              fname,
+                              lname,
+                              phone,
+                              referredId,
+                              state,
+                              email,
+                              gender,
+                              userid,
+                              password,
+                              referralId,
+                              wallet,
+                              isVerify,
+                              isBlocked,
+                              aadharFront,
+                              aadharBack,
+                              panCard,
+                              (priority = 1),
+                              (target = 0),
+                            ],
+                            (err, result) => {
+                              if (err) {
+                                console.log(err);
+                                return res
+                                  .status(500)
+                                  .json({ message: "Internal Server" });
+                              } else {
+                                let updateFranchiseTable =
+                                  "update create_franchise SET priority = 0 ,franchiseWallet = 0, target = 0 where franchiseId = ?";
+                                connection.query(
+                                  updateFranchiseTable,
+                                  [userid],
+                                  (err, result) => {
+                                    if (err) {
+                                      console.log(err);
+                                      return res
+                                        .status(500)
+                                        .json({
+                                          message: "Internal Server error",
+                                        });
+                                    } else {
+                                      console.log(
+                                        "Franchise Updated successfully"
+                                      );
+                                    }
+                                  }
+                                );
+                              }
+                            }
+                          );
+                        }
+                      }
+                    }
+                  );
+                }
               }
             }
-          });
+          );
           // Your task logic goes here
         });
         return res.status(200).json({ message: "Franchise verified" });
-
       }
     );
   } catch (error) {
@@ -349,10 +415,10 @@ exports.updateFranchise = async (req, res) => {
       });
     }
 
-    const cityList = franchiseCity.join(',');
+    const cityList = franchiseCity.join(",");
 
     // Construct the SQL query to update the franchise
-    console.log(phone, 180)
+    console.log(phone, 180);
     const updateFranchiseQuery =
       "UPDATE create_franchise SET fname=?, lname=?, email=?, phone=?, gender=?, franchiseState=?, franchiseCity=? WHERE franchiseId=?";
 
@@ -454,7 +520,7 @@ exports.franchiseAddBankDetails = async (req, res) => {
     console.log("Error in try-catch block:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 
 // fetchFranchiseBankDetails
 exports.fetchFranchiseBankDetails = async (req, res) => {
@@ -474,7 +540,11 @@ exports.fetchFranchiseBankDetails = async (req, res) => {
       }
 
       if (result.length === 0) {
-        return res.status(404).json({ message: "Bank details not found for the given FranchiseId" });
+        return res
+          .status(404)
+          .json({
+            message: "Bank details not found for the given FranchiseId",
+          });
       }
 
       return res.status(200).json({ message: "Bank details fetched", result });
@@ -483,7 +553,7 @@ exports.fetchFranchiseBankDetails = async (req, res) => {
     console.error("Error in try-catch block:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
 
 // create payment request for franchise
 
@@ -611,8 +681,7 @@ exports.createFranchisePaymentRequest = async (req, res) => {
     console.error("Error in try-catch block:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
-}
-
+};
 
 exports.allBdDetailsReferredByFranchise = (req, res) => {
   try {
@@ -627,10 +696,20 @@ exports.allBdDetailsReferredByFranchise = (req, res) => {
       }
 
       if (results.length === 0) {
-        return res.status(404).json({ message: "No Business Developers found with this referralId." });
+        return res
+          .status(404)
+          .json({
+            message: "No Business Developers found with this referralId.",
+          });
       }
 
-      return res.status(200).json({ message: "Business Developers referred by Franchise fetched successfully", results });
+      return res
+        .status(200)
+        .json({
+          message:
+            "Business Developers referred by Franchise fetched successfully",
+          results,
+        });
     });
   } catch (error) {
     console.error(error.message);
@@ -642,7 +721,8 @@ exports.allBdDetailsReferredByFranchise = (req, res) => {
 exports.fetchTotalWithdrawal = async (req, res) => {
   const { userId } = req.body;
 
-  const query = "SELECT SUM(amount) AS sumofTotalWithdrawal FROM payment_approve WHERE userId = ?";
+  const query =
+    "SELECT SUM(amount) AS sumofTotalWithdrawal FROM payment_approve WHERE userId = ?";
   connection.query(query, [userId], (err, results) => {
     if (!err) {
       if (results.length > 0) {
@@ -660,11 +740,11 @@ exports.fetchTotalWithdrawal = async (req, res) => {
       return res.status(500).json(err);
     }
   });
-}
+};
 
 // fetchPartnerMyTeam
 exports.fetchPartnerMyTeam = async (req, res) => {
-  const { referralId } = req.body
+  const { referralId } = req.body;
 
   const findbdquery = "SELECT * FROM create_bd Where referredId = ?";
 
@@ -674,40 +754,48 @@ exports.fetchPartnerMyTeam = async (req, res) => {
       return res.status(500).json({ message: "internal server error" });
     }
     if (result.length == 0) {
-      return res
-        .status(404)
-        .json({ message: "BusinessDev not found" });
+      return res.status(404).json({ message: "BusinessDev not found" });
     }
     const businessReferredIds = result.map((entry) => entry.referralId);
     // console.log(businessReferredIds)
 
-    const findMemberQuery = "SELECT * FROM create_member WHERE m_refferid IN (?)";
-    connection.query(findMemberQuery, [businessReferredIds], (err, memberResult) => {
-      if (err) {
-        return res.status(500).json({ message: "Internal server error" });
-      }
-      if (memberResult.length === 0) {
-        return res.status(404).json({ message: "No Member found" });
-      }
-
-      const memberDetails = memberResult;
-      const refferIds = memberDetails.map((member) => member.reffer_id);
-
-      const findPartnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
-      connection.query(findPartnerQuery, [refferIds], (err, partnerResult) => {
+    const findMemberQuery =
+      "SELECT * FROM create_member WHERE m_refferid IN (?)";
+    connection.query(
+      findMemberQuery,
+      [businessReferredIds],
+      (err, memberResult) => {
         if (err) {
           return res.status(500).json({ message: "Internal server error" });
         }
-        if (partnerResult.length === 0) {
-          return res.status(404).json({ message: "No Partners found" });
+        if (memberResult.length === 0) {
+          return res.status(404).json({ message: "No Member found" });
         }
-  
-        const partnerDetails = partnerResult;
-      
-        return res.status(200).json({ message: "Partner details fetched", partnerDetails });
-      });
 
-    });
-  })
-}
-   
+        const memberDetails = memberResult;
+        const refferIds = memberDetails.map((member) => member.reffer_id);
+
+        const findPartnerQuery =
+          "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+        connection.query(
+          findPartnerQuery,
+          [refferIds],
+          (err, partnerResult) => {
+            if (err) {
+              return res.status(500).json({ message: "Internal server error" });
+            }
+            if (partnerResult.length === 0) {
+              return res.status(404).json({ message: "No Partners found" });
+            }
+
+            const partnerDetails = partnerResult;
+
+            return res
+              .status(200)
+              .json({ message: "Partner details fetched", partnerDetails });
+          }
+        );
+      }
+    );
+  });
+};

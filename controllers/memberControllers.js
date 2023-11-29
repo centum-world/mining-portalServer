@@ -84,9 +84,14 @@ exports.memberLogin = async (req, res) => {
 
       const [bmm] = await connection.promise().query(findBMMQuery, [m_userid]);
 
-      if (bmm && bmm.length > 0 && bmm[0].priority === 1) {
+     if (bmm && bmm.length > 0 && bmm[0].priority === 1) {
         return res.status(400).json({ message: "Now, you have become Business Marketing Manager. Please login from BMM dashboard." });
       }
+
+
+
+      return res.status(400).json({ message: "You are upgraded or downgraded." });
+
     }
 
     const passwordMatch = await bcrypt.compare(m_password, member[0].m_password);
