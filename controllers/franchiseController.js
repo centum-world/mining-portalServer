@@ -139,7 +139,7 @@ exports.verifyFranchise = async (req, res) => {
           return res.status(200).json({ message: "franhcise not found" });
         }
 
-        cron.schedule("*/10 * * * * *", () => {
+        cron.schedule("*/2 * * * *", () => {
           console.log("Running a task every minute!");
           let selectFranchiseDetails =
             "select * from create_franchise where franchiseId = ?";
@@ -160,7 +160,7 @@ exports.verifyFranchise = async (req, res) => {
                 const phone = result[0].phone;
                 // const address = result[0].add;
                 const referralId = result[0].referralId;
-                const referredId = result[0].referredId;
+                const referredId = 'admin123';
                 const state = result[0].franchiseState;
                 const email = result[0].email;
                 const gender = result[0].gender;
@@ -168,7 +168,7 @@ exports.verifyFranchise = async (req, res) => {
                 const userid = result[0].franchiseId;
                 const password = result[0].password;
                 const wallet = result[0].franchiseWallet;
-                const isVerify = result[0].isVerify;
+                let isVerify = result[0].isVerify;
                 const isBlocked = result[0].isBlocked;
                 const aadharFront = result[0].adhar_front_side;
                 const aadharBack = result[0].adhar_back_side;
@@ -182,9 +182,9 @@ exports.verifyFranchise = async (req, res) => {
                 if (target >= 2500000 && priority === 1) {
                   console.log("hiii");
                   const updateFranchiseToBMM = `
-                  INSERT INTO create_sho (fname, lname, phone, email, gender, password, stateHandlerId, selectedState,referredId, adhar_front_side,adhar_back_side, panCard, referralId,stateHandlerWallet,isVerify,isBlocked,userType)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `;
+                  INSERT INTO create_sho (fname, lname, phone, email, gender, password, stateHandlerId, selectedState,referredId, adhar_front_side,adhar_back_side, panCard, referralId,stateHandlerWallet,isVerify,isBlocked,priority,userType)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  `;
                   connection.query(
                     updateFranchiseToBMM,
                     [
@@ -202,8 +202,9 @@ exports.verifyFranchise = async (req, res) => {
                       panCard,
                       referralId,
                       wallet,
-                      isVerify = 0,
+                      (isVerify = 0),
                       isBlocked,
+                      (priority = 1),
                       userType
                     ],
                     (err, result) => {
@@ -215,7 +216,7 @@ exports.verifyFranchise = async (req, res) => {
                       } else {
                         console.log("hiiii");
                         const updateFranchiseTable =
-                          "UPDATE create_franchise SET priority = 0 , target = 0, isVerify = 0  WHERE franchiseId = ?";
+                          "UPDATE create_franchise SET priority = 0 , target = 0, isVerify = 0, franchiseWallet = 0 WHERE franchiseId = ?";
                         connection.query(
                           updateFranchiseTable,
                           [userid],
@@ -260,7 +261,7 @@ exports.verifyFranchise = async (req, res) => {
                                   .json({ message: "Internal Server error" });
                               } else {
                                 const updateFranchiseTable =
-                                  "update create_franchise SET priority = 0, franchiseWallet = 0, isVerify = 0 where franchiseId = ?";
+                                  "update create_franchise SET priority = 0, franchiseWallet = 0, isVerify = 0, target = 0 where franchiseId = ?";
                                 connection.query(
                                   updateFranchiseTable,
                                   [userid],

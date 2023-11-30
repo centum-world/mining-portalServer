@@ -1111,7 +1111,7 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
               } else {
                 console.log("2nd condition");
 
-                console.log(referredIdOfPartner, 1044);
+                console.log(referredIdOfPartner, 1114);
 
                 const findFranchiseQuery =
                   "select * from create_franchise where referralId = ?";
@@ -1126,7 +1126,7 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                     }
                     if (result.length > 0 && result[0].priority === 1) {
                       const franchise = result[0];
-                      console.log(franchise, 1053);
+                      console.log(franchise, 1129);
 
                       let franchiseReferralId = franchise.referralId;
                       let ReferredIdOfFranchise = franchise.referredId;
@@ -1134,27 +1134,32 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                       let franchiseWallet = franchise.franchiseWallet;
                       const franchiseid = franchise.franchiseId;
                       const amount = (liquidity * 5) / 100;
+                      let target = franchise.target;
+                      const userType = franchise.userType;
                       franchiseWallet += (liquidity * 12) / 100;
+                      target += liquidity;
                       const date = new Date();
                       const updateFranchiseWalletQuery =
-                        "update create_franchise set franchiseWallet =? where referralId = ? ";
+                        "update create_franchise SET franchiseWallet = ?, target = ? where franchiseId = ? ";
 
                       connection.query(
                         updateFranchiseWalletQuery,
-                        [franchiseWallet, franchiseReferralId],
+                        [franchiseWallet,target, franchiseid],
                         (error, result) => {
                           if (error) {
+                            console.log(error,1150)
                             return res
                               .status(500)
                               .json({ message: "internal server error." });
                           } else {
                             const insertFranchiseIntoMyTeam =
-                              "insert into my_team (userid,amount,partnerid,credit_date) values(?,?,?,?)";
+                              "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
                             connection.query(
                               insertFranchiseIntoMyTeam,
-                              [franchiseid, amount, partnerid.p_userid, date],
+                              [franchiseid, amount, partnerid.p_userid, date,userType],
                               (error, result) => {
                                 if (error) {
+                                  console.log(error,1162)
                                   return res.status(500).json({
                                     message: "Internal server error.",
                                   });
@@ -1187,6 +1192,7 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                             const bmmId = bmm.stateHandlerId;
                             const amount = (liquidity * 5) / 100;
                             const date = new Date();
+                            const userType = bmm.userType;
                             bmmWallet += (liquidity * 5) / 100;
 
                             const updateBmmWalletQuery =
@@ -1202,10 +1208,10 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                                   });
                                 } else {
                                   const insertBmmIntoMyTeam =
-                                    "insert into my_team (userid,amount,partnerid,credit_date) values(?,?,?,?)";
+                                    "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
                                   connection.query(
                                     insertBmmIntoMyTeam,
-                                    [bmmId, amount, partnerid.p_userid, date],
+                                    [bmmId, amount, partnerid.p_userid, date,userType],
                                     (error, result) => {
                                       if (error) {
                                         return res.status(500).json({
@@ -1244,7 +1250,9 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                             const amount = (liquidity * 15) / 100;
                             const date = new Date();
                             bmmWallet += (liquidity * 15) / 100;
-
+                            let target = bmm.target;
+                            target += liquidity
+                            const userType = bmm.userType;
                             const referralIdOfBmm = bmm.referralId;
                             console.log(bmm, 1125);
 
@@ -1261,10 +1269,10 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                                   });
                                 } else {
                                   const insertBmmIntoMyTeam =
-                                    "insert into my_team (userid,amount,partnerid,credit_date) values(?,?,?,?)";
+                                    "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
                                   connection.query(
                                     insertBmmIntoMyTeam,
-                                    [bmmId, amount, partnerid.p_userid, date],
+                                    [bmmId, amount, partnerid.p_userid, date,userType],
                                     (error, result) => {}
                                   );
                                 }
@@ -2975,7 +2983,7 @@ exports.adminVerifyMember = async (req, res) => {
           return res.status(200).json({ message: "Member not found" });
         }
 
-        cron.schedule("*/3 * * * *", () => {
+        cron.schedule("*/2 * * * *", () => {
           console.log("Running a task every minute!");
           let selectMemberDetails =
             "select * from create_member where m_userid = ?";
@@ -3009,7 +3017,7 @@ exports.adminVerifyMember = async (req, res) => {
               const experiance = result[0].m_exp;
               const salary = result[0].m_salary;
               const dob = result[0].m_dob;
-              const priority = result[0]?.priority;
+              let priority = result[0]?.priority;
               const userType = result[0].userType
 
               const target = result[0]?.target;
@@ -3047,8 +3055,8 @@ exports.adminVerifyMember = async (req, res) => {
                         })
                       } else {
                         const updateMemberToFranchise = `
-                  INSERT INTO create_franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adhar_front_side,adhar_back_side, panCard, referralId,franchiseWallet,isVerify,isBlocked,userType)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  INSERT INTO create_franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adhar_front_side,adhar_back_side, panCard, referralId,franchiseWallet,isVerify,isBlocked,priority,userType)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
                         connection.query(
                           updateMemberToFranchise,
@@ -3071,6 +3079,7 @@ exports.adminVerifyMember = async (req, res) => {
                             wallet,
                             (isVerify = 0),
                             isBlocked,
+                            (priority = 1),
                             userType
                           ],
                           (err, result) => {
@@ -4546,7 +4555,7 @@ exports.memberReferralPayoutHistory = async (req, res) => {
 
 // fetchUnVerifiedMember
 exports.fetchUnVerifiedMember = async (req,res) => {
-  let query = "select * FROM create_member WHERE isVerify = 0 ";
+  let query = "select * FROM create_member WHERE isVerify = 0 AND priority = 1 ";
   connection.query(query, (err, results) => {
     if (!err) {
       return res.status(200).json({
@@ -4561,7 +4570,7 @@ exports.fetchUnVerifiedMember = async (req,res) => {
 
 // fetchUnVerifiedFranchise
 exports.fetchUnVerifiedFranchise = async (req, res) => {
-  let query = "select * FROM create_franchise WHERE isVerify = 0 ";
+  let query = "select * FROM create_franchise WHERE isVerify = 0 AND priority = 1 ";
   connection.query(query, (err, results) => {
     if (!err) {
       return res.status(200).json({
@@ -4576,7 +4585,7 @@ exports.fetchUnVerifiedFranchise = async (req, res) => {
 
 // fetchUnVerifiedBmm
 exports.fetchUnVerifiedBmm = async (req,res) => {
-  let query = "select * FROM create_sho WHERE isVerify = 0 ";
+  let query = "select * FROM create_sho WHERE isVerify = 0 AND priority = 1 ";
   connection.query(query, (err, results) => {
     if (!err) {
       return res.status(200).json({
@@ -4591,7 +4600,7 @@ exports.fetchUnVerifiedBmm = async (req,res) => {
 
 // fetchVerifiedMember
 exports.fetchVerifiedMember = async (req,res) => {
-  let query = "select * FROM create_member WHERE isVerify = 1 ";
+  let query = "select * FROM create_member WHERE isVerify = 1 AND priority = 1 ";
   connection.query(query, (err, results) => {
     if (!err) {
       return res.status(200).json({
@@ -4621,11 +4630,41 @@ exports.fetchVerifiedBmm = async (req,res) => {
 
 // fetchVerifiedFranchise
 exports.fetchVerifiedFranchise = async (req,res) => {
-  let query = "select * FROM create_franchise WHERE isVerify = 1 ";
+  let query = "select * FROM create_franchise WHERE isVerify = 1 AND priority = 1 ";
   connection.query(query, (err, results) => {
     if (!err) {
       return res.status(200).json({
         message: "All Verified Franchise Fetched successfully",
+        data: results,
+      });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}
+
+// fetchUpgradeDowngradeFranchise
+exports.fetchUpgradeDowngradeFranchise = async (req,res) => {
+  let query = "select * FROM create_franchise WHERE isVerify = 0 AND priority = 0 ";
+  connection.query(query, (err, results) => {
+    if (!err) {
+      return res.status(200).json({
+        message: "All upgrade/downgrade Franchise Fetched successfully",
+        data: results,
+      });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}
+
+// fetchUpgradeDowngradeBmm
+exports.fetchUpgradeDowngradeBmm = async (req,res) => {
+  let query = "select * FROM create_sho WHERE isVerify = 0 AND priority = 0 ";
+  connection.query(query, (err, results) => {
+    if (!err) {
+      return res.status(200).json({
+        message: "All upgrade/downgrade BMM Fetched successfully",
         data: results,
       });
     } else {
