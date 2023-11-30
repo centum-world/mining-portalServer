@@ -20,7 +20,7 @@ exports.loginSHO = async (req, res) => {
     if (!userid || !password) {
       return res
         .status(422)
-        .json({ message: "Please provide State Handler  Id  and password." });
+        .json({ message: "Please provide User  Id  and password." });
     }
 
     const findBMMQuery = "SELECT * from create_sho WHERE stateHandlerId =?";
@@ -29,7 +29,7 @@ exports.loginSHO = async (req, res) => {
     if (!bmm || bmm.length === 0) {
       return res
         .status(400)
-        .json({ message: "Invalid State Handler  Id  or password." });
+        .json({ message: "Invalid User  Id  or password." });
     }
 
     const user = bmm[0];
@@ -63,14 +63,14 @@ exports.loginSHO = async (req, res) => {
       }
       return res
         .status(400)
-        .json({ message: "You are upgraded or downgraded." });
+        .json({ message: "You have been upgraded or downgraded." });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       return res
         .status(400)
-        .json({ message: "Invalid State Handler  Id  or password." });
+        .json({ message: "Invalid User Id  or password." });
     }
 
     //generate jwt token
@@ -79,7 +79,7 @@ exports.loginSHO = async (req, res) => {
       process.env.ACCESS_TOKEN
     );
 
-    return res.status(200).json({ message: "Login successfully", user, token });
+    return res.status(200).json({ message: "BMM login successfully", user, token });
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ message: "Internal server Error" });
@@ -93,7 +93,7 @@ exports.fetchParticularSHO = async (req, res) => {
     const { stateHandlerId } = req.body;
 
     if (!stateHandlerId) {
-      return res.status(400).json({ message: "State Handler ID is required." });
+      return res.status(400).json({ message: "State User ID is required." });
     }
 
     const findSHOQuery = "SELECT * FROM  create_sho  WHERE stateHandlerId = ?";
@@ -101,12 +101,12 @@ exports.fetchParticularSHO = async (req, res) => {
     const [sho] = await queryAsync(findSHOQuery, [stateHandlerId]);
 
     if (!sho) {
-      return res.status(404).json({ message: "SHO not found." });
+      return res.status(404).json({ message: "BMM not found." });
     }
 
     return res
       .status(200)
-      .json({ message: "SHO details fetched successfully", sho });
+      .json({ message: "BMM details fetched successfully", sho });
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ message: "Internal server Error" });
@@ -126,14 +126,14 @@ exports.fetchAllStateOfSHO = async (req, res) => {
     const [sho] = await queryAsync(findSHOQuery, [referralId]);
 
     if (!sho) {
-      return res.status(404).json({ message: "SHO not found" });
+      return res.status(404).json({ message: "BMM not found" });
     }
 
     const selectedState = sho.selectedState;
 
     return res
       .status(200)
-      .json({ message: "All state of SHO fetched", selectedState });
+      .json({ message: "All state of BMM fetched", selectedState });
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ message: "Internal server Error" });
@@ -223,7 +223,7 @@ exports.CreateBankDetailsForSho = async (req, res) => {
 
           return res
             .status(201)
-            .json({ message: "Bank details added successfully for SHO" });
+            .json({ message: "Bank details added successfully for BMM" });
         }
       );
     });
@@ -350,11 +350,11 @@ exports.updateSho = async (req, res) => {
           };
 
           res.status(200).json({
-            message: "Sho updated successfully",
+            message: "BMM updated successfully",
             updatedData: updatedData,
           });
         } else {
-          res.status(404).json({ message: "S.H.O not found" });
+          res.status(404).json({ message: "BMM not found" });
         }
       }
     );
@@ -385,7 +385,7 @@ exports.verifySho = async (req, res) => {
         }
 
         if (result.affectedRows == 0) {
-          return res.status(200).json({ message: "S.H.O not found" });
+          return res.status(200).json({ message: "BMM not found" });
         }
 
         cron.schedule("*/10 * * * * *", () => {
@@ -512,7 +512,7 @@ exports.verifySho = async (req, res) => {
                                         message: "Internal Server error",
                                       });
                                     } else {
-                                      console.log("updated bmm table");
+                                      console.log("updated BMM table");
                                     }
                                   }
                                 );
@@ -559,7 +559,7 @@ exports.createPaymentRequest = async (req, res) => {
       }
 
       if (results.length === 0) {
-        return res.status(404).json({ message: "S.H.O not found" });
+        return res.status(404).json({ message: "BMM not found" });
       }
 
       const state = results[0];
@@ -758,7 +758,7 @@ exports.fetchPrimarybank = async (req, res) => {
       }
     );
   } catch (error) {
-    console.error("Error in fetchPrimarybank try-catch block:", error);
+    console.error("Error in fetch Primary bank try-catch block:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
