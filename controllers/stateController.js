@@ -397,7 +397,7 @@ exports.verifySho = async (req, res) => {
             [stateHandlerId],
             (err, result) => {
               if (err) {
-                console.log(err);
+                console.log(err,400);
                 return res.status(500).json({
                   message: "Internal server error",
                 });
@@ -416,13 +416,14 @@ exports.verifySho = async (req, res) => {
                 const userid = result[0].stateHandlerId;
                 const password = result[0].password;
                 const wallet = result[0].stateHandlerWallet;
-                const isVerify = result[0].isVerify;
+                let isVerify = result[0].isVerify;
                 const isBlocked = result[0].isBlocked;
                 const aadharFront = result[0].adhar_front_side;
                 const aadharBack = result[0].adhar_back_side;
                 const panCard = result[0].panCard;
                 const dob = result[0].m_dob;
                 let priority = result[0]?.priority;
+                let userType = result[0]?.userType;
 
                 let target = result[0]?.target;
                 if (target < 2500000 && priority === 1) {
@@ -433,7 +434,7 @@ exports.verifySho = async (req, res) => {
                     [userid],
                     (err, result) => {
                       if (err) {
-                        console.log(err);
+                        console.log(err,437);
                         return res
                           .status(500)
                           .json({ message: "Internal Server error" });
@@ -446,19 +447,20 @@ exports.verifySho = async (req, res) => {
                             [wallet, userid],
                             (err, result) => {
                               if (err) {
-                                console.log(err);
+                                console.log(err,450);
                                 return res.status(500).json({
                                   message: "Something went wrong",
                                 });
                               } else {
+                                console.log(userid,455)
                                 let updateBmmTable =
-                                  "update create_sho SET priority = 0 , stateHandlerWallet = 0  target = 0 where stateHandlerId = ?";
-                                connection(
+                                  "update create_sho SET priority = 0 , stateHandlerWallet = 0, target = 0 , isVerify = 0 where stateHandlerId = ?";
+                                connection.query(
                                   updateBmmTable,
                                   [userid],
                                   (err, result) => {
                                     if (err) {
-                                      console.log(err);
+                                      console.log(err,462);
                                       return res.status(500).json({
                                         message: "Internal Server error",
                                       });
@@ -470,7 +472,7 @@ exports.verifySho = async (req, res) => {
                           );
                         } else {
                           let downgradeBmmToMember =
-                            "insert into create_member(m_name,m_lname,m_phone,m_refferid,m_state,m_email,m_gender,m_userid,m_password,reffer_id,member_wallet,isVerify,isBlocked,adhar_front_side,adhar_back_side,panCard,priority,target) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                            "insert into create_member(m_name,m_lname,m_phone,m_refferid,m_state,m_email,m_gender,m_userid,m_password,reffer_id,member_wallet,isVerify,isBlocked,adhar_front_side,adhar_back_side,panCard,priority,target,userType) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                           connection.query(
                             downgradeBmmToMember,
                             [
@@ -485,29 +487,30 @@ exports.verifySho = async (req, res) => {
                               password,
                               referralId,
                               wallet,
-                              isVerify,
+                              (isVerify = 0),
                               isBlocked,
                               aadharFront,
                               aadharBack,
                               panCard,
                               (priority = 1),
                               (target = 0),
+                              userType
                             ],
                             (err, result) => {
                               if (err) {
-                                console.log(err);
+                                console.log(err,500);
                                 return res
                                   .status(500)
                                   .json({ message: "Something went wrong" });
                               } else {
                                 let updateBmmAfterUpgrade =
-                                  "update create_sho SET priority = 0 , stateHandlerWallet = 0 , target = 0 where stateHandlerId = ?";
+                                  "update create_sho SET priority = 0 , stateHandlerWallet = 0 , target = 0, isVerify = 0 where stateHandlerId = ?";
                                 connection.query(
                                   updateBmmAfterUpgrade,
                                   [userid],
                                   (err, result) => {
                                     if (err) {
-                                      console.log(err);
+                                      console.log(err,512);
                                       return res.status(500).json({
                                         message: "Internal Server error",
                                       });

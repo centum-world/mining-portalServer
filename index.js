@@ -164,6 +164,15 @@ const fetchPartnerReferWithdrawlHistory = require('./routes/fetchPartnerReferWit
 const uploadBond = require('./routes/upload_bond')
 const fetchQuery = require("./routes/fetchQuery")
 const memberReferralPayoutHistory = require('./routes/member-referral-payout-history');
+const fetchUnVerifiedMember = require('./routes/fetch-unVerified-member');
+const fetchUnVerifiedFranchise = require('./routes/fetch-unVerified-franchise');
+const fetchUnVerifiedBmm = require('./routes/fetch-unVerified-Bmm');
+const fetchVerifiedMember = require('./routes/fetch-verified-member');
+const fetchVerifiedBmm = require('./routes/fetch-verified-bmm');
+const fetchVerifiedFranchise = require('./routes/fetch-verified-franchise');
+const fetchUpgradeDowngradeFranchise = require('./routes/fetch-upgrade-downgrade-franchise');
+const fetchUpgradeDowngradeBmm = require('./routes/fetch-upgrade-downgrade-bmm');
+
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
@@ -343,6 +352,7 @@ app.use('/admin', uploadPanCardMember)
 app.use('/admin', uploadAdharCardFrontSideBd)
 app.use('/admin', uploadAdharCardBackSideBd)
 app.use('/admin', uploadPanCardBd)
+app.use('/admin',fetchVerifiedBmm)
 
 app.use('/admin', uplaodAdharCardFrontSideFranchise)
 app.use('/admin', uploadAdharCardBackSideFranchise)
@@ -354,6 +364,13 @@ app.use('/admin', uplaodAdharCardFrontSidePartner)
 app.use('/admin', uplaodAdharCardBackSidePartner)
 app.use('/admin', uploadPanCardPartner )
 app.use('/admin',memberReferralPayoutHistory);
+app.use('/admin',fetchUnVerifiedMember);
+app.use('/admin',fetchUnVerifiedFranchise);
+app.use('/admin',fetchUnVerifiedBmm);
+app.use('/admin',fetchVerifiedMember);
+app.use('/admin',fetchVerifiedFranchise);
+app.use('/admin',fetchUpgradeDowngradeFranchise);
+app.use('/admin',fetchUpgradeDowngradeBmm);
 
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);
