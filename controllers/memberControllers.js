@@ -699,3 +699,18 @@ exports.memberWithdrawalRequest = async (req, res) => {
     }
   });
 };
+
+// fetchUpgradedMember
+exports.fetchUpgradedMember = async(req,res) => {
+  let query = "select * FROM create_member WHERE isVerify = 0 AND priority = 0  ";
+  connection.query(query, (err, results) => {
+    if (!err) {
+      return res.status(200).json({
+        message: "All upgrade/downgrade Member Fetched successfully",
+        data: results,
+      });
+    } else {
+      return res.status(500).json(err);
+    }
+  });
+}
