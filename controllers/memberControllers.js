@@ -101,7 +101,7 @@ exports.memberLogin = async (req, res) => {
     }
 
     // Generate jwt token
-    const token = jwt.sign({ m_userid: member[0].m_userid, role: "member" }, process.env.ACCESS_TOKEN);
+    const token = jwt.sign({ m_userid: member[0].m_userid, role: "member" }, process.env.ACCESS_TOKEN,{expiresIn:28800});
 
     return res.status(200).json({ message: "Login successfully", data:member, token });
   } catch (error) {

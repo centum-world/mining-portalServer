@@ -76,7 +76,7 @@ exports.loginFranchise = async (req, res) => {
 
     const token = jwt.sign(
       { f_userid: user.franchiseId, role: "franchise" },
-      process.env.ACCESS_TOKEN
+      process.env.ACCESS_TOKEN,{expiresIn:28800}
     );
 
     return res.status(200).json({ message: "Login successfully", user, token });
