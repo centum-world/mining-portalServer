@@ -76,7 +76,9 @@ exports.loginSHO = async (req, res) => {
     //generate jwt token
     const token = jwt.sign(
       { s_userid: user.stateHandlerId, role: "state" },
-      process.env.ACCESS_TOKEN
+      process.env.ACCESS_TOKEN,{
+        expiresIn:28800
+      }
     );
 
     return res.status(200).json({ message: "Login successfully", user, token });

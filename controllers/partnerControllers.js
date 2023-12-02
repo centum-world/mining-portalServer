@@ -66,7 +66,7 @@ exports.miningPartnerLogin = (req, res) => {
                 role: "partner",
               };
               const accessToken = jwt.sign(response, process.env.ACCESS_TOKEN, {
-                expiresIn: "8h",
+                expiresIn:30,
               });
               res.status(200).json({
                 token: accessToken,
