@@ -216,6 +216,10 @@ const businessDevFetchPartnerTeam = require('./routes/bd/businessDev-fetch-partn
 const memberWithdrawalRequest = require('./routes/member/member-withdrawal-request');
 const fetchUpgradedMember = require('./routes/member/fetch-upgraded-member');
 
+// ----------------------- portfolio-------------------------//
+const fetchAllBmmFromPortfolio = require('./routes/portfolio/fetch-all-bmm');
+const filterBmmByState = require('./routes/portfolio/filter-bmm-by-state');
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -413,6 +417,10 @@ app.use('/bd',businessDevFetchPartnerTeam);
 // --------------------------member--------------------//
 app.use('/member',memberWithdrawalRequest);
 app.use('/member',fetchUpgradedMember);
+
+// -----------------------portfolio-------------------//
+app.use('/portfolio',fetchAllBmmFromPortfolio);
+app.use('/portfolio',filterBmmByState);
 
 
 module.exports = app;
