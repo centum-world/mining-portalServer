@@ -47,3 +47,51 @@ exports.filterBmmByState = async (req, res) => {
     }
     
 };
+
+// fetchAllFranchise
+exports.fetchAllFranchiseFromPortfolio = async (req,res) => {
+  try {
+    const selectAllFranchiseQuery = "SELECT * FROM create_franchise ";
+
+    connection.query(selectAllFranchiseQuery, (error, results) => {
+      if (error) {
+        console.error("Error fetching Franchise details:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+
+      // Successfully fetched sho records
+      return res.status(200).json({
+        message: "Franchise records fetched successfully",
+        FranchiseData: results,
+      });
+    });
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// filterFranchiseByState
+exports.filterFranchiseByState = async (req,res) => {
+  let {state} = req.body
+
+  try {
+    const selectAllFranchiseQuery = "SELECT * FROM create_franchise WHERE franchiseState = ?"; 
+  
+    connection.query(selectAllFranchiseQuery, [state], (error, results) => {
+      if (error) {
+        console.error("Error fetching Franchise details:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+  
+      // Successfully fetched sho records
+      return res.status(200).json({
+        message: "Franchise records fetched successfully",
+        FilterFranchiseData: results,
+      });
+    });
+  } catch (error) {
+    console.error("Error in try-catch block:", error.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}

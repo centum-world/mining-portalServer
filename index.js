@@ -219,6 +219,8 @@ const fetchUpgradedMember = require('./routes/member/fetch-upgraded-member');
 // ----------------------- portfolio-------------------------//
 const fetchAllBmmFromPortfolio = require('./routes/portfolio/fetch-all-bmm');
 const filterBmmByState = require('./routes/portfolio/filter-bmm-by-state');
+const fetchAllFranchiseFromPortfolio = require('./routes/portfolio/fetch-all-franchise');
+const filterFranchiseByState = require('./routes/portfolio/filter-franchise-by-state');
 
 const app = express();
 
@@ -421,6 +423,8 @@ app.use('/member',fetchUpgradedMember);
 // -----------------------portfolio-------------------//
 app.use('/portfolio',fetchAllBmmFromPortfolio);
 app.use('/portfolio',filterBmmByState);
+app.use('/portfolio',fetchAllFranchiseFromPortfolio);
+app.use('/portfolio',filterFranchiseByState);
 
 
 module.exports = app;
