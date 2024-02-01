@@ -509,7 +509,7 @@ exports.fetchRefferalPartnerDetailsFromMember = (req, res) => {
   let partnerid = req.body;
 
   let query =
-    "SELECT p_liquidity,p_dop,month_count,partner_status,p_name,partner_count from mining_partner where p_userid = ? ";
+    "SELECT p_liquidity,p_dop,month_count,partner_status,p_name,p_lname,partner_count from mining_partner where p_userid = ? ";
   connection.query(query, [partnerid.p_userid], (err, results) => {
     try {
       if (!err) {
