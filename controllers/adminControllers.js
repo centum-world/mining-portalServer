@@ -2806,53 +2806,6 @@ exports.accountsPaidWithdrawal = (req, res) => {
   });
 };
 
-// exports.accountsPaidWithdrawal = (req, res) => {
-//   const query1 =
-//     "SELECT SUM(partner_wallet) AS sumOfPartnerWallet FROM partner_withdrawal_history";
-
-//   connection.query(query1, (err1, results1) => {
-//     if (err1) {
-//       return res.status(500).json(err1);
-//     }
-
-//     const sumOfPartnerWallet = results1[0].sumOfPartnerWallet;
-
-//     const query2 =
-//       "SELECT SUM(partner_wallet) AS sumOfRefferPartnerWallet FROM partner_reffer_withdrawal_history";
-
-//     connection.query(query2, (err2, results2) => {
-//       if (err2) {
-//         return res.status(500).json(err2);
-//       }
-
-//       const sumOfRefferPartnerWallet = results2[0].sumOfRefferPartnerWallet;
-
-//       const query3 =
-//         "SELECT SUM(member_wallet) AS sumOfRefferalMemberWallet FROM member_reffer_withdrawal_history";
-
-//       connection.query(query3, (err3, results3) => {
-//         if (err3) {
-//           return res.status(500).json(err3);
-//         }
-
-//         const sumOfRefferalMemberWallet = results3[0].sumOfRefferalMemberWallet;
-
-//         const totalWithdrawal =
-//           sumOfPartnerWallet +
-//           sumOfRefferPartnerWallet +
-//           sumOfRefferalMemberWallet;
-
-//         return res.status(200).json({
-//           message: "Fetched Sum Of All Member Wallet successfully",
-//           partner: sumOfPartnerWallet,
-//           reffrePartner: sumOfRefferPartnerWallet,
-//           refferalMember: sumOfRefferalMemberWallet,
-//           totalWithdrawal: totalWithdrawal,
-//         });
-//       });
-//     });
-//   });
-// };
 
 exports.fetchAllFranchise = (req, res) => {
   const selectAllFranchiseQuery = "SELECT * FROM create_franchise";
