@@ -958,8 +958,10 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                 let priority = member.priority;
                 let userType = member.userType;
                 console.log(referralIdOfMember, 958);
-                const amount = (liquidity * 10) / 100;
-                memberWallet += (liquidity * 10) / 100;
+                const afterGstLiquidity = (liquidity * 18) / 100;
+                const afterGstAmount = liquidity - afterGstLiquidity;
+                const amount = (afterGstAmount * 10 ) /100; 
+                memberWallet += (afterGstAmount * 10 ) /100 
                 target += liquidity;
                 const date = new Date();
 
@@ -1136,7 +1138,9 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                       const amount = (liquidity * 5) / 100;
                       let target = franchise.target;
                       const userType = franchise.userType;
-                      franchiseWallet += (liquidity * 12) / 100;
+                      const afterGstLiquidity = (liquidity * 18 ) / 100;
+                      const afterGstAmount  = liquidity - afterGstLiquidity ;
+                      franchiseWallet += (afterGstAmount * 12) / 100;
                       target += liquidity;
                       const date = new Date();
                       const updateFranchiseWalletQuery =
@@ -1247,9 +1251,11 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                             const bmm = result[0];
                             let bmmWallet = bmm.stateHandlerWallet;
                             const bmmId = bmm.stateHandlerId;
-                            const amount = (liquidity * 15) / 100;
+                            const afterGstLiquidity = (liquidity * 18 ) / 100;
+                           const  afterGstAmount = liquidity - afterGstLiquidity
+                            const amount = (afterGstAmount * 15) / 100;
                             const date = new Date();
-                            bmmWallet += (liquidity * 15) / 100;
+                            bmmWallet += amount;
                             let target = bmm.target;
                             target += liquidity
                             const userType = bmm.userType;
@@ -1362,7 +1368,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
               let request_date = new Date();
 
               if (status) {
-                if (month_count === 12 || month_count > 12) {
+                if (month_count === 2 || month_count > 2) {
                   let updatequery =
                     "update mining_partner set partner_status= ?,partner_wallet = ?, partner_count = ? where p_userid = ?";
                   connection.query(
@@ -1376,9 +1382,43 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                     (err, results) => {
                       try {
                         if (!err) {
-                          return res.status(400).json({
-                            message: "Your Plan has been expired ",
-                          });
+                          // return res.status(400).json({
+                          //   message: "Your Plan has been expired ",
+                          // });
+                          let selectPartnerData = "select  * from mining_partner where p_userid=?";
+                          connection.query(selectPartnerData,[partnerid.p_userid],(err,results) => {
+                            if(!err){
+                              let bonusAmount = (liquidity * 10) / 100
+                              let partner_wallet = results[0].partner_wallet;
+                              let referredId = results[0].p_reffered_id
+                             
+                              partner_wallet =+bonusAmount
+                              let bonusQuery = "update mining_partner set partner_wallet = ? where p_userid = ? ";
+                              connection.query(bonusQuery,[partner_wallet,partnerid.p_userid],(err,results) => {
+                                if(!err){
+                                 
+                                  let findReferral = "select member_wallet from create_member where reffer_id = ?";
+                                  connection.query(findReferral,[referredId],(err,results) => {
+                                    if(!err){
+                                     
+                                      let member_wallet =results[0].member_wallet
+                                      console.log(member_wallet,'1405')
+                                      let memberBonus = ( liquidity * 5 ) / 100;
+                                      let updateWallet = member_wallet + memberBonus;
+                                      console.log(updateWallet)
+                                      let memberBonusQuery = "update create_member set member_wallet = ? where reffer_id = ?";
+                                      connection.query(memberBonusQuery,[updateWallet,referredId],(err,results) => {
+                                        if(!err){
+                                          
+                                        }
+                                      })
+                                    }
+                                  })
+                                }
+                              })
+                            }
+                          })
+                         
                         } else {
                           return res.status(400).json({
                             message: "Something Went wrong 2",
@@ -2983,7 +3023,7 @@ exports.adminVerifyMember = async (req, res) => {
           return res.status(200).json({ message: "Member not found" });
         }
 
-        cron.schedule("*/2 * * * *", () => {
+        cron.schedule("*/20 * * * *", () => {
           console.log("Running a task every minute!");
           let selectMemberDetails =
             "select * from create_member where m_userid = ?";
