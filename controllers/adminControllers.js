@@ -2783,12 +2783,12 @@ exports.accountsPaidWithdrawal = (req, res) => {
             "select sum(member_wallet) as sumOfRefferalMemberWallet from member_reffer_withdrawal_history";
           connection.query(query, (err, results) => {
             if (!err) {
-              let sumOfRefferalMemberWallet =
-                results[0].sumOfRefferalMemberWallet;
+              let sumOfRefferalMemberWallet = results[0]?.sumOfRefferalMemberWallet !== undefined ? results[0]?.sumOfRefferalMemberWallet : 0;
+
               let TotalPaidWithdrawal =
-                sumOfPartnerWallet +
-                sumOfRefferPartnerWallet +
-                sumOfRefferalMemberWallet;
+                (sumOfPartnerWallet) +
+                (sumOfRefferPartnerWallet) +
+                (sumOfRefferalMemberWallet);
               return res.status(200).json({
                 message: "Fetched Sum Of All Member Wallet successfully",
                 partner: sumOfPartnerWallet,
