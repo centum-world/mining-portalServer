@@ -33,6 +33,7 @@ exports.loginSHO = async (req, res) => {
     }
 
     const user = bmm[0];
+    console.log(user, "user")
 
     if (user.priority === 0) {
       const findFranchiseQuery =

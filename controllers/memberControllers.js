@@ -714,3 +714,29 @@ exports.fetchUpgradedMember = async(req,res) => {
     }
   });
 }
+
+
+exports.fetchMemberWallet = async(req, res) => {
+  try {
+
+    const {m_userid} = req.body
+    let query = "select member_wallet FROM create_member WHERE m_userid = ? ";
+    connection.query(query,[m_userid], (err, results) => {
+      if (!err) {
+        return res.status(200).json({
+          message: "member wallet fetched successfully",
+          data: results,
+        });
+      } else {
+        return res.status(500).json(err);
+      }
+    });
+
+    
+  } catch (error) {
+
+    return res.status(500).json(error);
+
+    
+  }
+}

@@ -215,6 +215,7 @@ const businessDevFetchPartnerTeam = require('./routes/bd/businessDev-fetch-partn
 // --------------------------member------------------------//
 const memberWithdrawalRequest = require('./routes/member/member-withdrawal-request');
 const fetchUpgradedMember = require('./routes/member/fetch-upgraded-member');
+const fetchMemberWallet = require('./routes/member/fetch-member-wallet')
 
 const app = express();
 
@@ -413,6 +414,7 @@ app.use('/bd',businessDevFetchPartnerTeam);
 // --------------------------member--------------------//
 app.use('/member',memberWithdrawalRequest);
 app.use('/member',fetchUpgradedMember);
+app.use('/member', fetchMemberWallet)
 
 
 module.exports = app;
