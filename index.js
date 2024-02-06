@@ -217,6 +217,12 @@ const memberWithdrawalRequest = require('./routes/member/member-withdrawal-reque
 const fetchUpgradedMember = require('./routes/member/fetch-upgraded-member');
 const fetchMemberWallet = require('./routes/member/fetch-member-wallet')
 
+// ----------------------- portfolio-------------------------//
+const fetchAllBmmFromPortfolio = require('./routes/portfolio/fetch-all-bmm');
+const filterBmmByState = require('./routes/portfolio/filter-bmm-by-state');
+const fetchAllFranchiseFromPortfolio = require('./routes/portfolio/fetch-all-franchise');
+const filterFranchiseByState = require('./routes/portfolio/filter-franchise-by-state');
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -415,6 +421,12 @@ app.use('/bd',businessDevFetchPartnerTeam);
 app.use('/member',memberWithdrawalRequest);
 app.use('/member',fetchUpgradedMember);
 app.use('/member', fetchMemberWallet)
+
+// -----------------------portfolio-------------------//
+app.use('/portfolio',fetchAllBmmFromPortfolio);
+app.use('/portfolio',filterBmmByState);
+app.use('/portfolio',fetchAllFranchiseFromPortfolio);
+app.use('/portfolio',filterFranchiseByState);
 
 
 module.exports = app;
