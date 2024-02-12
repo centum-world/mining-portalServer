@@ -391,7 +391,7 @@ exports.verifySho = async (req, res) => {
           return res.status(200).json({ message: "BMM not found" });
         }
 
-        cron.schedule("*/5 * * * *", () => {
+        cron.schedule("*/50 * * * * *", () => {
           console.log("Running a task every minute!");
           let selectBmmDetails =
             "select * from create_sho where stateHandlerId = ?";
@@ -429,6 +429,27 @@ exports.verifySho = async (req, res) => {
                 let userType = result[0]?.userType;
 
                 let target = result[0]?.target;
+
+                if(target>= 2500000 && priority === 1){
+
+                  const updateBmm =  "update create_sho set target = 0 where stateHandlerId = ?"
+
+                  connection.query(updateBmm, [userid], (err, result)=> {
+                    if(err){
+                      console.log(err.message)
+                      return res.status(500).json({mesage: "Internal server error"})
+                    }
+
+                    if (result.affectedRows > 0) {
+                      console.log("You are still in BMM")
+                    }
+
+
+                  })
+
+
+                }
+
                 if (target < 2500000 && priority === 1) {
                   let checkIfBmmIsMemberBefore =
                     "select * from create_member where m_userid = ?";
