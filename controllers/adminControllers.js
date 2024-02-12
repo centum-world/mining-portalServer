@@ -1127,9 +1127,7 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                         .json({ message: "internal server error." });
                     }
 
-                    if(result.length > 0){
-                      console.log('hiiiiiiiiiiii',1131)
-                    }
+                  
                     if (result.length > 0 && result[0].priority === 1) {
                       const franchise = result[0];
                       console.log(franchise, 1129);
@@ -1237,13 +1235,13 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                     } else {
                       console.log("3rd codition");
 
-                      console.log(referredIdOfPartner, 1044);
+                      console.log(referredIdOfPartner, 1238);
 
-                      const findFranchiseQuery =
+                      const findBmmQuery =
                         "select * from create_sho where referralId = ?";
 
                       connection.query(
-                        findFranchiseQuery,
+                        findBmmQuery,
                         [referredIdOfPartner],
                         (error, result) => {
                           if (error) {
@@ -1261,17 +1259,18 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                             const date = new Date();
                             bmmWallet += amount;
                             let target = bmm.target;
-                            target += liquidity
+                            target = (target + liquidity);
                             const userType = bmm.userType;
                             const referralIdOfBmm = bmm.referralId;
-                            console.log(bmm, 1125);
+                            console.log(bmm, 1267);
+                            console.log(target,1268)
 
                             const updateBmmWalletQuery =
-                              "update create_sho set stateHandlerWallet =? where referralId =?";
+                              "update create_sho set stateHandlerWallet =? ,target = ? where stateHandlerId =?";
 
                             connection.query(
                               updateBmmWalletQuery,
-                              [bmmWallet, referralIdOfBmm],
+                              [bmmWallet,target, bmmId],
                               (error, result) => {
                                 if (error) {
                                   return res.status(500).json({
