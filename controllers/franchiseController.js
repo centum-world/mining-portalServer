@@ -139,7 +139,7 @@ exports.verifyFranchise = async (req, res) => {
           return res.status(200).json({ message: "franhcise not found" });
         }
 
-        cron.schedule("*/2 * * * *", () => {
+        cron.schedule("*/3 * * * *", () => {
           console.log("Running a task every minute!");
           let selectFranchiseDetails =
             "select * from create_franchise where franchiseId = ?";

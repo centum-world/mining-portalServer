@@ -1126,6 +1126,10 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                         .status(500)
                         .json({ message: "internal server error." });
                     }
+
+                    if(result.length > 0){
+                      console.log('hiiiiiiiiiiii',1131)
+                    }
                     if (result.length > 0 && result[0].priority === 1) {
                       const franchise = result[0];
                       console.log(franchise, 1129);
