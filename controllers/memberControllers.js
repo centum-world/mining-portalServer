@@ -27,7 +27,6 @@ const {
 //       const passwordMatch = await bcrypt.compare(m_password, results[0].m_password);
 
 //       if (passwordMatch) {
-//         console.log("success");
 //         const response = {
 //           m_userid: results[0].m_userid,
 //           role: "member",
@@ -428,7 +427,6 @@ exports.forgetPasswordMember = (req, res) => {
 // verify otp
 exports.verifyOtp = (req, res) => {
   const memberId = req.body;
-  console.log(memberId.m_userid, memberId.otp);
 
   if (!memberId.m_userid || !memberId.otp) {
     return res.status(400).json({ message: "Field Missing" });
@@ -477,7 +475,6 @@ exports.memberRegeneratePassword = (req, res) => {
         throw err;
       }
       hash = result;
-      //console.log(hash);
 
       updatequery =
         "update create_member set m_password = ? where m_userid = ?";
@@ -662,10 +659,8 @@ exports.memberWithdrawalRequest = async (req, res) => {
     }
     if (results.length > 0) {
       const memberWallet = results[0]?.member_wallet;
-      // console.log(memberWallet)
       const updatedWallet = memberWallet - amount;
       const date = new Date();
-      // console.log(updatedWallet,635)
       const updateQuery =
         "update create_member set member_wallet = ? where m_userid = ?";
       connection.query(

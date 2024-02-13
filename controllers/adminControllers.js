@@ -269,7 +269,6 @@ exports.createMiningPartner = (req, res) => {
     if (!err) {
       if (results.length <= 0) {
         p_refferal_id = firstCharf + "" + firstCharl + "" + 9050;
-        console.log(p_refferal_id, "123");
         let selectquery = " select * from mining_partner where p_userid = ?";
         connection.query(selectquery, [partner.p_userid], (err, results) => {
           if (!err) {
@@ -533,13 +532,10 @@ exports.fetchPartnerWithdrawalRequestToAdmin = (req, res) => {
 
 exports.approvePartnerWithdrawalRequest = (req, res) => {
   let partnerId = req.body;
-  console.log(partnerId.p_userid, "250");
   let query =
     "select partner_wallet,request_date,p_userid from partner_withdrawal where id = ? ";
   connection.query(query, [partnerId.id], (err, results) => {
     if (!err) {
-      //console.log(res);
-      console.log(results);
 
       let partner_wallet = results[0]?.partner_wallet;
       let id = results[0]?.id;
@@ -562,7 +558,6 @@ exports.approvePartnerWithdrawalRequest = (req, res) => {
                 if (!err) {
                   partnerEmail = results[0]?.p_email;
                   partnerPhone = results[0]?.p_phone;
-                  console.log(partnerPhone, "270");
                   // withdrawalSms(partnerPhone, { "type": 'Partner', "userid": partnerId.p_userid, "amount": partner_wallet })
 
                   email(partnerEmail, {
@@ -578,11 +573,9 @@ exports.approvePartnerWithdrawalRequest = (req, res) => {
               }
             );
 
-            console.log("292");
             let deletequery = "delete from partner_withdrawal where id = ?";
             connection.query(deletequery, [partnerId.id], (err, results) => {
               if (!err) {
-                console.log("297");
                 return res.status(200).json({
                   message: " Partner Withdrwal Request Approved",
                 });
@@ -673,7 +666,6 @@ exports.fetchMemberApproveWithdrawalHistoryForAdmin = (req, res) => {
 
 exports.fetchMemberProfileDetailsFromAdmin = (req, res) => {
   let memberid = req.body;
-  // console.log(memberid.m_userid);
   let query = "select * from create_member where m_userid = ?";
   connection.query(query, [memberid.m_userid], (err, results) => {
     try {
@@ -732,7 +724,6 @@ exports.updateMemberProfileDetailsFromAdmin = (req, res) => {
 
 exports.fetchMiningPartnerProfileDetailsFromAdmin = (req, res) => {
   let partnerId = req.body;
-  // console.log(memberid.m_userid);
   let query = "select * from mining_partner where p_userid = ?";
   connection.query(query, [partnerId.p_userid], (err, results) => {
     try {
@@ -792,7 +783,6 @@ exports.updateMiningPartnerProfileDetailsFromAdmin = (req, res) => {
 
 exports.approveMemberWithdrawalRequest = (req, res) => {
   let memberId = req.body;
-  console.log(memberId.id, "480");
   let query =
     "select member_wallet,request_date from member_withdrawal where id = ? ";
   connection.query(query, [memberId.id], (err, results) => {
@@ -801,14 +791,12 @@ exports.approveMemberWithdrawalRequest = (req, res) => {
       let member_wallet = results[0]?.member_wallet;
       let request_date = results[0]?.request_date;
       let approve_date = new Date();
-      console.log("hiii 427");
       let insertquery =
         "insert into member_withdrawal_history (member_wallet,request_date,approve_date,m_userid) values (?,?,?,?)";
       connection.query(
         insertquery,
         [member_wallet, request_date, approve_date, memberId.m_userid],
         (err, results) => {
-          // console.log('hii 427');
           try {
             if (!err) {
               let selectquery =
@@ -821,7 +809,6 @@ exports.approveMemberWithdrawalRequest = (req, res) => {
                     if (!err) {
                       let memberEmail = results[0]?.m_email;
                       let memberPhone = results[0]?.m_phone;
-                      console.log(memberEmail, "437");
                       memberWithdrawalSms(memberPhone, {
                         type: "Member",
                         userid: memberId.m_userid,
@@ -898,7 +885,6 @@ exports.isPartnerActiveManualFromAdmin = (req, res) => {
     try {
       if (!err) {
         // let approve_date = results[0]?.approve_date;
-        // console.log(approve_date);
         return res.status(200).json({
           message: "Fetched Partner Status Successfully ",
           data: results,
@@ -915,7 +901,6 @@ exports.isPartnerActiveManualFromAdmin = (req, res) => {
 // doActivatePartnerManualFromAdmin
 exports.doActivatePartnerManualFromAdmin = (req, res) => {
   let partnerid = req.body;
-  console.log(partnerid, 917);
   if (!partnerid) {
     return res.status(422).json({
       message: "No Data Found",
@@ -942,22 +927,19 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
             [referredIdOfPartner],
             (error, result) => {
               if (error) {
-                console.log(error.message, 941);
+                console.log(error.message);
                 return res
                   .status(500)
                   .json({ message: "Internal server error" });
               }
               if (result.length > 0 && result[0].priority === 1) {
-                console.log("hiiiiiiiiiiiiiiiiiiii");
                 const member = result[0];
-                console.log(member);
                 let memberWallet = member.member_wallet;
                 let referralIdOfMember = member.reffer_id;
                 let memberid = member.m_userid;
                 let target = member.target;
                 let priority = member.priority;
                 let userType = member.userType;
-                console.log(referralIdOfMember, 958);
                 const afterGstLiquidity = (liquidity * 18) / 100;
                 const afterGstAmount = liquidity - afterGstLiquidity;
                 const amount = (afterGstAmount * 10) / 100;
@@ -997,7 +979,6 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                 );
 
                 const referredIdOfMember = member.m_refferid;
-                console.log(referredIdOfMember, 974);
 
                 const findFranchiseQuery =
                   "select * from create_franchise where referralId =? ";
@@ -1013,9 +994,7 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                     }
                     if (result.length > 0) {
                       const franchise = result[0];
-                      console.log(franchise, 990);
                       const referredIdOfFranchise = franchise.referredId;
-                      console.log(referredIdOfFranchise, 968);
                       let franchiseWallet = franchise.franchiseWallet;
                       const franchiseid = franchise.franchiseId;
                       const userType = franchise.userType;
@@ -1071,9 +1050,7 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                           }
                           if (result.length > 0) {
                             const bmm = result[0];
-                            console.log(bmm, 1018);
                             const referralIdOfBmm = bmm.referralId;
-                            console.log(referralIdOfBmm, 1020);
                             let stateHandlerWallet = bmm.stateHandlerWallet;
                             const bmmId = bmm.stateHandlerId;
                             const userType = bmm.userType;
@@ -1125,7 +1102,6 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
               } else {
                 console.log("2nd condition");
 
-                console.log(referredIdOfPartner, 1114);
 
                 const findFranchiseQuery =
                   "select * from create_franchise where referralId = ?";
@@ -1141,7 +1117,6 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
 
                     if (result.length > 0 && result[0].priority === 1) {
                       const franchise = result[0];
-                      console.log(franchise, 1129);
 
                       let franchiseReferralId = franchise.referralId;
                       let ReferredIdOfFranchise = franchise.referredId;
@@ -1164,7 +1139,7 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                         [franchiseWallet, target, franchiseid],
                         (error, result) => {
                           if (error) {
-                            console.log(error, 1150);
+                            console.log(error.message);
                             return res
                               .status(500)
                               .json({ message: "internal server error." });
@@ -1182,7 +1157,7 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                               ],
                               (error, result) => {
                                 if (error) {
-                                  console.log(error, 1162);
+                                  console.log(error.message);
                                   return res.status(500).json({
                                     message: "Internal server error.",
                                   });
@@ -1207,7 +1182,6 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                           }
                           if (result.length > 0) {
                             const bmm = result[0];
-                            console.log(bmm, 1082);
 
                             const referralIdOfBmm = bmm.referralId;
 
@@ -1258,8 +1232,6 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                     } else {
                       console.log("3rd codition");
 
-                      console.log(referredIdOfPartner, 1238);
-
                       const findBmmQuery =
                         "select * from create_sho where referralId = ?";
 
@@ -1286,8 +1258,7 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                             target = target + liquidity;
                             const userType = bmm.userType;
                             const referralIdOfBmm = bmm.referralId;
-                            console.log(bmm, 1267);
-                            console.log(target, 1268);
+                        
 
                             const updateBmmWalletQuery =
                               "update create_sho set stateHandlerWallet =? ,target = ? where stateHandlerId =?";
@@ -1446,12 +1417,10 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                           if (!err) {
                                             let member_wallet =
                                               results[0].member_wallet;
-                                            console.log(member_wallet, "1405");
                                             let memberBonus =
                                               (liquidity * 5) / 100;
                                             let updateWallet =
                                               member_wallet + memberBonus;
-                                            console.log(updateWallet);
                                             let memberBonusQuery =
                                               "update create_member set member_wallet = ? where reffer_id = ?";
                                             connection.query(
@@ -1497,7 +1466,6 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                         if (month_count < 12 && main_check) {
                           let perday_partner_wallet_amount =
                             partnerid.perDayAmounReal;
-                          console.log(partner_wallet, "811");
                           query =
                             "update mining_partner  set partner_wallet=?,wallet_update_date=?,partner_count=?,perday_partner_wallet_amount=? where p_userid =?";
                           connection.query(
@@ -2310,11 +2278,9 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                   selectquery,
                   [partnerid.p_userid],
                   (err, results) => {
-                    console.log(results, "1203");
                     let partner_count = results[0]?.partner_count;
                     let partner_wallet = results[0]?.partner_wallet;
                     //let perday_partner_wallet_amount = results[0]?.perday_partner_wallet_amount;
-                    console.log(partner_count, partner_wallet, "1203");
 
                     if (partner_count === 30) {
                       let insertquery =
@@ -2438,7 +2404,6 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                               }
                             );
 
-                            console.log(table_flag);
                           } else {
                             return res.status(500).json({
                               message: "Internal Server Error",
@@ -2523,13 +2488,11 @@ exports.fetchLastPaymentDate = (req, res) => {
 // approveRefferPartnerWithdrawalRequest
 exports.approveRefferPartnerWithdrawalRequest = (req, res) => {
   let partnerId = req.body;
-  console.log(partnerId.id, "250");
   let query =
     "select partner_wallet,request_date,id,reffer_p_userid,p_userid from partner_reffer_withdrawal where id = ? ";
   connection.query(query, [partnerId.id], (err, results) => {
     if (!err) {
-      //console.log(res);
-      console.log(results);
+
 
       let partner_wallet = results[0]?.partner_wallet;
       let id = results[0]?.id;
@@ -2561,7 +2524,6 @@ exports.approveRefferPartnerWithdrawalRequest = (req, res) => {
                     if (!err) {
                       partnerEmail = results[0]?.p_email;
                       partnerPhone = results[0]?.p_phone;
-                      console.log(partnerPhone, "270");
                       withdrawalSms(partnerPhone, {
                         type: "Partner",
                         userid: partnerId.p_userid,
@@ -2656,7 +2618,6 @@ exports.fetchMemberRefferWithdrawalRequestFromAdmin = (req, res) => {
 // approveMemberRefferWithdrawalRequest
 exports.approveMemberRefferWithdrawalRequest = (req, res) => {
   const member = req.body;
-  console.log(member.id, "250");
   const query = "SELECT * FROM payment_request WHERE id = ?";
 
   connection.query(query, [member.id], (err, results) => {
@@ -2699,7 +2660,6 @@ exports.approveMemberRefferWithdrawalRequest = (req, res) => {
           const memberEmail = results[0]?.m_email;
           const memberPhone = results[0]?.m_phone;
 
-          console.log(memberPhone, "270");
           // withdrawalSms(memberPhone, {
           //   type: "Member",
           //   userid: m_userid,
@@ -2784,7 +2744,6 @@ exports.uploadPartnershipBond = (req, res) => {
       }
     }
   });
-  //console.log(originalname,mimetype,filename,p_userid);
 };
 
 // fetchHelpAndSupportQuery
@@ -2825,7 +2784,6 @@ exports.accountsPaidWithdrawal = (req, res) => {
   connection.query(query, (err, results) => {
     if (!err) {
       let sumOfPartnerWallet = results[0].sumOfPartnerWallet;
-      //console.log(sumOfPartnerWallet,'1763');
       let query =
         "select sum(partner_wallet) as sumOfRefferPartnerWallet from partner_reffer_withdrawal_history";
       connection.query(query, (err, results) => {
@@ -2870,7 +2828,6 @@ exports.fetchAllFranchise = (req, res) => {
       return res.status(500).json({ message: "Internal server error" });
     }
 
-    console.log(results, "jjjj");
 
     res.status(200).json({
       message: "Franchise records fetched successfully",
@@ -3068,7 +3025,6 @@ exports.adminVerifyMember = async (req, res) => {
               const userType = result[0].userType;
 
               const target = result[0]?.target;
-              console.log(wallet, 3015);
               if (target < 1800000 && priority === 1) {
                 const updateMemberQuery =
                   "update create_member set target = 0 where m_userid = ?";
@@ -3093,7 +3049,7 @@ exports.adminVerifyMember = async (req, res) => {
                   [userid],
                   (err, result) => {
                     if (err) {
-                      console.log(err);
+                      console.log(err.message);
                       return res
                         .status(500)
                         .json({ message: "Inetrnal server error" });
@@ -3163,12 +3119,11 @@ exports.adminVerifyMember = async (req, res) => {
                           ],
                           (err, result) => {
                             if (err) {
-                              console.log(err, "3045");
+                              console.log(err);
                               return res.status(500).json({
                                 mesaage: "Internal Server Error",
                               });
                             } else {
-                              console.log(referredId, 3050);
                               const updateMemberTable =
                                 "UPDATE create_member SET priority = 0 , target = 0,member_wallet = 0, isVerify = 0  WHERE m_userid = ?";
                               connection.query(
@@ -3188,18 +3143,14 @@ exports.adminVerifyMember = async (req, res) => {
                                       [referredId],
                                       (err, result) => {
                                         if (err) {
-                                          console.log(err, 3063);
+                                          console.log(err);
                                           return res.status(500).json({
                                             message: "Something went wrong",
                                           });
                                         } else {
-                                          // console.log(result[0],3069)
                                           const franchiseReferralId =
                                             result[0]?.referralId;
-                                          console.log(
-                                            franchiseReferralId,
-                                            3071
-                                          );
+                                         
                                           const franchiseAllDetails =
                                             "select * from create_franchise where referralId = ?";
                                           connection.query(
@@ -3213,14 +3164,9 @@ exports.adminVerifyMember = async (req, res) => {
                                                     "Something went to wrong",
                                                 });
                                               } else {
-                                                console.log(
-                                                  result[0].referredId,
-                                                  3078
-                                                );
+                                               
                                                 const franchiseReferredId =
                                                   result[0].referredId;
-                                                console.log(userid, 3080);
-                                                // console.log(first)
                                                 // const franchiseId = result[0].franchiseId
                                                 const updateUpgradeFranchise =
                                                   "update create_franchise SET referredId = ? where franchiseId = ?";
@@ -3682,7 +3628,6 @@ exports.partnerPerMonthPayout = async (req, res) => {
         }
 
         const member = result[0];
-        console.log(member, "member details");
       });
 
       const findPartner = "select * from mining_partner where p_refferal_id =?";
@@ -3693,7 +3638,6 @@ exports.partnerPerMonthPayout = async (req, res) => {
         }
 
         const refferredPartner = result[0];
-        console.log(refferredPartner, " reffered partner details");
       });
     });
   } catch (error) {

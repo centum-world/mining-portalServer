@@ -569,7 +569,6 @@ exports.businessDevFetchPartnerTeam = async (req, res) => {
     }
     // const foundMember = result;
     const memberReferredIds = result.map((entry) => entry.reffer_id);
-    console.log(memberReferredIds)
 
     const findPartnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
     connection.query(findPartnerQuery, [memberReferredIds], (err, partnerResult) => {
@@ -581,7 +580,6 @@ exports.businessDevFetchPartnerTeam = async (req, res) => {
       }
 
       const partnerDetails = partnerResult;
-      console.log(partnerDetails);
 
       return res.status(200).json({ message: "Partner details fetched", partnerDetails });
     });

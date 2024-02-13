@@ -154,7 +154,6 @@ exports.verifyFranchise = async (req, res) => {
                 });
               }
               if (result.length > 0) {
-                console.log("hii");
                 const fname = result[0].fname;
                 const lname = result[0].lname;
                 const phone = result[0].phone;
@@ -178,9 +177,7 @@ exports.verifyFranchise = async (req, res) => {
                 let userType = result[0]?.userType;
 
                 let target = result[0]?.target;
-                console.log(target);
                 if (target >= 2500000 && priority === 1) {
-                  console.log("hiii");
                   const updateFranchiseToBMM = `
                   INSERT INTO create_sho (fname, lname, phone, email, gender, password, stateHandlerId, selectedState,referredId, adhar_front_side,adhar_back_side, panCard, referralId,stateHandlerWallet,isVerify,isBlocked,priority,userType)
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -214,7 +211,6 @@ exports.verifyFranchise = async (req, res) => {
                           mesaage: "Internal Server Error",
                         });
                       } else {
-                        console.log("hiiii");
                         const updateFranchiseTable =
                           "UPDATE create_franchise SET priority = 0 , target = 0, isVerify = 0, franchiseWallet = 0 WHERE franchiseId = ?";
                         connection.query(
@@ -422,7 +418,6 @@ exports.updateFranchise = async (req, res) => {
     const cityList = franchiseCity.join(",");
 
     // Construct the SQL query to update the franchise
-    console.log(phone, 180);
     const updateFranchiseQuery =
       "UPDATE create_franchise SET fname=?, lname=?, email=?, phone=?, gender=?, franchiseState=?, franchiseCity=? WHERE franchiseId=?";
 
@@ -761,7 +756,6 @@ exports.fetchPartnerMyTeam = async (req, res) => {
       return res.status(404).json({ message: "BusinessDev not found" });
     }
     const businessReferredIds = result.map((entry) => entry.referralId);
-    // console.log(businessReferredIds)
 
     const findMemberQuery =
       "SELECT * FROM create_member WHERE m_refferid IN (?)";

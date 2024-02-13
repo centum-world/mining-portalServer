@@ -258,7 +258,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
       let login_counter = results[0].login_counter;
       let status = results[0].partner_status;
       //let partner_count = results[0].partner_count;
-      // console.log(partner_count, '157');
       login_counter = login_counter + 1;
 
       updatequery =
@@ -280,10 +279,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
           }
         }
       );
-
-      //console.log(partner_wallet, liquidity, status, partner_count,'161------');
-      //
-      console.log("hiiiiii 228");
 
       if (status) {
         let selectquery =
@@ -312,10 +307,8 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
               selectquery,
               [partnerid.p_userid],
               (err, results) => {
-                // console.log("1")
                 try {
                   if (!err) {
-                    // console.log("2")
                     let liquidity = results[0].p_liquidity;
                     let partner_wallet = results[0].partner_wallet;
                     let status = results[0].partner_status;
@@ -327,19 +320,15 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                     let request_date = new Date();
 
                     if (status) {
-                      // console.log("3")
                       if (partner_count === 5 || partner_count > 5) {
-                        // console.log("4")
                         let insertquery =
                           "insert into partner_withdrawal (partner_wallet,request_date,p_userid) values (?,?,?)";
                         connection.query(
                           insertquery,
                           [partner_wallet, request_date, partnerid.p_userid],
                           (err, results) => {
-                            // console.log("query executed");
 
                             if (!err) {
-                              // console.log("5")
                               month_count = month_count + 1;
                               let updatequery =
                                 "update mining_partner set partner_wallet =?, partner_count=?,month_count=? where p_userid = ?";
@@ -369,9 +358,7 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                                 }
                               );
 
-                              console.log(table_flag);
                             } else {
-                              // console.log("6")
                               return res.status(500).json({
                                 message: "Internal Server Error",
                               });
@@ -381,8 +368,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                       } /// 30 days condition
 
                       if (month_count === 11 || month_count > 11) {
-                        // console.log("7")
-                        // console.log('Your Plan Has Been expired---------');
                         let updatequery =
                           "update mining_partner set partner_status= ? where p_userid = ?";
                         connection.query(
@@ -391,12 +376,10 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                           (err, results) => {
                             try {
                               if (!err) {
-                                // console.log("8")
                                 return res.status(400).json({
                                   message: "Your Plan has been expired ",
                                 });
                               } else {
-                                // console.log("9")
                                 return res.status(400).json({
                                   message: "Something Went wrong",
                                 });
@@ -415,15 +398,12 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                         [partnerid.p_userid],
                         (err, results) => {
                           try {
-                            // console.log("10")
                             if (!err) {
-                              // console.log("11")
 
                               let month_count = results[0].month_count;
                               let p_phone = results[0].p_phone;
 
                               if (month_count < 11) {
-                                // console.log("12")
                                 let wallet_update_date = new Date();
 
                                 let perday_partner_wallet_amount = walletAmount;
@@ -441,7 +421,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                                   (err, results) => {
                                     try {
                                       if (!err) {
-                                        // console.log("13")
                                         let insertquery =
                                           "insert into partner_wallet_history (walletAmount,wallet_update_date,p_userid) values (?,?,?)";
                                         connection.query(
@@ -452,22 +431,15 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                                             partnerid.p_userid,
                                           ],
                                           (err, results) => {
-                                            console.log(
-                                              "289",
-                                              partnerid,
-                                              new Date()
-                                            );
+                                          
                                             try {
                                               if (!err) {
-                                                console.log(p_phone, "369");
                                                 // walletSms(p_phone, { "type": 'Partner', "userid": partnerid.p_userid, "amount": walletAmount })
 
-                                                // console.log("14")
                                                 // return res.status(200).json({
                                                 //     message: "Partner Wallet Added successfully"
                                                 // });
                                               } else {
-                                                // console.log("15")
                                                 // return res.status(500).json(err);
                                               }
                                             } catch (error) {}
@@ -493,10 +465,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                         }
                       );
 
-                      console.log("print", "441");
-
-                      //  check refferd flag
-                      // console.log("16")
                       let selectquery =
                         "select p_reffered_id from mining_partner where p_userid= ?";
                       connection.query(
@@ -504,13 +472,11 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                         [partnerid.p_userid],
                         (err, results) => {
                           if (!err) {
-                            // console.log("17")
-                            //console.log(results[0].p_reffered_id,'partner');
+                       
 
                             if (results[0]?.p_reffered_id != "") {
                               reffered_id = results[0]?.p_reffered_id;
-                              // console.log("18")
-                              //console.log(reffered_id,'member');
+                          
                               let selectquery =
                                 "select id from mining_partner where p_refferal_id= ?";
                               connection.query(
@@ -522,12 +488,9 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                                       table_flag = "mining_partner";
                                     }
 
-                                    // console.log(table_flag, '68')
                                   }
                                 }
                               );
-                              // reffered_id = results[0].p_reffered_id;
-                              console.log(table_flag, "438");
                               if (table_flag === "") {
                                 let selectquery =
                                   "select id from create_member where reffer_id= ?";
@@ -547,7 +510,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                           }
                         }
                       );
-                      console.log(table_flag);
 
                       // closing of check reffer flag
 
@@ -569,7 +531,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                       //                     let walletAmount = 5;
                       //                     partner_count = partner_count + 1;
                       //                     partner_wallet = partner_wallet + walletAmount;
-                      //                     //console.log(partner_wallet);
                       //                     let wallet_update_date = new Date();
 
                       //                     let updatequery = "update mining_partner set partner_wallet=?,wallet_update_date=?,partner_count=? where p_refferal_id =?"
@@ -666,7 +627,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
 
                       // }
                       if (table_flag === "create_member") {
-                        // console.log("155555")
                         let selectquery =
                           "select m_userid,member_wallet,member_count,added_wallet,m_phone from create_member where reffer_id = ?";
                         connection.query(
@@ -692,24 +652,17 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                                   // }
                                 }
                               );
-                              //console.log(typeof Number(activePartnerCount),'549');
+                           
                               let added_wallet = results[0].added_wallet;
                               let member_wallet = results[0].member_wallet;
                               let member_count = results[0].member_count;
                               let m_userid = results[0].m_userid;
                               let memberPhone = results[0].m_phone;
 
-                              console.log(
-                                member_wallet,
-                                member_count,
-                                m_userid,
-                                memberPhone,
-                                "605"
-                              );
+                          
                               let walletAmount = 5;
                               added_wallet =
                                 added_wallet + 5 * activePartnerCount;
-                              console.log(member_wallet, "557");
                               member_wallet = member_wallet + 5;
                               member_count = member_count + 1;
                               let wallet_update_date = new Date();
@@ -810,7 +763,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                       }
                     }
                     // else {
-                    //     console.log('681');
                     //     return res.status(400).json({
 
                     //         message: "Your Plan has been expired"
@@ -856,7 +808,6 @@ exports.fetchMiningPartnerTotalWallet = (req, res) => {
           if (!err) {
             refferWalletAmount = results[0].addedWalletOfRefferal;
             let TotalWalletOfPartner = firstWalletAmount + refferWalletAmount;
-            //console.log(TotalWalletOfPartner, '730');
 
             return res.status(200).json({
               message: "Sum of Partner Total Wallet Fetched",
@@ -930,7 +881,6 @@ exports.fetchSumOfPartnerAllWithdrawal = (req, res) => {
         (err, results) => {
           if (!err) {
             myRefferalWithdrawalAmount = results[0]?.sumOfPartnerWalletReffer;
-            //console.log(myRefferalWithdrawalAmount,'797');
             let totalWithdrawalOfPartner =
               myWithdrawalAmount + myRefferalWithdrawalAmount;
 
@@ -1020,7 +970,6 @@ exports.partnerForgetPassword = (req, res) => {
 
 exports.verifyOtpPartner = (req, res) => {
   const partnerId = req.body;
-  //console.log(partnerId.p_userid, partnerId.otp);
   if (!partnerId.p_userid || !partnerId.otp) {
     return res.status(400).json({ message: "Field Missing" });
   }
@@ -1067,7 +1016,6 @@ exports.partnerRegeneratePassword = (req, res) => {
         throw err;
       }
       hash = result;
-      //console.log(hash);
 
       updatequery =
         "update mining_partner set p_password = ? where p_userid = ?";
@@ -1120,7 +1068,6 @@ exports.isPartnerActiveFromPartner = (req, res) => {
     try {
       if (!err) {
         // let approve_date = results[0]?.approve_date;
-        // console.log(approve_date);
         return res.status(200).json({
           message: "Fetched Partner Status Successfully ",
           data: results,
@@ -1188,7 +1135,6 @@ exports.helpAndSupport = (req, res) => {
   const partnerId = req.body;
   let query = req.body.query;
   let p_userid = req.body.p_userid;
-  console.log(query, p_userid);
   let queryDate = new Date();
   let helpAndSupportQuery =
     "insert into help_and_support (query,query_date,p_userid) values(?,?,?) ";
@@ -1294,15 +1240,12 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
   let query = "select * from partner_reffer_withdrawal where id = ? ";
   connection.query(query, [partnerId.id], (err, results) => {
     if (!err) {
-      //console.log(res);
-      console.log(results, 1301);
 
       let partner_wallet = results[0]?.partner_wallet;
       let id = results[0]?.id;
       let request_date = results[0]?.request_date;
       let reffer_p_userid = results[0]?.reffer_p_userid;
       let p_userid = results[0]?.p_userid;
-      console.log(p_userid, 1308);
       let approve_date = new Date();
       let insertquery =
         "insert into partner_reffer_withdrawal_history (partner_wallet,request_date,approve_date,reffer_p_userid,p_userid) values (?,?,?,?,?)";
@@ -1316,7 +1259,6 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
           p_userid,
         ],
         (err, results) => {
-          console.log(p_userid);
           try {
             if (!err) {
               let selectquery =
@@ -1329,7 +1271,6 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
                     if (!err) {
                       partnerEmail = results[0]?.p_email;
                       partnerPhone = results[0]?.p_phone;
-                      console.log(partnerPhone, "270");
                       email(partnerEmail, { withdrawalAmount: partner_wallet });
                     } else {
                       console.error(err); // Add console error log here
@@ -1343,12 +1284,10 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
                   }
                 }
               );
-              console.log(id)
               let deletequery =
                 "delete from partner_reffer_withdrawal where id = ?";
               connection.query(deletequery, [id], (err, results) => {
                 if (!err) {
-                  console.log('hello, 1347')
                   return res.status(200).json({
                     message: " Partner Reffer Withdrwal Request Approved",
                   });

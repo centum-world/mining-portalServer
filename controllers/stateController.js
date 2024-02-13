@@ -458,7 +458,7 @@ exports.verifySho = async (req, res) => {
                     [userid],
                     (err, result) => {
                       if (err) {
-                        console.log(err,437);
+                        console.log(err);
                         return res
                           .status(500)
                           .json({ message: "Internal Server error" });
@@ -471,7 +471,7 @@ exports.verifySho = async (req, res) => {
                             [wallet, userid],
                             (err, result) => {
                               if (err) {
-                                console.log(err,450);
+                                console.log(err);
                                 return res.status(500).json({
                                   message: "Something went wrong",
                                 });
@@ -484,7 +484,7 @@ exports.verifySho = async (req, res) => {
                                   [userid],
                                   (err, result) => {
                                     if (err) {
-                                      console.log(err,462);
+                                      console.log(err);
                                       return res.status(500).json({
                                         message: "Internal Server error",
                                       });
@@ -522,7 +522,7 @@ exports.verifySho = async (req, res) => {
                             ],
                             (err, result) => {
                               if (err) {
-                                console.log(err,500);
+                                console.log(err);
                                 return res
                                   .status(500)
                                   .json({ message: "Something went wrong" });
@@ -534,7 +534,7 @@ exports.verifySho = async (req, res) => {
                                   [userid],
                                   (err, result) => {
                                     if (err) {
-                                      console.log(err,512);
+                                      console.log(err);
                                       return res.status(500).json({
                                         message: "Internal Server error",
                                       });
@@ -805,7 +805,6 @@ exports.statePartnerMyTeam = async (req, res) => {
       return res.status(404).json({ message: "Franchise not found" });
     }
     const franchiseReferredIds = result.map((entry) => entry.referralId);
-    // console.log(businessReferredIds)
 
     const findBdQuery = "SELECT * FROM create_bd WHERE referredId IN (?)";
     connection.query(findBdQuery, [franchiseReferredIds], (err, bdResult) => {

@@ -3,8 +3,7 @@ require("dotenv").config();
 
 exports.checkAuth = async (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
-  //const token1 = token.split(" ")[1];
-  //console.log(token);
+ 
   if (!token) {
     return res.status(403).json({ message: "Unauthorized" });
   }
