@@ -123,12 +123,14 @@ exports.verifyFranchise = async (req, res) => {
       return res.status(400).json({ message: "Invalid 'isVerify' value" });
     }
 
+    let verifyDate = new Date()
+    console.log(verifyDate,'127')
     const upadteFranchiseQuery =
-      "UPDATE create_franchise SET isVerify =? WHERE franchiseId = ?";
+      "UPDATE create_franchise SET isVerify =?, verifyDate = ? WHERE franchiseId = ?";
 
     connection.query(
       upadteFranchiseQuery,
-      [isVerify, franchiseId],
+      [isVerify, verifyDate, franchiseId],
       (error, result) => {
         if (error) {
           console.error("Error updating franchises:", error);

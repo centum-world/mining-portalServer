@@ -375,12 +375,13 @@ exports.verifySho = async (req, res) => {
       return res.status(400).json({ message: "Invalid 'isVerify' value" });
     }
 
+    let verifyDate = new Date()
     const upadteShoQuery =
-      "UPDATE create_sho SET isVerify =? WHERE stateHandlerId = ?";
+      "UPDATE create_sho SET isVerify =?, verifyDate = ? WHERE stateHandlerId = ?";
 
     connection.query(
       upadteShoQuery,
-      [isVerify, stateHandlerId],
+      [isVerify,verifyDate, stateHandlerId],
       (error, result) => {
         if (error) {
           console.error("Error updating sho:", error);
