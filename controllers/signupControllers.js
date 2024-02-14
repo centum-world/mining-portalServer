@@ -1039,7 +1039,7 @@ exports.createBd = async (req, res) => {
 
 exports.createMultipleRig = async (req, res) => {
   try {
-    const { fname, lname, dob, doj, userId,liquidity } = req.body;
+    const { fname, lname, dob, doj, userId,liquidity ,adharNumber} = req.body;
     const { adhar_front_side, adhar_back_side, panCard } = req.files;
 
     // Check if required files are present
@@ -1143,8 +1143,8 @@ exports.createMultipleRig = async (req, res) => {
     // Insert rig data into the database
     const insertQuery = `
     INSERT INTO multiple_rig_partner
-    (rigId, fname, lname, dob,doj,userId, adhar_front_side, adhar_back_side, panCard, liquidity ) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (rigId, fname, lname, dob,doj,userId, adhar_front_side, adhar_back_side, panCard, liquidity , adharNumber) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     
     `;
 
@@ -1161,6 +1161,7 @@ exports.createMultipleRig = async (req, res) => {
         adharBackSideLocation,
         panCardLocation,
         liquidity,
+        adharNumber
       ]);
 
     res.status(200).json({ message: "Rig data inserted successfully." });
