@@ -998,8 +998,8 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                       let franchiseWallet = franchise.franchiseWallet;
                       const franchiseid = franchise.franchiseId;
                       const userType = franchise.userType;
-                      const amount = (liquidity * 5) / 100;
-                      franchiseWallet += (liquidity * 5) / 100;
+                      const amount = (liquidity*82 * 5) / 100;
+                      franchiseWallet += amount;
                       const date = new Date();
 
                       const updateFranchiseWalletquery =
@@ -1054,10 +1054,10 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                             let stateHandlerWallet = bmm.stateHandlerWallet;
                             const bmmId = bmm.stateHandlerId;
                             const userType = bmm.userType;
-                            const amount = (liquidity * 5) / 100;
+                            const amount = (liquidity *82* 5) / 100;
                             const date = new Date();
 
-                            stateHandlerWallet += (liquidity * 5) / 100;
+                            stateHandlerWallet += amount;
 
                             const updateBmmWalletQuery =
                               "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
@@ -1123,7 +1123,7 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
 
                       let franchiseWallet = franchise.franchiseWallet;
                       const franchiseid = franchise.franchiseId;
-                      const amount = (liquidity * 5) / 100;
+                      // const amount = (liquidity * 5) / 100;
                       let target = franchise.target;
                       const userType = franchise.userType;
                       const afterGstLiquidity = (liquidity * 18) / 100;
@@ -1187,10 +1187,10 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
 
                             let bmmWallet = bmm.stateHandlerWallet;
                             const bmmId = bmm.stateHandlerId;
-                            const amount = (liquidity * 5) / 100;
+                            const amount = (liquidity *82* 5) / 100;
                             const date = new Date();
                             const userType = bmm.userType;
-                            bmmWallet += (liquidity * 5) / 100;
+                            bmmWallet += amount;
 
                             const updateBmmWalletQuery =
                               "update create_sho set stateHandlerWallet =? where referralId =?";

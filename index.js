@@ -5,9 +5,12 @@ var cors = require("cors");
 const bodyParser = require("body-parser");
 //const cron =require('node-cron');
 const connection = require("./config/database");
+
 const adminRoute = require("./routes/admin");
 const memberRoute = require("./routes/create-member");
 const miningpartnerRoute = require("./routes/create-mining-partner");
+
+const createMultipleRig = require("./routes/create-multiple-rig")
 
 const queryResolve = require('./routes/queryResolve')
 const fetchBond = require('./routes/fetchBond')
@@ -279,6 +282,7 @@ app.use("/admin", fetchMiningPartnerProfileDetailsFromAdmin);
 app.use("/admin", updateMiningPartnerProfileDetailsFromAdmin);
 app.use("/signup", memberSignup);
 app.use("/signup", partnerSignup);
+app.use("/signup", createMultipleRig)
 app.use("/mining", perdayPartnerWalletAmount);
 app.use("/admin", fetchAllPendingPartnerOnly);
 app.use("/member", forgetPasswordMember);

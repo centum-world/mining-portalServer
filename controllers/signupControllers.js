@@ -401,13 +401,30 @@ exports.partnerSignup = async (req, res) => {
     const firstCharf = p_name.charAt(0).toUpperCase();
     const firstCharl = p_lname.charAt(0).toUpperCase();
     const p_refferal_id = firstCharf + firstCharl + lastReferralId;
+
+    const lastRigIdQuery =
+      "SELECT rigId FROM mining_partner ORDER BY id DESC LIMIT 1";
+
+    const [lastRigIdResult] = await connection.promise().query(lastRigIdQuery);
+
+    let lastRigId = "0626";
+    if (lastRigIdResult.length > 0) {
+      lastRigId = lastRigIdResult[0].rigId.slice(-4);
+      console.log(lastRigId, 413);
+      const lastRigIdInNumber = Number(lastRigId);
+      console.log(lastRigIdInNumber, 414);
+      lastRigId = (lastRigIdInNumber + 1).toString().padStart(4, "0");
+      console.log(lastRigId, 417);
+    }
+
+    const rigId = firstCharf + firstCharl + lastRigId;
     // Insert partner data into the database
     const insertQuery = `
       INSERT INTO mining_partner 
       (p_refferal_id,p_reffered_id, p_name, p_lname, p_aadhar, p_phone, p_email, p_address, p_state, 
       p_dob, p_nominee_name, p_nominee_aadhar, p_nominee_phone, p_dop, p_liquidity, terms, 
-      p_userid, p_password, adhar_front_side, adhar_back_side, panCard) 
-      VALUES (?, ?, ?, ?, ?,?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      p_userid, p_password, adhar_front_side, adhar_back_side, panCard, rigId) 
+      VALUES (?, ?, ?, ?, ?,?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await connection
@@ -434,6 +451,7 @@ exports.partnerSignup = async (req, res) => {
         adharFrontSideLocation,
         adharBackSideLocation,
         panCardLocation,
+        rigId,
       ]);
 
     res.status(200).json({ message: "Partner data inserted successfully." });
@@ -1016,5 +1034,138 @@ exports.createBd = async (req, res) => {
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.createMultipleRig = async (req, res) => {
+  try {
+    const { fname, lname, dob, doj, userId,liquidity } = req.body;
+    const { adhar_front_side, adhar_back_side, panCard } = req.files;
+
+    // Check if required files are present
+    if (!adhar_front_side || !adhar_back_side || !panCard) {
+      return res.status(400).json({ message: "Required files are missing." });
+    }
+
+    const adharFrontSideFile = adhar_front_side[0];
+    const adharBackSideFile = adhar_back_side[0];
+    const panCardFile = panCard[0];
+
+    const adharFrontSideLocation = adharFrontSideFile.location;
+    const adharBackSideLocation = adharBackSideFile.location;
+    const panCardLocation = panCardFile.location;
+
+    // Check if the userId has reached the limit of 9 accounts
+    const userIdLimitQuery =
+      "SELECT COUNT(*) as count FROM multiple_rig_partner WHERE userId = ?";
+
+    const [userIdLimitResult] = await connection
+      .promise()
+      .query(userIdLimitQuery, [userId]);
+
+    const accountCount = userIdLimitResult[0].count;
+
+    if (accountCount >= 19) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "You cannot create more than 10 accounts with the same userId.",
+        });
+    }
+
+    // Find the last rigId from the mining_partner table
+    const findRigIdQuery =
+      "SELECT rigId FROM mining_partner ORDER BY id DESC LIMIT 1";
+    const [findRigIdResult] = await connection.promise().query(findRigIdQuery);
+
+    // if i get findrigidResulr 0627 then rig id will be 1627 next 2627 next 3627
+    const rigIdQuery =
+      "SELECT rigId FROM multiple_rig_partner WHERE userId = ?";
+    const [rigIdResult] = await connection
+      .promise()
+      .query(rigIdQuery, [userId]);
+    console.log(rigIdResult);
+
+    let finalastFourCharRigId;
+
+    if (rigIdResult.length > 0) {
+      //when i am creating 2nd raw then go to this conditon
+
+      // let lastRigId = rigIdResult[0].rigId
+      let lastRigId = rigIdResult[rigIdResult.length - 1].rigId;
+
+      console.log(lastRigId, 1090);
+      const lastFourChars = lastRigId.slice(-4);
+
+      const lastRigIdInNumber = Number(lastFourChars);
+
+      lastRigId = lastRigIdInNumber.toString().padStart(4, "0"); // but i want here 1628
+
+      console.log(lastRigId, 1096);
+
+      let firstCharRigId = lastRigId[0];
+      console.log(firstCharRigId, 1099);
+      let lastThreeCharRigId = lastRigId.slice(-3);
+      firstCharRigId = String(Number(firstCharRigId) + 1);
+
+      finalastFourCharRigId = firstCharRigId + lastThreeCharRigId;
+    } else if (findRigIdResult.length > 0) {
+      // when i am creating first raw in multplerig table then go to this condition
+      let lastRigId = findRigIdResult[0].rigId;
+      const lastFourChars = lastRigId.slice(-4);
+      console.log(lastFourChars, 1083);
+
+      const lastRigIdInNumber = Number(lastFourChars);
+      console.log(lastRigIdInNumber, 1084); // 628
+
+      lastRigId = lastRigIdInNumber.toString().padStart(4, "0"); // but i want here 1628
+
+      console.log(lastRigId, 1090);
+      let firstCharRigId = lastRigId[0];
+      let lastThreeCharRigId = lastRigId.slice(-3);
+
+      console.log(firstCharRigId, 1127);
+      console.log(lastThreeCharRigId, 1128);
+
+      firstCharRigId = Number(firstCharRigId) + 1;
+      console.log(firstCharRigId, 1132);
+
+      finalastFourCharRigId = firstCharRigId + lastThreeCharRigId;
+      console.log(finalastFourCharRigId, 1135);
+    }
+
+    const firstCharf = fname.charAt(0).toUpperCase();
+    const firstCharl = lname.charAt(0).toUpperCase();
+
+    const rigId = firstCharf + firstCharl + finalastFourCharRigId;
+
+    // Insert rig data into the database
+    const insertQuery = `
+    INSERT INTO multiple_rig_partner
+    (rigId, fname, lname, dob,doj,userId, adhar_front_side, adhar_back_side, panCard, liquidity ) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    
+    `;
+
+    await connection
+      .promise()
+      .query(insertQuery, [
+        rigId,
+        fname,
+        lname,
+        dob,
+        doj,
+        userId,
+        adharFrontSideLocation,
+        adharBackSideLocation,
+        panCardLocation,
+        liquidity,
+      ]);
+
+    res.status(200).json({ message: "Rig data inserted successfully." });
+  } catch (error) {
+    console.error("Internal server error:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
