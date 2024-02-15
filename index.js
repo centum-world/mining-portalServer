@@ -11,6 +11,7 @@ const memberRoute = require("./routes/create-member");
 const miningpartnerRoute = require("./routes/create-mining-partner");
 
 const createMultipleRig = require("./routes/create-multiple-rig")
+const fetchPartnerAndMultipleRig = require("./routes/fetch-partner-and-multiple-rig")
 
 const queryResolve = require('./routes/queryResolve')
 const fetchBond = require('./routes/fetchBond')
@@ -340,6 +341,8 @@ app.use("/mining", fetchPartnerByReferralIdOfPartner)
 app.use('/mining', fetchPartnerReferWithdrawl)
 app.use('/admin', transferPartnerWithdrawlToWithdrawlHistory)
 app.use('/admin', fetchPartnerReferWithdrawlHistory)
+
+app.use("/mining", fetchPartnerAndMultipleRig)
 
 // --------------------------admin-------------------//
 app.use("/admin", fetchQuery)

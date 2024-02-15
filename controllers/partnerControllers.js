@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const forgetpasswordSms = require("../utils/forget-password-otp");
 const sms = require("../utils/successfull-add-sms");
-const email = require("../utils/withdrawal-email")
+const email = require("../utils/withdrawal-email");
 const walletSms = require("../utils/wallet-amount-sms");
 const memberWalletSms = require("../utils/member-wallet-amount-sms");
 const {
@@ -66,7 +66,7 @@ exports.miningPartnerLogin = (req, res) => {
                 role: "partner",
               };
               const accessToken = jwt.sign(response, process.env.ACCESS_TOKEN, {
-                expiresIn:28800,
+                expiresIn: 28800,
               });
               res.status(200).json({
                 token: accessToken,
@@ -327,7 +327,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                           insertquery,
                           [partner_wallet, request_date, partnerid.p_userid],
                           (err, results) => {
-
                             if (!err) {
                               month_count = month_count + 1;
                               let updatequery =
@@ -357,7 +356,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                                   }
                                 }
                               );
-
                             } else {
                               return res.status(500).json({
                                 message: "Internal Server Error",
@@ -399,7 +397,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                         (err, results) => {
                           try {
                             if (!err) {
-
                               let month_count = results[0].month_count;
                               let p_phone = results[0].p_phone;
 
@@ -431,11 +428,9 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                                             partnerid.p_userid,
                                           ],
                                           (err, results) => {
-                                          
                                             try {
                                               if (!err) {
                                                 // walletSms(p_phone, { "type": 'Partner', "userid": partnerid.p_userid, "amount": walletAmount })
-
                                                 // return res.status(200).json({
                                                 //     message: "Partner Wallet Added successfully"
                                                 // });
@@ -472,11 +467,9 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                         [partnerid.p_userid],
                         (err, results) => {
                           if (!err) {
-                       
-
                             if (results[0]?.p_reffered_id != "") {
                               reffered_id = results[0]?.p_reffered_id;
-                          
+
                               let selectquery =
                                 "select id from mining_partner where p_refferal_id= ?";
                               connection.query(
@@ -487,7 +480,6 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                                     if (results[0]?.id) {
                                       table_flag = "mining_partner";
                                     }
-
                                   }
                                 }
                               );
@@ -652,14 +644,13 @@ exports.fetchPartnerWalletDetails = (req, res, next) => {
                                   // }
                                 }
                               );
-                           
+
                               let added_wallet = results[0].added_wallet;
                               let member_wallet = results[0].member_wallet;
                               let member_count = results[0].member_count;
                               let m_userid = results[0].m_userid;
                               let memberPhone = results[0].m_phone;
 
-                          
                               let walletAmount = 5;
                               added_wallet =
                                 added_wallet + 5 * activePartnerCount;
@@ -1240,7 +1231,6 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
   let query = "select * from partner_reffer_withdrawal where id = ? ";
   connection.query(query, [partnerId.id], (err, results) => {
     if (!err) {
-
       let partner_wallet = results[0]?.partner_wallet;
       let id = results[0]?.id;
       let request_date = results[0]?.request_date;
@@ -1251,39 +1241,29 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
         "insert into partner_reffer_withdrawal_history (partner_wallet,request_date,approve_date,reffer_p_userid,p_userid) values (?,?,?,?,?)";
       connection.query(
         insertquery,
-        [
-          partner_wallet,
-          request_date,
-          approve_date,
-          reffer_p_userid,
-          p_userid,
-        ],
+        [partner_wallet, request_date, approve_date, reffer_p_userid, p_userid],
         (err, results) => {
           try {
             if (!err) {
               let selectquery =
                 "select p_email,p_phone from mining_partner where p_userid = ?";
-              connection.query(
-                selectquery,
-                [p_userid],
-                (err, results) => {
-                  try {
-                    if (!err) {
-                      partnerEmail = results[0]?.p_email;
-                      partnerPhone = results[0]?.p_phone;
-                      email(partnerEmail, { withdrawalAmount: partner_wallet });
-                    } else {
-                      console.error(err); // Add console error log here
-                      return res.status(500).json({
-                        message: "Something Went Wrong",
-                      });
-                    }
-                  } catch (error) {
-                    console.error(error); // Add console error log here
-                    return res.status(500).json(error);
+              connection.query(selectquery, [p_userid], (err, results) => {
+                try {
+                  if (!err) {
+                    partnerEmail = results[0]?.p_email;
+                    partnerPhone = results[0]?.p_phone;
+                    email(partnerEmail, { withdrawalAmount: partner_wallet });
+                  } else {
+                    console.error(err); // Add console error log here
+                    return res.status(500).json({
+                      message: "Something Went Wrong",
+                    });
                   }
+                } catch (error) {
+                  console.error(error); // Add console error log here
+                  return res.status(500).json(error);
                 }
-              );
+              });
               let deletequery =
                 "delete from partner_reffer_withdrawal where id = ?";
               connection.query(deletequery, [id], (err, results) => {
@@ -1317,7 +1297,6 @@ exports.transferPartnerWithdrawlToWithdrawlHistory = async (req, res) => {
   });
 };
 
-
 exports.fetchPartnerReferWithdrawlHistory = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -1346,5 +1325,35 @@ exports.fetchPartnerReferWithdrawlHistory = async (req, res) => {
   }
 };
 
+exports.fetchPartnerAndMultipleRig = async (req, res) => {
+  try {
+    const { userId } = req.body;
 
+    const [result1] = await connection
+      .promise()
+      .query("select * from mining_partner where p_userid =?", [userId]);
 
+    // if (result1.length === 0) {
+    //   return res.status(404).json({ message: "Partner data not found" });
+    // }
+
+    const [result2] = await connection
+      .promise()
+      .query("select * from multiple_rig_partner where userId =?", [userId]);
+    // if (result2.length === 0) {
+    //   return res
+    //     .status(404)
+    //     .json({ message: "Multiple RIG Partner data not found" });
+    // }
+
+    const results = result1.concat(result2);
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "data not found" });
+    }
+    res.status(200).json({ success: true, data: results });
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+};
