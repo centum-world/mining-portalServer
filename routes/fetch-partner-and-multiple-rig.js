@@ -4,5 +4,5 @@ const { isAuthenticated, authorizeRole } = require('../middleware/checkAuth');
 const router = express.Router();
 
 
-router.post('/fetch-partner-and-multiple-rig',isAuthenticated,authorizeRole(["partner"]),fetchPartnerAndMultipleRig);
+router.post('/fetch-partner-and-multiple-rig',isAuthenticated,authorizeRole(["partner", "admin"]),fetchPartnerAndMultipleRig);
 module.exports = router;
