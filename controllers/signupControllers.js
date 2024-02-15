@@ -1039,8 +1039,16 @@ exports.createBd = async (req, res) => {
 
 exports.createMultipleRig = async (req, res) => {
   try {
-    const { fname, lname, dob, userId,liquidity ,adharNumber} = req.body;
+    const { fname, lname, dob, userId, liquidity, adharNumber } = req.body;
     const { adhar_front_side, adhar_back_side, panCard } = req.files;
+
+    if (userId && liquidity) {
+      const [partnerResult] = await connection
+        .promise()
+        .query("select * from mining_partner where p_userid= ?", [userId]);
+
+        return res.json({partnerResult})
+    }
 
     // Check if required files are present
     if (!adhar_front_side || !adhar_back_side || !panCard) {
@@ -1065,13 +1073,11 @@ exports.createMultipleRig = async (req, res) => {
 
     const accountCount = userIdLimitResult[0].count;
 
-    if (accountCount >= 19) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "You cannot create more than 10 accounts with the same userId.",
-        });
+    if (accountCount >= 9) {
+      return res.status(400).json({
+        message:
+          "You cannot create more than 10 accounts with the same userId.",
+      });
     }
 
     // Find the last rigId from the mining_partner table
@@ -1085,14 +1091,12 @@ exports.createMultipleRig = async (req, res) => {
     const [rigIdResult] = await connection
       .promise()
       .query(rigIdQuery, [userId]);
-    console.log(rigIdResult);
 
     let finalastFourCharRigId;
 
     if (rigIdResult.length > 0) {
       //when i am creating 2nd raw then go to this conditon
 
-      // let lastRigId = rigIdResult[0].rigId
       let lastRigId = rigIdResult[rigIdResult.length - 1].rigId;
 
       console.log(lastRigId, 1090);
@@ -1100,12 +1104,9 @@ exports.createMultipleRig = async (req, res) => {
 
       const lastRigIdInNumber = Number(lastFourChars);
 
-      lastRigId = lastRigIdInNumber.toString().padStart(4, "0"); // but i want here 1628
-
-      console.log(lastRigId, 1096);
+      lastRigId = lastRigIdInNumber.toString().padStart(4, "0");
 
       let firstCharRigId = lastRigId[0];
-      console.log(firstCharRigId, 1099);
       let lastThreeCharRigId = lastRigId.slice(-3);
       firstCharRigId = String(Number(firstCharRigId) + 1);
 
@@ -1148,21 +1149,19 @@ exports.createMultipleRig = async (req, res) => {
     
     `;
 
-    await connection
-      .promise()
-      .query(insertQuery, [
-        rigId,
-        fname,
-        lname,
-        dob,
-        // doj,
-        userId,
-        adharFrontSideLocation,
-        adharBackSideLocation,
-        panCardLocation,
-        liquidity,
-        adharNumber
-      ]);
+    await connection.promise().query(insertQuery, [
+      rigId,
+      fname,
+      lname,
+      dob,
+      // doj,
+      userId,
+      adharFrontSideLocation,
+      adharBackSideLocation,
+      panCardLocation,
+      liquidity,
+      adharNumber,
+    ]);
 
     res.status(200).json({ message: "Rig data inserted successfully." });
   } catch (error) {
@@ -1170,5 +1169,3 @@ exports.createMultipleRig = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
