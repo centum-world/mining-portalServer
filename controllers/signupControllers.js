@@ -1298,7 +1298,7 @@ exports.createMultipleRig = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Multiple partner inserted successfully." });
+      .json({ message: "New RIG Account created successfully." });
   } catch (error) {
     console.error("Internal server error:", error);
     res.status(500).json({ message: "Internal server error" });
