@@ -5,5 +5,5 @@ const router = express.Router();
 const checkAuthMiddleware = require('../middleware/checkAuth');
 const { fetchBond } = require('../controllers/adminControllers');
 
-router.get('/fetch-bond',checkAuthMiddleware.isAuthenticated, checkAuthMiddleware.authorizeRole(["admin", "partner"]),fetchBond);
+router.post('/fetch-bond',checkAuthMiddleware.isAuthenticated, checkAuthMiddleware.authorizeRole(["admin", "partner"]),fetchBond);
 module.exports = router;
