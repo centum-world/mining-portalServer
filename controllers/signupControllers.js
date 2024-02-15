@@ -1039,29 +1039,26 @@ exports.createBd = async (req, res) => {
 
 exports.createMultipleRig = async (req, res) => {
   try {
-    const { fname, lname, dob, userId, liquidity, adharNumber } = req.body;
-    const { adhar_front_side, adhar_back_side, panCard } = req.files;
+    const { fname, lname, dob, userId, liquidity, adharNumber, phone } =
+      req.body;
 
-    if (userId && liquidity) {
-      const [partnerResult] = await connection
-        .promise()
-        .query("select * from mining_partner where p_userid= ?", [userId]);
+    console.log(phone);
 
-        return res.json({partnerResult})
+    const partnerQuery =
+      "SELECT p_phone FROM mining_partner WHERE p_userid = ?";
+    const [existingPartner] = await connection
+      .promise()
+      .query(partnerQuery, [userId]);
+
+    const existingPhone = existingPartner[0].p_phone;
+    console.log(existingPhone, 1053);
+
+    if (existingPhone != phone) {
+      return res.status(400).json({
+        message:
+          "!Mismatched phone number. Use the same as in partner registration.",
+      });
     }
-
-    // Check if required files are present
-    if (!adhar_front_side || !adhar_back_side || !panCard) {
-      return res.status(400).json({ message: "Required files are missing." });
-    }
-
-    const adharFrontSideFile = adhar_front_side[0];
-    const adharBackSideFile = adhar_back_side[0];
-    const panCardFile = panCard[0];
-
-    const adharFrontSideLocation = adharFrontSideFile.location;
-    const adharBackSideLocation = adharBackSideFile.location;
-    const panCardLocation = panCardFile.location;
 
     // Check if the userId has reached the limit of 9 accounts
     const userIdLimitQuery =
@@ -1080,88 +1077,205 @@ exports.createMultipleRig = async (req, res) => {
       });
     }
 
-    // Find the last rigId from the mining_partner table
-    const findRigIdQuery =
-      "SELECT rigId FROM mining_partner ORDER BY id DESC LIMIT 1";
-    const [findRigIdResult] = await connection.promise().query(findRigIdQuery);
+    if (userId && liquidity) {
+      console.log(" first condition");
+      const [partnerResult] = await connection
+        .promise()
+        .query("select * from mining_partner where p_userid= ?", [userId]);
 
-    // if i get findrigidResulr 0627 then rig id will be 1627 next 2627 next 3627
-    const rigIdQuery =
-      "SELECT rigId FROM multiple_rig_partner WHERE userId = ?";
-    const [rigIdResult] = await connection
-      .promise()
-      .query(rigIdQuery, [userId]);
+      const partner = partnerResult[0];
 
-    let finalastFourCharRigId;
+      let {
+        p_name,
+        p_lname,
+        p_aadhar,
+        adhar_front_side,
+        adhar_back_side,
+        panCard,
+        rigId,
+        p_dop,
+      } = partner;
 
-    if (rigIdResult.length > 0) {
-      //when i am creating 2nd raw then go to this conditon
+      console.log(rigId, 1062);
 
-      let lastRigId = rigIdResult[rigIdResult.length - 1].rigId;
+      console.log(adhar_back_side, 1054);
 
-      console.log(lastRigId, 1090);
-      const lastFourChars = lastRigId.slice(-4);
+      const rigIdQuery =
+        "SELECT rigId FROM multiple_rig_partner WHERE userId = ?";
+      const [rigIdResult] = await connection
+        .promise()
+        .query(rigIdQuery, [userId]);
 
-      const lastRigIdInNumber = Number(lastFourChars);
+      // console.log(rigIdResult[rigIdResult.length - 1].rigId, 1062);
 
-      lastRigId = lastRigIdInNumber.toString().padStart(4, "0");
+      let finalastFourCharRigId;
 
-      let firstCharRigId = lastRigId[0];
-      let lastThreeCharRigId = lastRigId.slice(-3);
-      firstCharRigId = String(Number(firstCharRigId) + 1);
+      if (rigIdResult.length > 0) {
+        console.log(" 2nd raw - 3rd -4th... ");
+        //when i am creating  2nd raw - 3rd -4th...  then go to this conditon
+        let lastRigId = rigIdResult[rigIdResult.length - 1].rigId;
+        console.log(lastRigId, 1071);
+        const lastFourChars = lastRigId.slice(-4);
 
-      finalastFourCharRigId = firstCharRigId + lastThreeCharRigId;
-    } else if (findRigIdResult.length > 0) {
-      // when i am creating first raw in multplerig table then go to this condition
-      let lastRigId = findRigIdResult[0].rigId;
-      const lastFourChars = lastRigId.slice(-4);
-      console.log(lastFourChars, 1083);
+        const lastRigIdInNumber = Number(lastFourChars);
 
-      const lastRigIdInNumber = Number(lastFourChars);
-      console.log(lastRigIdInNumber, 1084); // 628
+        lastRigId = lastRigIdInNumber.toString().padStart(4, "0");
 
-      lastRigId = lastRigIdInNumber.toString().padStart(4, "0"); // but i want here 1628
+        let firstCharRigId = lastRigId[0];
+        let lastThreeCharRigId = lastRigId.slice(-3);
+        firstCharRigId = String(Number(firstCharRigId) + 1);
 
-      console.log(lastRigId, 1090);
-      let firstCharRigId = lastRigId[0];
-      let lastThreeCharRigId = lastRigId.slice(-3);
+        finalastFourCharRigId = firstCharRigId + lastThreeCharRigId;
+        console.log(finalastFourCharRigId, 1083);
+      } else if (partnerResult.length > 0) {
+        // when i am creating first raw in multplerig table then go to this condition
+        let lastRigId = partnerResult[0].rigId;
+        const lastFourChars = lastRigId.slice(-4);
+        console.log(lastFourChars, 1098);
 
-      console.log(firstCharRigId, 1127);
-      console.log(lastThreeCharRigId, 1128);
+        const lastRigIdInNumber = Number(lastFourChars);
+        console.log(lastRigIdInNumber, 1101); // 628
 
-      firstCharRigId = Number(firstCharRigId) + 1;
-      console.log(firstCharRigId, 1132);
+        lastRigId = lastRigIdInNumber.toString().padStart(4, "0"); // but i want here 1628
 
-      finalastFourCharRigId = firstCharRigId + lastThreeCharRigId;
-      console.log(finalastFourCharRigId, 1135);
+        console.log(lastRigId, 1105);
+        let firstCharRigId = lastRigId[0];
+        let lastThreeCharRigId = lastRigId.slice(-3);
+
+        console.log(firstCharRigId, 1109);
+        console.log(lastThreeCharRigId, 1110);
+
+        firstCharRigId = Number(firstCharRigId) + 1;
+        console.log(firstCharRigId, 1113);
+
+        finalastFourCharRigId = firstCharRigId + lastThreeCharRigId;
+        console.log(finalastFourCharRigId, 1116);
+      }
+
+      const firstCharf = p_name.charAt(0).toUpperCase();
+      const firstCharl = p_lname.charAt(0).toUpperCase();
+
+      rigId = firstCharf + firstCharl + finalastFourCharRigId;
+
+      console.log(rigId, 1126);
+
+      const insertMultipleRigQuery = `insert into multiple_rig_partner (rigId, fname, lname, dob, userId, adhar_front_side, adhar_back_side,panCard, liquidity, adharNumber) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+      await connection
+        .promise()
+        .query(insertMultipleRigQuery, [
+          rigId,
+          p_name,
+          p_lname,
+          p_dop,
+          userId,
+          adhar_front_side,
+          adhar_back_side,
+          panCard,
+          liquidity,
+          p_aadhar,
+        ]);
+    } else {
+      console.log("2nd cndition");
+      const { adhar_front_side, adhar_back_side, panCard } = req.files;
+      // Check if required files are present
+      if (!adhar_front_side || !adhar_back_side || !panCard) {
+        return res.status(400).json({ message: "Required files are missing." });
+      }
+
+      const adharFrontSideFile = adhar_front_side[0];
+      const adharBackSideFile = adhar_back_side[0];
+      const panCardFile = panCard[0];
+
+      const adharFrontSideLocation = adharFrontSideFile.location;
+      const adharBackSideLocation = adharBackSideFile.location;
+      const panCardLocation = panCardFile.location;
+
+      // Find the last rigId from the mining_partner table
+      const findRigIdQuery =
+        "SELECT rigId FROM mining_partner ORDER BY id DESC LIMIT 1";
+      const [findRigIdResult] = await connection
+        .promise()
+        .query(findRigIdQuery);
+
+      // if i get findrigidResulr 0627 then rig id will be 1627 next 2627 next 3627
+      const rigIdQuery =
+        "SELECT rigId FROM multiple_rig_partner WHERE userId = ?";
+      const [rigIdResult] = await connection
+        .promise()
+        .query(rigIdQuery, [userId]);
+
+      let finalastFourCharRigId;
+
+      if (rigIdResult.length > 0) {
+        //when i am creating 2nd raw then go to this conditon
+
+        let lastRigId = rigIdResult[rigIdResult.length - 1].rigId;
+
+        console.log(lastRigId, 1090);
+        const lastFourChars = lastRigId.slice(-4);
+
+        const lastRigIdInNumber = Number(lastFourChars);
+
+        lastRigId = lastRigIdInNumber.toString().padStart(4, "0");
+
+        let firstCharRigId = lastRigId[0];
+        let lastThreeCharRigId = lastRigId.slice(-3);
+        firstCharRigId = String(Number(firstCharRigId) + 1);
+
+        finalastFourCharRigId = firstCharRigId + lastThreeCharRigId;
+      } else if (findRigIdResult.length > 0) {
+        // when i am creating first raw in multplerig table then go to this condition
+        let lastRigId = findRigIdResult[0].rigId;
+        const lastFourChars = lastRigId.slice(-4);
+        console.log(lastFourChars, 1083);
+
+        const lastRigIdInNumber = Number(lastFourChars);
+        console.log(lastRigIdInNumber, 1084); // 628
+
+        lastRigId = lastRigIdInNumber.toString().padStart(4, "0"); // but i want here 1628
+
+        console.log(lastRigId, 1090);
+        let firstCharRigId = lastRigId[0];
+        let lastThreeCharRigId = lastRigId.slice(-3);
+
+        console.log(firstCharRigId, 1127);
+        console.log(lastThreeCharRigId, 1128);
+
+        firstCharRigId = Number(firstCharRigId) + 1;
+        console.log(firstCharRigId, 1132);
+
+        finalastFourCharRigId = firstCharRigId + lastThreeCharRigId;
+        console.log(finalastFourCharRigId, 1135);
+      }
+
+      const firstCharf = fname.charAt(0).toUpperCase();
+      const firstCharl = lname.charAt(0).toUpperCase();
+
+      const rigId = firstCharf + firstCharl + finalastFourCharRigId;
+
+      // Insert rig data into the database
+      const insertQuery = `
+        INSERT INTO multiple_rig_partner
+        (rigId, fname, lname, dob,userId, adhar_front_side, adhar_back_side, panCard, liquidity , adharNumber) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        
+        `;
+
+      await connection.promise().query(insertQuery, [
+        rigId,
+        fname,
+        lname,
+        dob,
+        // doj,
+        userId,
+        adharFrontSideLocation,
+        adharBackSideLocation,
+        panCardLocation,
+        liquidity,
+        adharNumber,
+      ]);
     }
-
-    const firstCharf = fname.charAt(0).toUpperCase();
-    const firstCharl = lname.charAt(0).toUpperCase();
-
-    const rigId = firstCharf + firstCharl + finalastFourCharRigId;
-
-    // Insert rig data into the database
-    const insertQuery = `
-    INSERT INTO multiple_rig_partner
-    (rigId, fname, lname, dob,userId, adhar_front_side, adhar_back_side, panCard, liquidity , adharNumber) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    
-    `;
-
-    await connection.promise().query(insertQuery, [
-      rigId,
-      fname,
-      lname,
-      dob,
-      // doj,
-      userId,
-      adharFrontSideLocation,
-      adharBackSideLocation,
-      panCardLocation,
-      liquidity,
-      adharNumber,
-    ]);
 
     res.status(200).json({ message: "Rig data inserted successfully." });
   } catch (error) {
