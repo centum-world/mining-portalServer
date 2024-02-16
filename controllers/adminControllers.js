@@ -1375,7 +1375,7 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
               let request_date = new Date();
 
               if (status) {
-                if (month_count === 2 || month_count > 2) {
+                if (month_count === 12 || month_count > 12) {
                   let updatequery =
                     "update mining_partner set partner_status= ?,partner_wallet = ?, partner_count = ? where p_userid = ?";
                   connection.query(
