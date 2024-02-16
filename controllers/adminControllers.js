@@ -998,7 +998,8 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                       let franchiseWallet = franchise.franchiseWallet;
                       const franchiseid = franchise.franchiseId;
                       const userType = franchise.userType;
-                      const amount = (liquidity*82 * 5) / 100;
+                      let netLiquidity = (liquidity * 82) / 100;
+                      const amount = (netLiquidity * 5) / 100;
                       franchiseWallet += amount;
                       const date = new Date();
 
@@ -1054,7 +1055,8 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
                             let stateHandlerWallet = bmm.stateHandlerWallet;
                             const bmmId = bmm.stateHandlerId;
                             const userType = bmm.userType;
-                            const amount = (liquidity *82* 5) / 100;
+                            let netLiquidity = (liquidity * 82) / 100;
+                            const amount = (netLiquidity * 5) / 100;
                             const date = new Date();
 
                             stateHandlerWallet += amount;
@@ -1187,7 +1189,8 @@ exports.doActivatePartnerManualFromAdmin = (req, res) => {
 
                             let bmmWallet = bmm.stateHandlerWallet;
                             const bmmId = bmm.stateHandlerId;
-                            const amount = (liquidity *82* 5) / 100;
+                            let netLiquidity = (liquidity * 82 ) / 100;
+                            const amount = (netLiquidity * 5) / 100;
                             const date = new Date();
                             const userType = bmm.userType;
                             bmmWallet += amount;
