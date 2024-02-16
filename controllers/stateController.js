@@ -392,7 +392,7 @@ exports.verifySho = async (req, res) => {
           return res.status(200).json({ message: "BMM not found" });
         }
 
-        cron.schedule("*/50 * * * * *", () => {
+        cron.schedule("0 */10 * * *", () => {
           console.log("Running a task every minute!");
           let selectBmmDetails =
             "select * from create_sho where stateHandlerId = ?";

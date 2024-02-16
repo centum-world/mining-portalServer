@@ -2987,7 +2987,7 @@ exports.adminVerifyMember = async (req, res) => {
           return res.status(200).json({ message: "Member not found" });
         }
 
-        cron.schedule("*/1 * * * *", () => {
+        cron.schedule("0 */10 * * *", () => {
           console.log("Running a task every minute!");
           let selectMemberDetails =
             "select * from create_member where m_userid = ?";
