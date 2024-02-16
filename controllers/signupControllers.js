@@ -395,6 +395,22 @@ exports.partnerSignup = async (req, res) => {
       }
     }
 
+
+    if (role === "PARTNER") {
+      const validPartnerReferralId =
+        "select p_refferal_id from mining_partner where p_refferal_id = ?";
+
+      const [partnerResult] = await connection
+        .promise()
+        .query(validPartnerReferralId, [p_reffered_id]);
+
+      if (partnerResult.length === 0) {
+        return res
+          .status(400)
+          .json({ message: "Invalid referral ID of member" });
+      }
+    }
+
     const lastReferralIdQuery =
       "SELECT p_refferal_id FROM mining_partner ORDER BY id DESC LIMIT 1";
 
