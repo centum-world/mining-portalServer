@@ -3272,18 +3272,18 @@ exports.adminFetchAllMiningPartner = async (req, res) => {
 // adminVerifyPartner
 exports.adminVerifyPartner = async (req, res) => {
   try {
-    const { p_userid, isVerify } = req.body;
+    const { p_userid, isVerify,verifyDate } = req.body;
 
     if (typeof isVerify != "boolean") {
       return res.status(400).json({ message: "Invalid 'isVerify' value" });
     }
 
     const upadtePartnerQuery =
-      "UPDATE mining_partner SET isVerify =? WHERE p_userid = ?";
+      "UPDATE mining_partner SET isVerify =?, verifyDate = ? WHERE p_userid = ?";
 
     connection.query(
       upadtePartnerQuery,
-      [isVerify, p_userid],
+      [isVerify,verifyDate, p_userid],
       (error, result) => {
         if (error) {
           console.error("Error updating Member:", error);
@@ -4405,6 +4405,9 @@ exports.uploadPanCardPartner = async (req, res) => {
 
 exports.uploadBond = async (req, res) => {
   try {
+    // Extract userId from the request
+    const userId = req.body.userId; // Assuming userId is sent in the request body
+
     if (!req.files["bond"]) {
       return res.status(400).json({ message: "Bond file is missing." });
     }
@@ -4418,8 +4421,8 @@ exports.uploadBond = async (req, res) => {
         .json({ message: "Bond file must be in PDF format." });
     }
 
-    const findBondQuery = "SELECT * FROM upload_bond";
-    connection.query(findBondQuery, (error, result) => {
+    const findBondQuery = "SELECT * FROM upload_bond WHERE userId = ?";
+    connection.query(findBondQuery, [userId], (error, result) => {
       if (error) {
         console.log(error.message);
         return res.status(500).json({ message: "Internal server error" });
@@ -4427,31 +4430,39 @@ exports.uploadBond = async (req, res) => {
 
       if (result.length === 0 || !result) {
         const insertBondQuery = `
-        INSERT INTO upload_bond (bond) VALUES (?)
+        INSERT INTO upload_bond (userId, bond) VALUES (?, ?)
       `;
 
-        connection.query(insertBondQuery, [bondLocation], (error, result) => {
-          if (error) {
-            console.log(error.message);
-            return res.status(500).json({ message: "Internal server error" });
-          }
+        connection.query(
+          insertBondQuery,
+          [userId, bondLocation],
+          (error, result) => {
+            if (error) {
+              console.log(error.message);
+              return res.status(500).json({ message: "Internal server error" });
+            }
 
-          return res
-            .status(200)
-            .json({ message: "Bond file uploaded successfully" });
-        });
+            return res
+              .status(200)
+              .json({ message: "Bond file uploaded successfully" });
+          }
+        );
       } else {
-        const updateBondQuery = "UPDATE upload_bond SET BOND = ? LIMIT 1";
-        connection.query(updateBondQuery, [bondLocation], (error, result) => {
-          if (error) {
-            console.log(error.message);
-            return res.status(500).json({ message: "Internal server error" });
-          }
+        const updateBondQuery = "UPDATE upload_bond SET bond = ? WHERE userId = ?";
+        connection.query(
+          updateBondQuery,
+          [bondLocation, userId],
+          (error, result) => {
+            if (error) {
+              console.log(error.message);
+              return res.status(500).json({ message: "Internal server error" });
+            }
 
-          return res
-            .status(200)
-            .json({ message: "Bond file updated successfully" });
-        });
+            return res
+              .status(200)
+              .json({ message: "Bond file updated successfully" });
+          }
+        );
       }
     });
   } catch (error) {
@@ -4460,17 +4471,24 @@ exports.uploadBond = async (req, res) => {
   }
 };
 
+
 //fetch bond
 exports.fetchBond = async (req, res) => {
   try {
+    const userId = req.body.userId; // Extract partner ID from query parameters
+
     const findBondQuery = `
-      SELECT * FROM upload_bond
+      SELECT * FROM upload_bond WHERE userId = ?
     `;
 
-    connection.query(findBondQuery, (error, result) => {
+    connection.query(findBondQuery, [userId], (error, result) => {
       if (error) {
         console.log(error.message);
         return res.status(500).json({ message: "Internal server error" });
+      }
+
+      if (result.length === 0) {
+        return res.status(404).json({ message: "No data found for the provided partner ID" });
       }
 
       return res
@@ -4482,6 +4500,7 @@ exports.fetchBond = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 exports.queryResolve = async (req, res) => {
   try {
