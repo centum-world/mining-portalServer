@@ -4601,39 +4601,75 @@ exports.createPartnerPayout = async (req, res) => {
     const { rigId, payableAmount, payoutDate } = req.body;
 
     // Check if rigId already exists in the table
-    const [existingResult] = await connection.promise().query("SELECT payableCount,payoutDate  FROM partner_payout WHERE rigId = ?", [rigId]);
+    const [existingResult] = await connection
+      .promise()
+      .query(
+        "SELECT payableCount,payoutDate  FROM partner_payout WHERE rigId = ?",
+        [rigId]
+      );
 
     let newPayableCount = 1;
-    let lastPayoutDate
+    let lastPayoutDate;
 
     if (existingResult.length > 0) {
       // If rigId exists, increment payableCount by 1
-      newPayableCount = existingResult[existingResult.length-1].payableCount + 1;
-      console.log(newPayableCount, 4612)
+      newPayableCount =
+        existingResult[existingResult.length - 1].payableCount + 1;
+      console.log(newPayableCount, 4612);
 
-      lastPayoutDate = existingResult[existingResult.length-1].payoutDate;
-      console.log(lastPayoutDate, 4614)
+      lastPayoutDate = existingResult[existingResult.length - 1].payoutDate;
+      console.log(lastPayoutDate, 4614);
 
-      // i want to validate here whenever admin is hitting this api month value should be unique otherwise give message that this month payout already happened
+      const providedMonth = new Date(payoutDate).getMonth();
 
-      const providedMonth = new Date(payoutDate).getMonth()
-
-      const lastMonth = new Date(lastPayoutDate).getMonth()
+      const lastMonth = new Date(lastPayoutDate).getMonth();
       if (providedMonth === lastMonth) {
-        return res.status(400).json({ message: 'Payout for this month has already happened.' });
+        return res
+          .status(400)
+          .json({ message: "Payout for this month has already happened." });
       }
-     
     }
 
     // Insert a new row
-    const insertQuery = "INSERT INTO partner_payout (rigId, payableAmount, payoutDate, payableCount) VALUES (?, ?, ?, ?)";
-    await connection.promise().query(insertQuery, [rigId, payableAmount, payoutDate, newPayableCount]);
+    const insertQuery =
+      "INSERT INTO partner_payout (rigId, payableAmount, payoutDate, payableCount) VALUES (?, ?, ?, ?)";
+    await connection
+      .promise()
+      .query(insertQuery, [rigId, payableAmount, payoutDate, newPayableCount]);
 
-    return res.status(200).json({ message: 'New partner payout created successfully.' });
-
+    return res
+      .status(200)
+      .json({ message: "New partner payout created successfully." });
   } catch (error) {
     console.error(error.message);
-    return res.status(500).json({ message: 'Internal server error.' });
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+exports.fetchPartnerByRigId = async (req, res) => {
+  try {
+    const { rigId } = req.body;
+
+    const miningPartnerQuery = "SELECT * FROM mining_partner WHERE rigId = ?";
+    const [miningPartnerResult] = await connection.promise().query(miningPartnerQuery, [rigId]);
+
+    if (miningPartnerResult.length > 0) {
+      console.log("first")
+      return res.status(200).json({ message: "Mining Partner fetched successfully.", data: miningPartnerResult });
+    } else {
+      console.log("111111")
+      const multipleRigPartnerQuery = "SELECT * FROM multiple_rig_partner WHERE rigId = ?";
+      const [multipleRigPartnerResult] = await connection.promise().query(multipleRigPartnerQuery, [rigId]);
+
+      if (multipleRigPartnerResult.length > 0) {
+        return res.status(200).json({ message: "Multiple Rig Partner fetched successfully.", data: multipleRigPartnerResult });
+      } else {
+        return res.status(404).json({ message: "No partner found for the provided rigId." });
+      }
+    }
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ message: "Internal server error." });
   }
 };
 
