@@ -176,6 +176,7 @@ const fetchVerifiedBmm = require('./routes/fetch-verified-bmm');
 const fetchVerifiedFranchise = require('./routes/fetch-verified-franchise');
 const fetchUpgradeDowngradeFranchise = require('./routes/fetch-upgrade-downgrade-franchise');
 const fetchUpgradeDowngradeBmm = require('./routes/fetch-upgrade-downgrade-bmm');
+const createPartnerPayout = require('./routes/create-partner-payout')
 
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
@@ -386,6 +387,7 @@ app.use('/admin',fetchVerifiedMember);
 app.use('/admin',fetchVerifiedFranchise);
 app.use('/admin',fetchUpgradeDowngradeFranchise);
 app.use('/admin',fetchUpgradeDowngradeBmm);
+app.use('/admin', createPartnerPayout)
 
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);

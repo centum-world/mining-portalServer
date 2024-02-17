@@ -4595,3 +4595,45 @@ exports.fetchUpgradeDowngradeBmm = async (req, res) => {
     }
   });
 };
+
+exports.createPartnerPayout = async (req, res) => {
+  try {
+    const { rigId, payableAmount, payoutDate } = req.body;
+
+    // Check if rigId already exists in the table
+    const [existingResult] = await connection.promise().query("SELECT payableCount,payoutDate  FROM partner_payout WHERE rigId = ?", [rigId]);
+
+    let newPayableCount = 1;
+    let lastPayoutDate
+
+    if (existingResult.length > 0) {
+      // If rigId exists, increment payableCount by 1
+      newPayableCount = existingResult[existingResult.length-1].payableCount + 1;
+      console.log(newPayableCount, 4612)
+
+      lastPayoutDate = existingResult[existingResult.length-1].payoutDate;
+      console.log(lastPayoutDate, 4614)
+
+      // i want to validate here whenever admin is hitting this api month value should be unique otherwise give message that this month payout already happened
+
+      const providedMonth = new Date(payoutDate).getMonth()
+
+      const lastMonth = new Date(lastPayoutDate).getMonth()
+      if (providedMonth === lastMonth) {
+        return res.status(400).json({ message: 'Payout for this month has already happened.' });
+      }
+     
+    }
+
+    // Insert a new row
+    const insertQuery = "INSERT INTO partner_payout (rigId, payableAmount, payoutDate, payableCount) VALUES (?, ?, ?, ?)";
+    await connection.promise().query(insertQuery, [rigId, payableAmount, payoutDate, newPayableCount]);
+
+    return res.status(200).json({ message: 'New partner payout created successfully.' });
+
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ message: 'Internal server error.' });
+  }
+};
+
