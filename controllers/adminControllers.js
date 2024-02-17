@@ -5144,6 +5144,10 @@ exports.createPartnerPayout = async (req, res) => {
   try {
     const { rigId, payableAmount, payoutDate } = req.body;
 
+    if (!payableAmount || !payoutDate) {
+      return res.status(400).json({ message: "payableAmount and payoutDate are required." });
+    }
+
     // Check if rigId already exists in the table
     const [existingResult] = await connection
       .promise()
