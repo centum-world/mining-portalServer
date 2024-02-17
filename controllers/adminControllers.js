@@ -536,7 +536,6 @@ exports.approvePartnerWithdrawalRequest = (req, res) => {
     "select partner_wallet,request_date,p_userid from partner_withdrawal where id = ? ";
   connection.query(query, [partnerId.id], (err, results) => {
     if (!err) {
-
       let partner_wallet = results[0]?.partner_wallet;
       let id = results[0]?.id;
       let request_date = results[0]?.request_date;
@@ -901,415 +900,479 @@ exports.isPartnerActiveManualFromAdmin = (req, res) => {
 // doActivatePartnerManualFromAdmin
 exports.doActivatePartnerManualFromAdmin = (req, res) => {
   let partnerid = req.body;
-  if (!partnerid) {
-    return res.status(422).json({
-      message: "No Data Found",
-    });
-  }
-  let query =
-    "update mining_partner set partner_status = ? where p_userid = ? ";
-  connection.query(
-    query,
-    [(partner_status = 1), partnerid.p_userid],
-    (err, results) => {
-      if (!err) {
-        let selectquery = " select * from mining_partner where p_userid = ?";
-        connection.query(selectquery, [partnerid.p_userid], (err, results) => {
-          let liquidity = results[0]?.p_liquidity;
-          let phone = results[0]?.p_phone;
-          let referredIdOfPartner = results[0]?.p_reffered_id;
+  let { rigId } = req.body;
 
-          // doPartnerActivateSms(phone, { liquidity: liquidity });
+  const partnerDetailsQuery =
+    "select rigId from mining_partner where p_userid =?";
 
-          const findMember = "Select * from create_member where reffer_id = ?";
-          connection.query(
-            findMember,
-            [referredIdOfPartner],
-            (error, result) => {
-              if (error) {
-                console.log(error.message);
-                return res
-                  .status(500)
-                  .json({ message: "Internal server error" });
-              }
-              if (result.length > 0 && result[0].priority === 1) {
-                const member = result[0];
-                let memberWallet = member.member_wallet;
-                let referralIdOfMember = member.reffer_id;
-                let memberid = member.m_userid;
-                let target = member.target;
-                let priority = member.priority;
-                let userType = member.userType;
-                const afterGstLiquidity = (liquidity * 18) / 100;
-                const afterGstAmount = liquidity - afterGstLiquidity;
-                const amount = (afterGstAmount * 10) / 100;
-                memberWallet += (afterGstAmount * 10) / 100;
-                target += liquidity;
-                const date = new Date();
+  connection.query(partnerDetailsQuery, [partnerid.p_userid], (err, result) => {
+    if (err) {
+      console.log(err.message);
+      return res.status(500).json({ message: "Internal server error" });
+    } else {
+      const rigid = result[0].rigId;
+      if (rigId === rigid) {
+        console.log("yes");
 
-                const updateMemberWalletQuery =
-                  "UPDATE create_member SET member_wallet = ?, target = ? WHERE reffer_id = ?";
+        let query =
+          "update mining_partner set partner_status = ? where p_userid = ? ";
+        connection.query(
+          query,
+          [(partner_status = 1), partnerid.p_userid],
+          (err, results) => {
+            if (!err) {
+              let selectquery =
+                " select * from mining_partner where p_userid = ?";
+              connection.query(
+                selectquery,
+                [partnerid.p_userid],
+                (err, results) => {
+                  let liquidity = results[0]?.p_liquidity;
+                  let phone = results[0]?.p_phone;
+                  let referredIdOfPartner = results[0]?.p_reffered_id;
 
-                connection.query(
-                  updateMemberWalletQuery,
-                  [memberWallet, target, referralIdOfMember],
-                  (error, updateResult) => {
-                    if (error) {
-                      console.log(error.message);
-                      return res
-                        .status(500)
-                        .json({ message: "Internal server error." });
-                    } else {
-                      const insertIntoMyTeam =
-                        "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
-                      connection.query(
-                        insertIntoMyTeam,
-                        [memberid, amount, partnerid.p_userid, date, userType],
-                        (error, result) => {
-                          if (error) {
-                            console.log(error.message);
-                            return res
-                              .status(500)
-                              .json({ message: "Internal server error." });
-                          }
-                        }
-                      );
-                    }
-                  }
-                );
+                  // doPartnerActivateSms(phone, { liquidity: liquidity });
 
-                const referredIdOfMember = member.m_refferid;
+                  const findMember =
+                    "Select * from create_member where reffer_id = ?";
+                  connection.query(
+                    findMember,
+                    [referredIdOfPartner],
+                    (error, result) => {
+                      if (error) {
+                        console.log(error.message);
+                        return res
+                          .status(500)
+                          .json({ message: "Internal server error" });
+                      }
+                      if (result.length > 0 && result[0].priority === 1) {
+                        const member = result[0];
+                        let memberWallet = member.member_wallet;
+                        let referralIdOfMember = member.reffer_id;
+                        let memberid = member.m_userid;
+                        let target = member.target;
+                        let priority = member.priority;
+                        let userType = member.userType;
+                        const afterGstLiquidity = (liquidity * 18) / 100;
+                        const afterGstAmount = liquidity - afterGstLiquidity;
+                        const amount = (afterGstAmount * 10) / 100;
+                        memberWallet += (afterGstAmount * 10) / 100;
+                        target += liquidity;
+                        const date = new Date();
 
-                const findFranchiseQuery =
-                  "select * from create_franchise where referralId =? ";
-                connection.query(
-                  findFranchiseQuery,
-                  [referredIdOfMember],
-                  (error, result) => {
-                    if (error) {
-                      console.log(error.message);
-                      return res
-                        .status(500)
-                        .json({ message: "Internal server error." });
-                    }
-                    if (result.length > 0) {
-                      const franchise = result[0];
-                      const referredIdOfFranchise = franchise.referredId;
-                      let franchiseWallet = franchise.franchiseWallet;
-                      const franchiseid = franchise.franchiseId;
-                      const userType = franchise.userType;
-                      let netLiquidity = (liquidity * 82) / 100;
-                      const amount = (netLiquidity * 5) / 100;
-                      franchiseWallet += amount;
-                      const date = new Date();
+                        const updateMemberWalletQuery =
+                          "UPDATE create_member SET member_wallet = ?, target = ? WHERE reffer_id = ?";
 
-                      const updateFranchiseWalletquery =
-                        "UPDATE create_franchise SET franchiseWallet = ? WHERE referredId = ?";
-                      connection.query(
-                        updateFranchiseWalletquery,
-                        [franchiseWallet, referredIdOfFranchise],
-                        (error, updateResult) => {
-                          if (error) {
-                            console.log(error.message);
-                            return res
-                              .status(500)
-                              .json({ message: "Internal server error." });
-                          } else {
-                            const insertFranchiseIntoMyTeam =
-                              "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
-                            connection.query(
-                              insertFranchiseIntoMyTeam,
-                              [
-                                franchiseid,
-                                amount,
-                                partnerid.p_userid,
-                                date,
-                                userType,
-                              ],
-                              (error, result) => {
-                                if (error) {
-                                  return res.status(500).json({
-                                    message: "Internal server error.",
-                                  });
+                        connection.query(
+                          updateMemberWalletQuery,
+                          [memberWallet, target, referralIdOfMember],
+                          (error, updateResult) => {
+                            if (error) {
+                              console.log(error.message);
+                              return res
+                                .status(500)
+                                .json({ message: "Internal server error." });
+                            } else {
+                              const insertIntoMyTeam =
+                                "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
+                              connection.query(
+                                insertIntoMyTeam,
+                                [
+                                  memberid,
+                                  amount,
+                                  partnerid.p_userid,
+                                  date,
+                                  userType,
+                                ],
+                                (error, result) => {
+                                  if (error) {
+                                    console.log(error.message);
+                                    return res
+                                      .status(500)
+                                      .json({
+                                        message: "Internal server error.",
+                                      });
+                                  }
                                 }
-                              }
-                            );
+                              );
+                            }
                           }
-                        }
-                      );
+                        );
 
-                      const findBMMQuery =
-                        "select * from create_sho where referralId = ?";
-                      connection.query(
-                        findBMMQuery,
-                        [referredIdOfFranchise],
-                        (error, result) => {
-                          if (error) {
-                            return res
-                              .status(500)
-                              .json({ message: "internal server error." });
-                          }
-                          if (result.length > 0) {
-                            const bmm = result[0];
-                            const referralIdOfBmm = bmm.referralId;
-                            let stateHandlerWallet = bmm.stateHandlerWallet;
-                            const bmmId = bmm.stateHandlerId;
-                            const userType = bmm.userType;
-                            let netLiquidity = (liquidity * 82) / 100;
-                            const amount = (netLiquidity * 5) / 100;
-                            const date = new Date();
+                        const referredIdOfMember = member.m_refferid;
 
-                            stateHandlerWallet += amount;
+                        const findFranchiseQuery =
+                          "select * from create_franchise where referralId =? ";
+                        connection.query(
+                          findFranchiseQuery,
+                          [referredIdOfMember],
+                          (error, result) => {
+                            if (error) {
+                              console.log(error.message);
+                              return res
+                                .status(500)
+                                .json({ message: "Internal server error." });
+                            }
+                            if (result.length > 0) {
+                              const franchise = result[0];
+                              const referredIdOfFranchise =
+                                franchise.referredId;
+                              let franchiseWallet = franchise.franchiseWallet;
+                              const franchiseid = franchise.franchiseId;
+                              const userType = franchise.userType;
+                              let netLiquidity = (liquidity * 82) / 100;
+                              const amount = (netLiquidity * 5) / 100;
+                              franchiseWallet += amount;
+                              const date = new Date();
 
-                            const updateBmmWalletQuery =
-                              "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
-
-                            connection.query(
-                              updateBmmWalletQuery,
-                              [stateHandlerWallet, referralIdOfBmm],
-                              (error, result) => {
-                                if (error) {
-                                  return res.status(500).json({
-                                    message: "internal server error.",
-                                  });
-                                } else {
-                                  const insertBmmIntoMyTeam =
-                                    "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
-                                  connection.query(
-                                    insertBmmIntoMyTeam,
-                                    [
-                                      bmmId,
-                                      amount,
-                                      partnerid.p_userid,
-                                      date,
-                                      userType,
-                                    ],
-                                    (error, result) => {
-                                      if (error) {
-                                        return res.status(500).json({
-                                          message: "Internal server error.",
-                                        });
+                              const updateFranchiseWalletquery =
+                                "UPDATE create_franchise SET franchiseWallet = ? WHERE referredId = ?";
+                              connection.query(
+                                updateFranchiseWalletquery,
+                                [franchiseWallet, referredIdOfFranchise],
+                                (error, updateResult) => {
+                                  if (error) {
+                                    console.log(error.message);
+                                    return res
+                                      .status(500)
+                                      .json({
+                                        message: "Internal server error.",
+                                      });
+                                  } else {
+                                    const insertFranchiseIntoMyTeam =
+                                      "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
+                                    connection.query(
+                                      insertFranchiseIntoMyTeam,
+                                      [
+                                        franchiseid,
+                                        amount,
+                                        partnerid.p_userid,
+                                        date,
+                                        userType,
+                                      ],
+                                      (error, result) => {
+                                        if (error) {
+                                          return res.status(500).json({
+                                            message: "Internal server error.",
+                                          });
+                                        }
                                       }
-                                    }
-                                  );
+                                    );
+                                  }
                                 }
-                              }
-                            );
-                          }
-                        }
-                      );
-                    }
-                  }
-                );
-              } else {
-                console.log("2nd condition");
+                              );
 
+                              const findBMMQuery =
+                                "select * from create_sho where referralId = ?";
+                              connection.query(
+                                findBMMQuery,
+                                [referredIdOfFranchise],
+                                (error, result) => {
+                                  if (error) {
+                                    return res
+                                      .status(500)
+                                      .json({
+                                        message: "internal server error.",
+                                      });
+                                  }
+                                  if (result.length > 0) {
+                                    const bmm = result[0];
+                                    const referralIdOfBmm = bmm.referralId;
+                                    let stateHandlerWallet =
+                                      bmm.stateHandlerWallet;
+                                    const bmmId = bmm.stateHandlerId;
+                                    const userType = bmm.userType;
+                                    let netLiquidity = (liquidity * 82) / 100;
+                                    const amount = (netLiquidity * 5) / 100;
+                                    const date = new Date();
 
-                const findFranchiseQuery =
-                  "select * from create_franchise where referralId = ?";
-                connection.query(
-                  findFranchiseQuery,
-                  [referredIdOfPartner],
-                  (error, result) => {
-                    if (error) {
-                      return res
-                        .status(500)
-                        .json({ message: "internal server error." });
-                    }
+                                    stateHandlerWallet += amount;
 
-                    if (result.length > 0 && result[0].priority === 1) {
-                      const franchise = result[0];
+                                    const updateBmmWalletQuery =
+                                      "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
 
-                      let franchiseReferralId = franchise.referralId;
-                      let ReferredIdOfFranchise = franchise.referredId;
-
-                      let franchiseWallet = franchise.franchiseWallet;
-                      const franchiseid = franchise.franchiseId;
-                      // const amount = (liquidity * 5) / 100;
-                      let target = franchise.target;
-                      const userType = franchise.userType;
-                      const afterGstLiquidity = (liquidity * 18) / 100;
-                      const afterGstAmount = liquidity - afterGstLiquidity;
-                      franchiseWallet += (afterGstAmount * 12) / 100;
-                      target += liquidity;
-                      const date = new Date();
-                      const updateFranchiseWalletQuery =
-                        "update create_franchise SET franchiseWallet = ?, target = ? where franchiseId = ? ";
-
-                      connection.query(
-                        updateFranchiseWalletQuery,
-                        [franchiseWallet, target, franchiseid],
-                        (error, result) => {
-                          if (error) {
-                            console.log(error.message);
-                            return res
-                              .status(500)
-                              .json({ message: "internal server error." });
-                          } else {
-                            const insertFranchiseIntoMyTeam =
-                              "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
-                            connection.query(
-                              insertFranchiseIntoMyTeam,
-                              [
-                                franchiseid,
-                                amount,
-                                partnerid.p_userid,
-                                date,
-                                userType,
-                              ],
-                              (error, result) => {
-                                if (error) {
-                                  console.log(error.message);
-                                  return res.status(500).json({
-                                    message: "Internal server error.",
-                                  });
-                                }
-                              }
-                            );
-                          }
-                        }
-                      );
-
-                      const findBMMQuery =
-                        "select * from create_sho where referralId = ?";
-
-                      connection.query(
-                        findBMMQuery,
-                        [ReferredIdOfFranchise],
-                        (error, result) => {
-                          if (error) {
-                            return res
-                              .status(500)
-                              .json({ message: "internal server error." });
-                          }
-                          if (result.length > 0) {
-                            const bmm = result[0];
-
-                            const referralIdOfBmm = bmm.referralId;
-
-                            let bmmWallet = bmm.stateHandlerWallet;
-                            const bmmId = bmm.stateHandlerId;
-                            let netLiquidity = (liquidity * 82 ) / 100;
-                            const amount = (netLiquidity * 5) / 100;
-                            const date = new Date();
-                            const userType = bmm.userType;
-                            bmmWallet += amount;
-
-                            const updateBmmWalletQuery =
-                              "update create_sho set stateHandlerWallet =? where referralId =?";
-
-                            connection.query(
-                              updateBmmWalletQuery,
-                              [bmmWallet, referralIdOfBmm],
-                              (error, result) => {
-                                if (error) {
-                                  return res.status(500).json({
-                                    message: "internal server error.",
-                                  });
-                                } else {
-                                  const insertBmmIntoMyTeam =
-                                    "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
-                                  connection.query(
-                                    insertBmmIntoMyTeam,
-                                    [
-                                      bmmId,
-                                      amount,
-                                      partnerid.p_userid,
-                                      date,
-                                      userType,
-                                    ],
-                                    (error, result) => {
-                                      if (error) {
-                                        return res.status(500).json({
-                                          message: "Internal server error.",
-                                        });
+                                    connection.query(
+                                      updateBmmWalletQuery,
+                                      [stateHandlerWallet, referralIdOfBmm],
+                                      (error, result) => {
+                                        if (error) {
+                                          return res.status(500).json({
+                                            message: "internal server error.",
+                                          });
+                                        } else {
+                                          const insertBmmIntoMyTeam =
+                                            "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
+                                          connection.query(
+                                            insertBmmIntoMyTeam,
+                                            [
+                                              bmmId,
+                                              amount,
+                                              partnerid.p_userid,
+                                              date,
+                                              userType,
+                                            ],
+                                            (error, result) => {
+                                              if (error) {
+                                                return res.status(500).json({
+                                                  message:
+                                                    "Internal server error.",
+                                                });
+                                              }
+                                            }
+                                          );
+                                        }
                                       }
-                                    }
-                                  );
+                                    );
+                                  }
                                 }
-                              }
-                            );
+                              );
+                            }
                           }
-                        }
-                      );
-                    } else {
-                      console.log("3rd codition");
+                        );
+                      } else {
+                        console.log("2nd condition");
 
-                      const findBmmQuery =
-                        "select * from create_sho where referralId = ?";
+                        const findFranchiseQuery =
+                          "select * from create_franchise where referralId = ?";
+                        connection.query(
+                          findFranchiseQuery,
+                          [referredIdOfPartner],
+                          (error, result) => {
+                            if (error) {
+                              return res
+                                .status(500)
+                                .json({ message: "internal server error." });
+                            }
 
-                      connection.query(
-                        findBmmQuery,
-                        [referredIdOfPartner],
-                        (error, result) => {
-                          if (error) {
-                            return res
-                              .status(500)
-                              .json({ message: "internal server error." });
-                          }
-                          if (result.length > 0 && result[0].priority === 1) {
-                            const bmm = result[0];
-                            let bmmWallet = bmm.stateHandlerWallet;
-                            const bmmId = bmm.stateHandlerId;
-                            const afterGstLiquidity = (liquidity * 18) / 100;
-                            const afterGstAmount =
-                              liquidity - afterGstLiquidity;
-                            const amount = (afterGstAmount * 15) / 100;
-                            const date = new Date();
-                            bmmWallet += amount;
-                            let target = bmm.target;
-                            target = target + liquidity;
-                            const userType = bmm.userType;
-                            const referralIdOfBmm = bmm.referralId;
-                        
+                            if (result.length > 0 && result[0].priority === 1) {
+                              const franchise = result[0];
 
-                            const updateBmmWalletQuery =
-                              "update create_sho set stateHandlerWallet =? ,target = ? where stateHandlerId =?";
+                              let franchiseReferralId = franchise.referralId;
+                              let ReferredIdOfFranchise = franchise.referredId;
 
-                            connection.query(
-                              updateBmmWalletQuery,
-                              [bmmWallet, target, bmmId],
-                              (error, result) => {
-                                if (error) {
-                                  return res.status(500).json({
-                                    message: "internal server error.",
-                                  });
-                                } else {
-                                  const insertBmmIntoMyTeam =
-                                    "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
-                                  connection.query(
-                                    insertBmmIntoMyTeam,
-                                    [
-                                      bmmId,
-                                      amount,
-                                      partnerid.p_userid,
-                                      date,
-                                      userType,
-                                    ],
-                                    (error, result) => {}
-                                  );
+                              let franchiseWallet = franchise.franchiseWallet;
+                              const franchiseid = franchise.franchiseId;
+                              // const amount = (liquidity * 5) / 100;
+                              let target = franchise.target;
+                              const userType = franchise.userType;
+                              const afterGstLiquidity = (liquidity * 18) / 100;
+                              const afterGstAmount =
+                                liquidity - afterGstLiquidity;
+                              franchiseWallet += (afterGstAmount * 12) / 100;
+                              target += liquidity;
+                              const date = new Date();
+                              const updateFranchiseWalletQuery =
+                                "update create_franchise SET franchiseWallet = ?, target = ? where franchiseId = ? ";
+
+                              connection.query(
+                                updateFranchiseWalletQuery,
+                                [franchiseWallet, target, franchiseid],
+                                (error, result) => {
+                                  if (error) {
+                                    console.log(error.message);
+                                    return res
+                                      .status(500)
+                                      .json({
+                                        message: "internal server error.",
+                                      });
+                                  } else {
+                                    const insertFranchiseIntoMyTeam =
+                                      "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
+                                    connection.query(
+                                      insertFranchiseIntoMyTeam,
+                                      [
+                                        franchiseid,
+                                        amount,
+                                        partnerid.p_userid,
+                                        date,
+                                        userType,
+                                      ],
+                                      (error, result) => {
+                                        if (error) {
+                                          console.log(error.message);
+                                          return res.status(500).json({
+                                            message: "Internal server error.",
+                                          });
+                                        }
+                                      }
+                                    );
+                                  }
                                 }
-                              }
-                            );
+                              );
+
+                              const findBMMQuery =
+                                "select * from create_sho where referralId = ?";
+
+                              connection.query(
+                                findBMMQuery,
+                                [ReferredIdOfFranchise],
+                                (error, result) => {
+                                  if (error) {
+                                    return res
+                                      .status(500)
+                                      .json({
+                                        message: "internal server error.",
+                                      });
+                                  }
+                                  if (result.length > 0) {
+                                    const bmm = result[0];
+
+                                    const referralIdOfBmm = bmm.referralId;
+
+                                    let bmmWallet = bmm.stateHandlerWallet;
+                                    const bmmId = bmm.stateHandlerId;
+                                    let netLiquidity = (liquidity * 82) / 100;
+                                    const amount = (netLiquidity * 5) / 100;
+                                    const date = new Date();
+                                    const userType = bmm.userType;
+                                    bmmWallet += amount;
+
+                                    const updateBmmWalletQuery =
+                                      "update create_sho set stateHandlerWallet =? where referralId =?";
+
+                                    connection.query(
+                                      updateBmmWalletQuery,
+                                      [bmmWallet, referralIdOfBmm],
+                                      (error, result) => {
+                                        if (error) {
+                                          return res.status(500).json({
+                                            message: "internal server error.",
+                                          });
+                                        } else {
+                                          const insertBmmIntoMyTeam =
+                                            "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
+                                          connection.query(
+                                            insertBmmIntoMyTeam,
+                                            [
+                                              bmmId,
+                                              amount,
+                                              partnerid.p_userid,
+                                              date,
+                                              userType,
+                                            ],
+                                            (error, result) => {
+                                              if (error) {
+                                                return res.status(500).json({
+                                                  message:
+                                                    "Internal server error.",
+                                                });
+                                              }
+                                            }
+                                          );
+                                        }
+                                      }
+                                    );
+                                  }
+                                }
+                              );
+                            } else {
+                              console.log("3rd codition");
+
+                              const findBmmQuery =
+                                "select * from create_sho where referralId = ?";
+
+                              connection.query(
+                                findBmmQuery,
+                                [referredIdOfPartner],
+                                (error, result) => {
+                                  if (error) {
+                                    return res
+                                      .status(500)
+                                      .json({
+                                        message: "internal server error.",
+                                      });
+                                  }
+                                  if (
+                                    result.length > 0 &&
+                                    result[0].priority === 1
+                                  ) {
+                                    const bmm = result[0];
+                                    let bmmWallet = bmm.stateHandlerWallet;
+                                    const bmmId = bmm.stateHandlerId;
+                                    const afterGstLiquidity =
+                                      (liquidity * 18) / 100;
+                                    const afterGstAmount =
+                                      liquidity - afterGstLiquidity;
+                                    const amount = (afterGstAmount * 15) / 100;
+                                    const date = new Date();
+                                    bmmWallet += amount;
+                                    let target = bmm.target;
+                                    target = target + liquidity;
+                                    const userType = bmm.userType;
+                                    const referralIdOfBmm = bmm.referralId;
+
+                                    const updateBmmWalletQuery =
+                                      "update create_sho set stateHandlerWallet =? ,target = ? where stateHandlerId =?";
+
+                                    connection.query(
+                                      updateBmmWalletQuery,
+                                      [bmmWallet, target, bmmId],
+                                      (error, result) => {
+                                        if (error) {
+                                          return res.status(500).json({
+                                            message: "internal server error.",
+                                          });
+                                        } else {
+                                          const insertBmmIntoMyTeam =
+                                            "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
+                                          connection.query(
+                                            insertBmmIntoMyTeam,
+                                            [
+                                              bmmId,
+                                              amount,
+                                              partnerid.p_userid,
+                                              date,
+                                              userType,
+                                            ],
+                                            (error, result) => {}
+                                          );
+                                        }
+                                      }
+                                    );
+                                  }
+                                }
+                              );
+                            }
                           }
-                        }
-                      );
+                        );
+                      }
                     }
-                  }
-                );
-              }
+                  );
+                }
+              );
+
+              return res.status(200).json({
+                message: "Mining Partner Liquiditity Paid successfully",
+              });
+            } else {
+              return res
+                .status(500)
+                .json({ message: "internal server error." });
             }
-          );
-        });
-
-        return res.status(200).json({
-          message: "Mining Partner Liquiditity Paid successfully",
-        });
+          }
+        );
       } else {
-        return res.status(500).json({ message: "internal server error." });
+        console.log("No");
+        console.log("No");
+        const updateRigPaymentStatusQuery =
+          "UPDATE multiple_rig_partner SET partner_status = 1 WHERE rigId = ?";
+        
+        connection.query(updateRigPaymentStatusQuery, [rigId], (err, result) => {
+          if (err) {
+            console.log(err.message);
+            return res.status(500).json({ message: "Internal server error" });
+          } else {
+            // Assuming `res` is the Express response object, you should use it like this
+            return res.json({
+              message: "Mining Partner Liquidity Paid successfully",
+              result: result, // You may want to include the result in the response
+            });
+          }
+        });
+        
       }
     }
-  );
+  });
 };
 
 exports.perdayAmountTransferToPartnerManual = (req, res) => {
@@ -2406,7 +2469,6 @@ exports.perdayAmountTransferToPartnerManual = (req, res) => {
                                 }
                               }
                             );
-
                           } else {
                             return res.status(500).json({
                               message: "Internal Server Error",
@@ -2495,8 +2557,6 @@ exports.approveRefferPartnerWithdrawalRequest = (req, res) => {
     "select partner_wallet,request_date,id,reffer_p_userid,p_userid from partner_reffer_withdrawal where id = ? ";
   connection.query(query, [partnerId.id], (err, results) => {
     if (!err) {
-
-
       let partner_wallet = results[0]?.partner_wallet;
       let id = results[0]?.id;
       let request_date = results[0]?.request_date;
@@ -2831,7 +2891,6 @@ exports.fetchAllFranchise = (req, res) => {
       return res.status(500).json({ message: "Internal server error" });
     }
 
-
     res.status(200).json({
       message: "Franchise records fetched successfully",
       franchiseData: results,
@@ -3153,7 +3212,7 @@ exports.adminVerifyMember = async (req, res) => {
                                         } else {
                                           const franchiseReferralId =
                                             result[0]?.referralId;
-                                         
+
                                           const franchiseAllDetails =
                                             "select * from create_franchise where referralId = ?";
                                           connection.query(
@@ -3167,7 +3226,6 @@ exports.adminVerifyMember = async (req, res) => {
                                                     "Something went to wrong",
                                                 });
                                               } else {
-                                               
                                                 const franchiseReferredId =
                                                   result[0].referredId;
                                                 // const franchiseId = result[0].franchiseId
@@ -3275,7 +3333,7 @@ exports.adminFetchAllMiningPartner = async (req, res) => {
 // adminVerifyPartner
 exports.adminVerifyPartner = async (req, res) => {
   try {
-    const { p_userid, isVerify,verifyDate } = req.body;
+    const { p_userid, isVerify, verifyDate } = req.body;
 
     if (typeof isVerify != "boolean") {
       return res.status(400).json({ message: "Invalid 'isVerify' value" });
@@ -3286,7 +3344,7 @@ exports.adminVerifyPartner = async (req, res) => {
 
     connection.query(
       upadtePartnerQuery,
-      [isVerify,verifyDate, p_userid],
+      [isVerify, verifyDate, p_userid],
       (error, result) => {
         if (error) {
           console.error("Error updating Member:", error);
@@ -4451,7 +4509,8 @@ exports.uploadBond = async (req, res) => {
           }
         );
       } else {
-        const updateBondQuery = "UPDATE upload_bond SET bond = ? WHERE userId = ?";
+        const updateBondQuery =
+          "UPDATE upload_bond SET bond = ? WHERE userId = ?";
         connection.query(
           updateBondQuery,
           [bondLocation, userId],
@@ -4474,7 +4533,6 @@ exports.uploadBond = async (req, res) => {
   }
 };
 
-
 //fetch bond
 exports.fetchBond = async (req, res) => {
   try {
@@ -4491,7 +4549,9 @@ exports.fetchBond = async (req, res) => {
       }
 
       if (result.length === 0) {
-        return res.status(404).json({ message: "No data found for the provided partner ID" });
+        return res
+          .status(404)
+          .json({ message: "No data found for the provided partner ID" });
       }
 
       return res
@@ -4503,7 +4563,6 @@ exports.fetchBond = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 exports.queryResolve = async (req, res) => {
   try {
