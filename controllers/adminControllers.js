@@ -897,848 +897,825 @@ exports.isPartnerActiveManualFromAdmin = (req, res) => {
   });
 };
 
-// doActivatePartnerManualFromAdmin
-
-exports.doActivatePartnerManualFromAdmin = (req, res) => {
-  let partnerid = req.body;
-  let { rigId } = req.body;
-
-  const partnerDetailsQuery =
-    "select rigId from mining_partner where p_userid =?";
-
-  connection.query(partnerDetailsQuery, [partnerid.p_userid], (err, result) => {
-    if (err) {
-      console.log(err.message);
-      return res.status(500).json({ message: "Internal server error" });
-    } else {
-      const rigid = result[0].rigId;
-      if (rigId === rigid) {
-        console.log("yes");
-
-        let query =
-          "update mining_partner set partner_status = ? where p_userid = ? ";
-        connection.query(
-          query,
-          [(partner_status = 1), partnerid.p_userid],
-          (err, results) => {
-            if (!err) {
-              let selectquery =
-                " select * from mining_partner where p_userid = ?";
-              connection.query(
-                selectquery,
-                [partnerid.p_userid],
-                (err, results) => {
-                  let liquidity = results[0]?.p_liquidity;
-                  console.log(liquidity,932)
-                  let phone = results[0]?.p_phone;
-                  let referredIdOfPartner = results[0]?.p_reffered_id;
-
-                  // doPartnerActivateSms(phone, { liquidity: liquidity });
-
-                  const findMember =
-                    "Select * from create_member where reffer_id = ?";
-                  connection.query(
-                    findMember,
-                    [referredIdOfPartner],
-                    (error, result) => {
-                      if (error) {
-                        console.log(error.message);
-                        return res
-                          .status(500)
-                          .json({ message: "Internal server error" });
-                      }
-                      if (result.length > 0 && result[0].priority === 1) {
-                        const member = result[0];
-                        let memberWallet = member.member_wallet;
-                        let referralIdOfMember = member.reffer_id;
-                        let memberid = member.m_userid;
-                        let target = member.target;
-                        let priority = member.priority;
-                        let userType = member.userType;
-                        const afterGstLiquidity = (liquidity * 18) / 100;
-                        const afterGstAmount = liquidity - afterGstLiquidity;
-                        const amount = (afterGstAmount * 10) / 100;
-                        memberWallet += (afterGstAmount * 10) / 100;
-                        target += liquidity;
-                        const date = new Date();
-
-                        const updateMemberWalletQuery =
-                          "UPDATE create_member SET member_wallet = ?, target = ? WHERE reffer_id = ?";
-
-                        connection.query(
-                          updateMemberWalletQuery,
-                          [memberWallet, target, referralIdOfMember],
-                          (error, updateResult) => {
-                            if (error) {
-                              console.log(error.message);
-                              return res
-                                .status(500)
-                                .json({ message: "Internal server error." });
-                            } else {
-                              const insertIntoMyTeam =
-                                "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
-                              connection.query(
-                                insertIntoMyTeam,
-                                [
-                                  memberid,
-                                  amount,
-                                  partnerid.p_userid,
-                                  date,
-                                  userType,
-                                ],
-                                (error, result) => {
-                                  if (error) {
-                                    console.log(error.message);
-                                    return res.status(500).json({
-                                      message: "Internal server error.",
-                                    });
-                                  }
-                                }
-                              );
-                            }
-                          }
-                        );
-
-                        const referredIdOfMember = member.m_refferid;
-
-                        const findFranchiseQuery =
-                          "select * from create_franchise where referralId =? ";
-                        connection.query(
-                          findFranchiseQuery,
-                          [referredIdOfMember],
-                          (error, result) => {
-                            if (error) {
-                              console.log(error.message);
-                              return res
-                                .status(500)
-                                .json({ message: "Internal server error." });
-                            }
-                            if (result.length > 0) {
-                              const franchise = result[0];
-                              const referredIdOfFranchise =
-                                franchise.referredId;
-                              let franchiseWallet = franchise.franchiseWallet;
-                              const franchiseid = franchise.franchiseId;
-                              const userType = franchise.userType;
-                              let netLiquidity = (liquidity * 82) / 100;
-                              const amount = (netLiquidity * 5) / 100;
-                              franchiseWallet += amount;
-                              const date = new Date();
-
-                              const updateFranchiseWalletquery =
-                                "UPDATE create_franchise SET franchiseWallet = ? WHERE referredId = ?";
-                              connection.query(
-                                updateFranchiseWalletquery,
-                                [franchiseWallet, referredIdOfFranchise],
-                                (error, updateResult) => {
-                                  if (error) {
-                                    console.log(error.message);
-                                    return res.status(500).json({
-                                      message: "Internal server error.",
-                                    });
-                                  } else {
-                                    const insertFranchiseIntoMyTeam =
-                                      "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
-                                    connection.query(
-                                      insertFranchiseIntoMyTeam,
-                                      [
-                                        franchiseid,
-                                        amount,
-                                        partnerid.p_userid,
-                                        date,
-                                        userType,
-                                      ],
-                                      (error, result) => {
-                                        if (error) {
-                                          return res.status(500).json({
-                                            message: "Internal server error.",
-                                          });
-                                        }
-                                      }
-                                    );
-                                  }
-                                }
-                              );
-
-                              const findBMMQuery =
-                                "select * from create_sho where referralId = ?";
-                              connection.query(
-                                findBMMQuery,
-                                [referredIdOfFranchise],
-                                (error, result) => {
-                                  if (error) {
-                                    return res.status(500).json({
-                                      message: "internal server error.",
-                                    });
-                                  }
-                                  if (result.length > 0) {
-                                    const bmm = result[0];
-                                    const referralIdOfBmm = bmm.referralId;
-                                    let stateHandlerWallet =
-                                      bmm.stateHandlerWallet;
-                                    const bmmId = bmm.stateHandlerId;
-                                    const userType = bmm.userType;
-                                    let netLiquidity = (liquidity * 82) / 100;
-                                    const amount = (netLiquidity * 5) / 100;
-                                    const date = new Date();
-
-                                    stateHandlerWallet += amount;
-
-                                    const updateBmmWalletQuery =
-                                      "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
-
-                                    connection.query(
-                                      updateBmmWalletQuery,
-                                      [stateHandlerWallet, referralIdOfBmm],
-                                      (error, result) => {
-                                        if (error) {
-                                          return res.status(500).json({
-                                            message: "internal server error.",
-                                          });
-                                        } else {
-                                          const insertBmmIntoMyTeam =
-                                            "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
-                                          connection.query(
-                                            insertBmmIntoMyTeam,
-                                            [
-                                              bmmId,
-                                              amount,
-                                              partnerid.p_userid,
-                                              date,
-                                              userType,
-                                            ],
-                                            (error, result) => {
-                                              if (error) {
-                                                return res.status(500).json({
-                                                  message:
-                                                    "Internal server error.",
-                                                });
-                                              }
-                                            }
-                                          );
-                                        }
-                                      }
-                                    );
-                                  }
-                                }
-                              );
-                            }
-                          }
-                        );
-                      } else {
-                        console.log("2nd condition");
-
-                        const findFranchiseQuery =
-                          "select * from create_franchise where referralId = ?";
-                        connection.query(
-                          findFranchiseQuery,
-                          [referredIdOfPartner],
-                          (error, result) => {
-                            if (error) {
-                              return res
-                                .status(500)
-                                .json({ message: "internal server error." });
-                            }
-
-                            if (result.length > 0 && result[0].priority === 1) {
-                              const franchise = result[0];
-
-                              let franchiseReferralId = franchise.referralId;
-                              let ReferredIdOfFranchise = franchise.referredId;
-
-                              let franchiseWallet = franchise.franchiseWallet;
-                              const franchiseid = franchise.franchiseId;
-                              // const amount = (liquidity * 5) / 100;
-                              let target = franchise.target;
-                              const userType = franchise.userType;
-                              const afterGstLiquidity = (liquidity * 18) / 100;
-                              const afterGstAmount =
-                                liquidity - afterGstLiquidity;
-                              franchiseWallet += (afterGstAmount * 12) / 100;
-                              target += liquidity;
-                              const date = new Date();
-                              const updateFranchiseWalletQuery =
-                                "update create_franchise SET franchiseWallet = ?, target = ? where franchiseId = ? ";
-
-                              connection.query(
-                                updateFranchiseWalletQuery,
-                                [franchiseWallet, target, franchiseid],
-                                (error, result) => {
-                                  if (error) {
-                                    console.log(error.message);
-                                    return res.status(500).json({
-                                      message: "internal server error.",
-                                    });
-                                  } else {
-                                    const insertFranchiseIntoMyTeam =
-                                      "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
-                                    connection.query(
-                                      insertFranchiseIntoMyTeam,
-                                      [
-                                        franchiseid,
-                                        amount,
-                                        partnerid.p_userid,
-                                        date,
-                                        userType,
-                                      ],
-                                      (error, result) => {
-                                        if (error) {
-                                          console.log(error.message);
-                                          return res.status(500).json({
-                                            message: "Internal server error.",
-                                          });
-                                        }
-                                      }
-                                    );
-                                  }
-                                }
-                              );
-
-                              const findBMMQuery =
-                                "select * from create_sho where referralId = ?";
-
-                              connection.query(
-                                findBMMQuery,
-                                [ReferredIdOfFranchise],
-                                (error, result) => {
-                                  if (error) {
-                                    return res.status(500).json({
-                                      message: "internal server error.",
-                                    });
-                                  }
-                                  if (result.length > 0) {
-                                    const bmm = result[0];
-
-                                    const referralIdOfBmm = bmm.referralId;
-
-                                    let bmmWallet = bmm.stateHandlerWallet;
-                                    const bmmId = bmm.stateHandlerId;
-                                    let netLiquidity = (liquidity * 82) / 100;
-                                    const amount = (netLiquidity * 5) / 100;
-                                    const date = new Date();
-                                    const userType = bmm.userType;
-                                    bmmWallet += amount;
-
-                                    const updateBmmWalletQuery =
-                                      "update create_sho set stateHandlerWallet =? where referralId =?";
-
-                                    connection.query(
-                                      updateBmmWalletQuery,
-                                      [bmmWallet, referralIdOfBmm],
-                                      (error, result) => {
-                                        if (error) {
-                                          return res.status(500).json({
-                                            message: "internal server error.",
-                                          });
-                                        } else {
-                                          const insertBmmIntoMyTeam =
-                                            "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
-                                          connection.query(
-                                            insertBmmIntoMyTeam,
-                                            [
-                                              bmmId,
-                                              amount,
-                                              partnerid.p_userid,
-                                              date,
-                                              userType,
-                                            ],
-                                            (error, result) => {
-                                              if (error) {
-                                                return res.status(500).json({
-                                                  message:
-                                                    "Internal server error.",
-                                                });
-                                              }
-                                            }
-                                          );
-                                        }
-                                      }
-                                    );
-                                  }
-                                }
-                              );
-                            } else {
-                              console.log("3rd codition");
-
-                              const findBmmQuery =
-                                "select * from create_sho where referralId = ?";
-
-                              connection.query(
-                                findBmmQuery,
-                                [referredIdOfPartner],
-                                (error, result) => {
-                                  if (error) {
-                                    return res.status(500).json({
-                                      message: "internal server error.",
-                                    });
-                                  }
-                                  if (
-                                    result.length > 0 &&
-                                    result[0].priority === 1
-                                  ) {
-                                    const bmm = result[0];
-                                    let bmmWallet = bmm.stateHandlerWallet;
-                                    const bmmId = bmm.stateHandlerId;
-                                    const afterGstLiquidity =
-                                      (liquidity * 18) / 100;
-                                    const afterGstAmount =
-                                      liquidity - afterGstLiquidity;
-                                    const amount = (afterGstAmount * 15) / 100;
-                                    const date = new Date();
-                                    bmmWallet += amount;
-                                    let target = bmm.target;
-                                    target = target + liquidity;
-                                    const userType = bmm.userType;
-                                    const referralIdOfBmm = bmm.referralId;
-
-                                    const updateBmmWalletQuery =
-                                      "update create_sho set stateHandlerWallet =? ,target = ? where stateHandlerId =?";
-
-                                    connection.query(
-                                      updateBmmWalletQuery,
-                                      [bmmWallet, target, bmmId],
-                                      (error, result) => {
-                                        if (error) {
-                                          return res.status(500).json({
-                                            message: "internal server error.",
-                                          });
-                                        } else {
-                                          const insertBmmIntoMyTeam =
-                                            "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
-                                          connection.query(
-                                            insertBmmIntoMyTeam,
-                                            [
-                                              bmmId,
-                                              amount,
-                                              partnerid.p_userid,
-                                              date,
-                                              userType,
-                                            ],
-                                            (error, result) => {}
-                                          );
-                                        }
-                                      }
-                                    );
-                                  }
-                                }
-                              );
-                            }
-                          }
-                        );
-                      }
-                    }
-                  );
-                }
-              );
-
-              return res.status(200).json({
-                message: "Mining Partner Liquiditity Paid successfully",
-              });
-            } else {
-              return res
-                .status(500)
-                .json({ message: "internal server error." });
-            }
-          }
-        );
-      } else {
-        console.log("No");
-        const updateRigPaymentStatusQuery =
-          "UPDATE multiple_rig_partner SET partner_status = 1 WHERE rigId = ?";
-
-        connection.query(
-          updateRigPaymentStatusQuery,
-          [rigId],
-          (err, result) => {
-            if (err) {
-              console.log(err.message);
-              return res.status(500).json({ message: "Internal server error" });
-            } else {
-              // Assuming res is the Express response object, you should use it like this
-              return res.json({
-                message: "Mining Partner Liquidity Paid successfully",
-                result: result, // You may want to include the result in the response
-              });
-            }
-          }
-        );
-      }
-    }
-  });
-};
-
-// exports.doActivatePartnerManualFromAdmin = async (req, res) => {
-
-//   try {
-//     const { p_userid, rigId } = req.body;
-//     console.log(p_userid)
-
-//     // Query to get rigId from mining_partner
-//     const partnerDetailsQuery =
-//       "SELECT rigId FROM mining_partner WHERE p_userid = ?";
-//     const [result] = await connection
-//       .promise()
-//       .query(partnerDetailsQuery, [p_userid]);
-//     const rigid = result[0]?.rigId;
-
-//     if (rigId === rigid) {
-//       console.log("first")
-//       // Update mining_partner status
-//       const updateMiningPartnerQuery =
-//         "UPDATE mining_partner SET partner_status = 1 WHERE p_userid = ?";
-//       await connection.promise().query(updateMiningPartnerQuery, [p_userid]);
-
-//       const selectPartnerQuery =
-//         "SELECT * FROM mining_partner WHERE p_userid = ?";
-//       const [miningPartnerResult] = await connection
-//         .promise()
-//         .query(selectPartnerQuery, [p_userid]);
-//         console.log(miningPartnerResult,926)
-//         const miningPartner = miningPartnerResult[0];
-
-//         if (miningPartner) {
-//           console.log(miningPartner, 926);
-//           console.log(typeof(miningPartner),930)
-
-//           const {p_liquidity}= miningPartner
-//           console.log(p_liquidity,1404)
-
-//   const liquidity = miningPartner.p_liquidity;
-//   console.log(liquidity, 930);
-
-//   const phone = miningPartner.p_phone;
-//   const referredIdOfPartner = miningPartner.p_reffered_id;
-//   console.log(referredIdOfPartner, 932);
-
-//   // Your other code...
-// } else {
-//   console.log("miningPartner is not defined or is an empty array", 936);
-//   // Handle the case when miningPartner is not defined or is an empty array
-// }
-
-
-//       console.log(liquidity,930)
-//       const phone = miningPartnerResult[0]?.p_phone;
-//       const referredIdOfPartner = miningPartnerResult[0]?.p_reffered_id;
-      
-//       console.log(referredIdOfPartner, 932)
-
-
-//       const findPartnerQuery = "SELECT * FROM mining_partner WHERE p_refferal_id = ?";
-//       const [partnerResult] = await connection
-//         .promise()
-//         .query(findPartnerQuery, [referredIdOfPartner]);
-
-//         console.log(partnerResult[0], 936)
-
-//         const partner = partnerResult[0];
-//         let memberWallet = member.member_wallet;
-//         let referralIdOfMember = member.reffer_id;
-//         let referredIdOfMember = member.m_refferid;
-//         let memberid = member.m_userid;
-//         let target = member.target;
-//         let priority = member.priority;
-//         let userType = member.userType;
-//         const afterGstLiquidity = (liquidity * 18) / 100;
-//         const afterGstAmount = liquidity - afterGstLiquidity;
-//         const amount = (afterGstAmount * 10) / 100;
-//         memberWallet += (afterGstAmount * 10) / 100;
-//         target += liquidity;
-//         const date = new Date();
-
-//         const updateMemberWalletQuery =
-//           "UPDATE create_member SET member_wallet = ?, target = ? WHERE reffer_id = ?";
-//         await connection
-//           .promise()
-//           .query(updateMemberWalletQuery, [
-//             memberWallet,
-//             target,
-//             referralIdOfMember,
-//           ]);
-
-//         const insertIntoMyTeamQuery =
-//           "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-//         await connection
-//           .promise()
-//           .query(insertIntoMyTeamQuery, [
-//             memberid,
-//             amount,
-//             p_userid,
-//             date,
-//             userType,
-//           ]);
-
-
-
-//       const findMemberQuery = "SELECT * FROM create_member WHERE reffer_id = ?";
-//       const [memberResult] = await connection
-//         .promise()
-//         .query(findMemberQuery, [referredIdOfPartner]);
-
-//       if (memberResult.length > 0 && memberResult[0].priority === 1) {
-//         const member = memberResult[0];
-//         let memberWallet = member.member_wallet;
-//         let referralIdOfMember = member.reffer_id;
-//         let referredIdOfMember = member.m_refferid;
-//         let memberid = member.m_userid;
-//         let target = member.target;
-//         let priority = member.priority;
-//         let userType = member.userType;
-//         const afterGstLiquidity = (liquidity * 18) / 100;
-//         const afterGstAmount = liquidity - afterGstLiquidity;
-//         const amount = (afterGstAmount * 10) / 100;
-//         memberWallet += (afterGstAmount * 10) / 100;
-//         target += liquidity;
-//         const date = new Date();
-
-//         const updateMemberWalletQuery =
-//           "UPDATE create_member SET member_wallet = ?, target = ? WHERE reffer_id = ?";
-//         await connection
-//           .promise()
-//           .query(updateMemberWalletQuery, [
-//             memberWallet,
-//             target,
-//             referralIdOfMember,
-//           ]);
-
-//         const insertIntoMyTeamQuery =
-//           "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-//         await connection
-//           .promise()
-//           .query(insertIntoMyTeamQuery, [
-//             memberid,
-//             amount,
-//             p_userid,
-//             date,
-//             userType,
-//           ]);
-
-//         const findFranchiseQuery =
-//           "SELECT * FROM create_franchise WHERE referralId = ?";
-//         const [franchiseResult] = await connection
-//           .promise()
-//           .query(findFranchiseQuery, [referredIdOfMember]);
-
-//         if (franchiseResult.length > 0) {
-//           const franchise = franchiseResult[0];
-//           const referredIdOfFranchise = franchise.referredId;
-//           let franchiseWallet = franchise.franchiseWallet;
-//           const franchiseid = franchise.franchiseId;
-//           const userType = franchise.userType;
-//           let netLiquidity = (liquidity * 82) / 100;
-//           const amount = (netLiquidity * 5) / 100;
-//           franchiseWallet += amount;
-//           const date = new Date();
-
-//           const updateFranchiseWalletquery =
-//             "UPDATE create_franchise SET franchiseWallet = ? WHERE referredId = ?";
-//           await connection
-//             .promise()
-//             .query(updateFranchiseWalletquery, [
-//               franchiseWallet,
-//               referredIdOfFranchise,
-//             ]);
-
-//           const insertFranchiseIntoMyTeam =
-//             "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-//           await connection
-//             .promise()
-//             .query(insertFranchiseIntoMyTeam, [
-//               franchiseid,
-//               amount,
-//               p_userid,
-//               date,
-//               userType,
-//             ]);
-//         }
-
-//         const findBMMQuery = "SELECT * FROM create_sho WHERE referralId = ?";
-//         const [bmmResult] = await connection
-//           .promise()
-//           .query(findBMMQuery, [referredIdOfFranchise]);
-
-//         if (bmmResult.length > 0) {
-//           const bmm = bmmResult[0];
-//           const referralIdOfBmm = bmm.referralId;
-//           let stateHandlerWallet = bmm.stateHandlerWallet;
-//           const bmmId = bmm.stateHandlerId;
-//           const userType = bmm.userType;
-//           let netLiquidity = (liquidity * 82) / 100;
-//           const amount = (netLiquidity * 5) / 100;
-//           const date = new Date();
-
-//           stateHandlerWallet += amount;
-
-//           const updateBmmWalletQuery =
-//             "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
-//           await connection
-//             .promise()
-//             .query(updateBmmWalletQuery, [stateHandlerWallet, referralIdOfBmm]);
-
-//           const insertBmmIntoMyTeam =
-//             "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-//           await connection
-//             .promise()
-//             .query(insertBmmIntoMyTeam, [
-//               bmmId,
-//               amount,
-//               p_userid,
-//               date,
-//               userType,
-//             ]);
-//         }
-//       } else {
-//         console.log("2nd condition");
-
-//         const findFranchiseQuery =
-//           "SELECT * FROM create_franchise WHERE referralId = ?";
-//         const [result] = await connection
-//           .promise()
-//           .query(findFranchiseQuery, [referredIdOfPartner]);
-
-//         if (result.length > 0 && result[0].priority === 1) {
-//           const franchise = result[0];
-
-//           let franchiseReferralId = franchise.referralId;
-//           let ReferredIdOfFranchise = franchise.referredId;
-
-//           let franchiseWallet = franchise.franchiseWallet;
-//           const franchiseid = franchise.franchiseId;
-//           let target = franchise.target;
-//           const userType = franchise.userType;
-//           const afterGstLiquidity = (liquidity * 18) / 100;
-//           const afterGstAmount = liquidity - afterGstLiquidity;
-//           franchiseWallet += (afterGstAmount * 12) / 100;
-//           target += liquidity;
-//           const date = new Date();
-//           const updateFranchiseWalletQuery =
-//             "UPDATE create_franchise SET franchiseWallet = ?, target = ? WHERE franchiseId = ?";
-
-//           await connection
-//             .promise()
-//             .query(updateFranchiseWalletQuery, [
-//               franchiseWallet,
-//               target,
-//               franchiseid,
-//             ]);
-
-//           const insertFranchiseIntoMyTeam =
-//             "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-//           await connection
-//             .promise()
-//             .query(insertFranchiseIntoMyTeam, [
-//               franchiseid,
-//               amount,
-//               partnerid.p_userid,
-//               date,
-//               userType,
-//             ]);
-
-//           const findBMMQuery = "SELECT * FROM create_sho WHERE referralId = ?";
-
-//           const [bmmResult] = await connection
-//             .promise()
-//             .query(findBMMQuery, [ReferredIdOfFranchise]);
-
-//           if (bmmResult.length > 0) {
-//             const bmm = bmmResult[0];
-//             const referralIdOfBmm = bmm.referralId;
-
-//             let bmmWallet = bmm.stateHandlerWallet;
-//             const bmmId = bmm.stateHandlerId;
-//             let netLiquidity = (liquidity * 82) / 100;
-//             const amount = (netLiquidity * 5) / 100;
-//             const date = new Date();
-//             const userType = bmm.userType;
-//             bmmWallet += amount;
-
-//             const updateBmmWalletQuery =
-//               "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
-
-//             await connection
-//               .promise()
-//               .query(updateBmmWalletQuery, [bmmWallet, referralIdOfBmm]);
-
-//             const insertBmmIntoMyTeam =
-//               "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-//             await connection
-//               .promise()
-//               .query(insertBmmIntoMyTeam, [
-//                 bmmId,
-//                 amount,
-//                 partnerid.p_userid,
-//                 date,
-//                 userType,
-//               ]);
-//           }
-
-//           // ... (rest of the code for processing and updating other tables)
-
-//           return res.status(200).json({
-//             message: "Mining Partner Liquidity Paid successfully",
-//             // Include necessary information in the response
-//           });
-//         } else {
-//           console.log("3rd condition");
-
-//           const findBmmQuery = "SELECT * FROM create_sho WHERE referralId = ?";
-
-//           const [result] = await connection
-//             .promise()
-//             .query(findBmmQuery, [referredIdOfPartner]);
-
-//           if (result.length > 0 && result[0].priority === 1) {
-//             const bmm = result[0];
-//             let bmmWallet = bmm.stateHandlerWallet;
-//             const bmmId = bmm.stateHandlerId;
-//             const afterGstLiquidity = (liquidity * 18) / 100;
-//             const afterGstAmount = liquidity - afterGstLiquidity;
-//             const amount = (afterGstAmount * 15) / 100;
-//             const date = new Date();
-//             bmmWallet += amount;
-//             let target = bmm.target;
-//             target = target + liquidity;
-//             const userType = bmm.userType;
-//             const referralIdOfBmm = bmm.referralId;
-
-//             const updateBmmWalletQuery =
-//               "UPDATE create_sho SET stateHandlerWallet = ?, target = ? WHERE stateHandlerId = ?";
-
-//             await connection
-//               .promise()
-//               .query(updateBmmWalletQuery, [bmmWallet, target, bmmId]);
-
-//             const insertBmmIntoMyTeam =
-//               "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-//             await connection
-//               .promise()
-//               .query(insertBmmIntoMyTeam, [
-//                 bmmId,
-//                 amount,
-//                 partnerid.p_userid,
-//                 date,
-//                 userType,
-//               ]);
-//           }
-//         }
-//       }
+// exports.doActivatePartnerManualFromAdmin = (req, res) => {
+//   let partnerid = req.body;
+//   let { rigId } = req.body;
+
+//   const partnerDetailsQuery =
+//     "select rigId from mining_partner where p_userid =?";
+
+//   connection.query(partnerDetailsQuery, [partnerid.p_userid], (err, result) => {
+//     if (err) {
+//       console.log(err.message);
+//       return res.status(500).json({ message: "Internal server error" });
 //     } else {
-//       // Update multiple_rig_partner status
-//       const updateRigPaymentStatusQuery =
-//         "UPDATE multiple_rig_partner SET partner_status = 1 WHERE rigId = ?";
-//       await connection
-//         .promise()
-//         .query(updateRigPaymentStatusQuery, [rigId]);
+//       const rigid = result[0].rigId;
+//       if (rigId === rigid) {
+//         console.log("yes");
 
-//       return res.json({
-//         message: "Mining Partner Liquidity Paid successfully",
-//       });
+//         let query =
+//           "update mining_partner set partner_status = ? where p_userid = ? ";
+//         connection.query(
+//           query,
+//           [(partner_status = 1), partnerid.p_userid],
+//           (err, results) => {
+//             if (!err) {
+//               let selectquery =
+//                 " select * from mining_partner where p_userid = ?";
+//               connection.query(
+//                 selectquery,
+//                 [partnerid.p_userid],
+//                 (err, results) => {
+//                   let liquidity = results[0]?.p_liquidity;
+//                   console.log(liquidity,932)
+//                   let phone = results[0]?.p_phone;
+//                   let referredIdOfPartner = results[0]?.p_reffered_id;
+
+//                   // doPartnerActivateSms(phone, { liquidity: liquidity });
+
+//                   const findMember =
+//                     "Select * from create_member where reffer_id = ?";
+//                   connection.query(
+//                     findMember,
+//                     [referredIdOfPartner],
+//                     (error, result) => {
+//                       if (error) {
+//                         console.log(error.message);
+//                         return res
+//                           .status(500)
+//                           .json({ message: "Internal server error" });
+//                       }
+//                       if (result.length > 0 && result[0].priority === 1) {
+//                         const member = result[0];
+//                         let memberWallet = member.member_wallet;
+//                         let referralIdOfMember = member.reffer_id;
+//                         let memberid = member.m_userid;
+//                         let target = member.target;
+//                         let priority = member.priority;
+//                         let userType = member.userType;
+//                         const afterGstLiquidity = (liquidity * 18) / 100;
+//                         const afterGstAmount = liquidity - afterGstLiquidity;
+//                         const amount = (afterGstAmount * 10) / 100;
+//                         memberWallet += (afterGstAmount * 10) / 100;
+//                         target += liquidity;
+//                         const date = new Date();
+
+//                         const updateMemberWalletQuery =
+//                           "UPDATE create_member SET member_wallet = ?, target = ? WHERE reffer_id = ?";
+
+//                         connection.query(
+//                           updateMemberWalletQuery,
+//                           [memberWallet, target, referralIdOfMember],
+//                           (error, updateResult) => {
+//                             if (error) {
+//                               console.log(error.message);
+//                               return res
+//                                 .status(500)
+//                                 .json({ message: "Internal server error." });
+//                             } else {
+//                               const insertIntoMyTeam =
+//                                 "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
+//                               connection.query(
+//                                 insertIntoMyTeam,
+//                                 [
+//                                   memberid,
+//                                   amount,
+//                                   partnerid.p_userid,
+//                                   date,
+//                                   userType,
+//                                 ],
+//                                 (error, result) => {
+//                                   if (error) {
+//                                     console.log(error.message);
+//                                     return res.status(500).json({
+//                                       message: "Internal server error.",
+//                                     });
+//                                   }
+//                                 }
+//                               );
+//                             }
+//                           }
+//                         );
+
+//                         const referredIdOfMember = member.m_refferid;
+
+//                         const findFranchiseQuery =
+//                           "select * from create_franchise where referralId =? ";
+//                         connection.query(
+//                           findFranchiseQuery,
+//                           [referredIdOfMember],
+//                           (error, result) => {
+//                             if (error) {
+//                               console.log(error.message);
+//                               return res
+//                                 .status(500)
+//                                 .json({ message: "Internal server error." });
+//                             }
+//                             if (result.length > 0) {
+//                               const franchise = result[0];
+//                               const referredIdOfFranchise =
+//                                 franchise.referredId;
+//                               let franchiseWallet = franchise.franchiseWallet;
+//                               const franchiseid = franchise.franchiseId;
+//                               const userType = franchise.userType;
+//                               let netLiquidity = (liquidity * 82) / 100;
+//                               const amount = (netLiquidity * 5) / 100;
+//                               franchiseWallet += amount;
+//                               const date = new Date();
+
+//                               const updateFranchiseWalletquery =
+//                                 "UPDATE create_franchise SET franchiseWallet = ? WHERE referredId = ?";
+//                               connection.query(
+//                                 updateFranchiseWalletquery,
+//                                 [franchiseWallet, referredIdOfFranchise],
+//                                 (error, updateResult) => {
+//                                   if (error) {
+//                                     console.log(error.message);
+//                                     return res.status(500).json({
+//                                       message: "Internal server error.",
+//                                     });
+//                                   } else {
+//                                     const insertFranchiseIntoMyTeam =
+//                                       "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
+//                                     connection.query(
+//                                       insertFranchiseIntoMyTeam,
+//                                       [
+//                                         franchiseid,
+//                                         amount,
+//                                         partnerid.p_userid,
+//                                         date,
+//                                         userType,
+//                                       ],
+//                                       (error, result) => {
+//                                         if (error) {
+//                                           return res.status(500).json({
+//                                             message: "Internal server error.",
+//                                           });
+//                                         }
+//                                       }
+//                                     );
+//                                   }
+//                                 }
+//                               );
+
+//                               const findBMMQuery =
+//                                 "select * from create_sho where referralId = ?";
+//                               connection.query(
+//                                 findBMMQuery,
+//                                 [referredIdOfFranchise],
+//                                 (error, result) => {
+//                                   if (error) {
+//                                     return res.status(500).json({
+//                                       message: "internal server error.",
+//                                     });
+//                                   }
+//                                   if (result.length > 0) {
+//                                     const bmm = result[0];
+//                                     const referralIdOfBmm = bmm.referralId;
+//                                     let stateHandlerWallet =
+//                                       bmm.stateHandlerWallet;
+//                                     const bmmId = bmm.stateHandlerId;
+//                                     const userType = bmm.userType;
+//                                     let netLiquidity = (liquidity * 82) / 100;
+//                                     const amount = (netLiquidity * 5) / 100;
+//                                     const date = new Date();
+
+//                                     stateHandlerWallet += amount;
+
+//                                     const updateBmmWalletQuery =
+//                                       "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
+
+//                                     connection.query(
+//                                       updateBmmWalletQuery,
+//                                       [stateHandlerWallet, referralIdOfBmm],
+//                                       (error, result) => {
+//                                         if (error) {
+//                                           return res.status(500).json({
+//                                             message: "internal server error.",
+//                                           });
+//                                         } else {
+//                                           const insertBmmIntoMyTeam =
+//                                             "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
+//                                           connection.query(
+//                                             insertBmmIntoMyTeam,
+//                                             [
+//                                               bmmId,
+//                                               amount,
+//                                               partnerid.p_userid,
+//                                               date,
+//                                               userType,
+//                                             ],
+//                                             (error, result) => {
+//                                               if (error) {
+//                                                 return res.status(500).json({
+//                                                   message:
+//                                                     "Internal server error.",
+//                                                 });
+//                                               }
+//                                             }
+//                                           );
+//                                         }
+//                                       }
+//                                     );
+//                                   }
+//                                 }
+//                               );
+//                             }
+//                           }
+//                         );
+//                       } else {
+//                         console.log("2nd condition");
+
+//                         const findFranchiseQuery =
+//                           "select * from create_franchise where referralId = ?";
+//                         connection.query(
+//                           findFranchiseQuery,
+//                           [referredIdOfPartner],
+//                           (error, result) => {
+//                             if (error) {
+//                               return res
+//                                 .status(500)
+//                                 .json({ message: "internal server error." });
+//                             }
+
+//                             if (result.length > 0 && result[0].priority === 1) {
+//                               const franchise = result[0];
+
+//                               let franchiseReferralId = franchise.referralId;
+//                               let ReferredIdOfFranchise = franchise.referredId;
+
+//                               let franchiseWallet = franchise.franchiseWallet;
+//                               const franchiseid = franchise.franchiseId;
+//                               // const amount = (liquidity * 5) / 100;
+//                               let target = franchise.target;
+//                               const userType = franchise.userType;
+//                               const afterGstLiquidity = (liquidity * 18) / 100;
+//                               const afterGstAmount =
+//                                 liquidity - afterGstLiquidity;
+//                               franchiseWallet += (afterGstAmount * 12) / 100;
+//                               target += liquidity;
+//                               const date = new Date();
+//                               const updateFranchiseWalletQuery =
+//                                 "update create_franchise SET franchiseWallet = ?, target = ? where franchiseId = ? ";
+
+//                               connection.query(
+//                                 updateFranchiseWalletQuery,
+//                                 [franchiseWallet, target, franchiseid],
+//                                 (error, result) => {
+//                                   if (error) {
+//                                     console.log(error.message);
+//                                     return res.status(500).json({
+//                                       message: "internal server error.",
+//                                     });
+//                                   } else {
+//                                     const insertFranchiseIntoMyTeam =
+//                                       "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
+//                                     connection.query(
+//                                       insertFranchiseIntoMyTeam,
+//                                       [
+//                                         franchiseid,
+//                                         amount,
+//                                         partnerid.p_userid,
+//                                         date,
+//                                         userType,
+//                                       ],
+//                                       (error, result) => {
+//                                         if (error) {
+//                                           console.log(error.message);
+//                                           return res.status(500).json({
+//                                             message: "Internal server error.",
+//                                           });
+//                                         }
+//                                       }
+//                                     );
+//                                   }
+//                                 }
+//                               );
+
+//                               const findBMMQuery =
+//                                 "select * from create_sho where referralId = ?";
+
+//                               connection.query(
+//                                 findBMMQuery,
+//                                 [ReferredIdOfFranchise],
+//                                 (error, result) => {
+//                                   if (error) {
+//                                     return res.status(500).json({
+//                                       message: "internal server error.",
+//                                     });
+//                                   }
+//                                   if (result.length > 0) {
+//                                     const bmm = result[0];
+
+//                                     const referralIdOfBmm = bmm.referralId;
+
+//                                     let bmmWallet = bmm.stateHandlerWallet;
+//                                     const bmmId = bmm.stateHandlerId;
+//                                     let netLiquidity = (liquidity * 82) / 100;
+//                                     const amount = (netLiquidity * 5) / 100;
+//                                     const date = new Date();
+//                                     const userType = bmm.userType;
+//                                     bmmWallet += amount;
+
+//                                     const updateBmmWalletQuery =
+//                                       "update create_sho set stateHandlerWallet =? where referralId =?";
+
+//                                     connection.query(
+//                                       updateBmmWalletQuery,
+//                                       [bmmWallet, referralIdOfBmm],
+//                                       (error, result) => {
+//                                         if (error) {
+//                                           return res.status(500).json({
+//                                             message: "internal server error.",
+//                                           });
+//                                         } else {
+//                                           const insertBmmIntoMyTeam =
+//                                             "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
+//                                           connection.query(
+//                                             insertBmmIntoMyTeam,
+//                                             [
+//                                               bmmId,
+//                                               amount,
+//                                               partnerid.p_userid,
+//                                               date,
+//                                               userType,
+//                                             ],
+//                                             (error, result) => {
+//                                               if (error) {
+//                                                 return res.status(500).json({
+//                                                   message:
+//                                                     "Internal server error.",
+//                                                 });
+//                                               }
+//                                             }
+//                                           );
+//                                         }
+//                                       }
+//                                     );
+//                                   }
+//                                 }
+//                               );
+//                             } else {
+//                               console.log("3rd codition");
+
+//                               const findBmmQuery =
+//                                 "select * from create_sho where referralId = ?";
+
+//                               connection.query(
+//                                 findBmmQuery,
+//                                 [referredIdOfPartner],
+//                                 (error, result) => {
+//                                   if (error) {
+//                                     return res.status(500).json({
+//                                       message: "internal server error.",
+//                                     });
+//                                   }
+//                                   if (
+//                                     result.length > 0 &&
+//                                     result[0].priority === 1
+//                                   ) {
+//                                     const bmm = result[0];
+//                                     let bmmWallet = bmm.stateHandlerWallet;
+//                                     const bmmId = bmm.stateHandlerId;
+//                                     const afterGstLiquidity =
+//                                       (liquidity * 18) / 100;
+//                                     const afterGstAmount =
+//                                       liquidity - afterGstLiquidity;
+//                                     const amount = (afterGstAmount * 15) / 100;
+//                                     const date = new Date();
+//                                     bmmWallet += amount;
+//                                     let target = bmm.target;
+//                                     target = target + liquidity;
+//                                     const userType = bmm.userType;
+//                                     const referralIdOfBmm = bmm.referralId;
+
+//                                     const updateBmmWalletQuery =
+//                                       "update create_sho set stateHandlerWallet =? ,target = ? where stateHandlerId =?";
+
+//                                     connection.query(
+//                                       updateBmmWalletQuery,
+//                                       [bmmWallet, target, bmmId],
+//                                       (error, result) => {
+//                                         if (error) {
+//                                           return res.status(500).json({
+//                                             message: "internal server error.",
+//                                           });
+//                                         } else {
+//                                           const insertBmmIntoMyTeam =
+//                                             "insert into my_team (userid,amount,partnerid,credit_date,userType) values(?,?,?,?,?)";
+//                                           connection.query(
+//                                             insertBmmIntoMyTeam,
+//                                             [
+//                                               bmmId,
+//                                               amount,
+//                                               partnerid.p_userid,
+//                                               date,
+//                                               userType,
+//                                             ],
+//                                             (error, result) => {}
+//                                           );
+//                                         }
+//                                       }
+//                                     );
+//                                   }
+//                                 }
+//                               );
+//                             }
+//                           }
+//                         );
+//                       }
+//                     }
+//                   );
+//                 }
+//               );
+
+//               return res.status(200).json({
+//                 message: "Mining Partner Liquiditity Paid successfully",
+//               });
+//             } else {
+//               return res
+//                 .status(500)
+//                 .json({ message: "internal server error." });
+//             }
+//           }
+//         );
+//       } else {
+//         console.log("No");
+//         const updateRigPaymentStatusQuery =
+//           "UPDATE multiple_rig_partner SET partner_status = 1 WHERE rigId = ?";
+
+//         connection.query(
+//           updateRigPaymentStatusQuery,
+//           [rigId],
+//           (err, result) => {
+//             if (err) {
+//               console.log(err.message);
+//               return res.status(500).json({ message: "Internal server error" });
+//             } else {
+//               // Assuming res is the Express response object, you should use it like this
+//               return res.json({
+//                 message: "Mining Partner Liquidity Paid successfully",
+//                 result: result, // You may want to include the result in the response
+//               });
+//             }
+//           }
+//         );
+//       }
 //     }
-//   } catch (error) {
-//     console.error(error.message);
-//     return res.status(500).json({ message: "Internal server error" });
-//   }
+//   });
 // };
+
+exports.doActivatePartnerManualFromAdmin = async (req, res) => {
+  try {
+    const { p_userid, rigId } = req.body;
+    console.log(p_userid);
+
+    // Query to get rigId from mining_partner
+    const partnerDetailsQuery =
+      "SELECT rigId FROM mining_partner WHERE p_userid = ?";
+    const [result] = await connection
+      .promise()
+      .query(partnerDetailsQuery, [p_userid]);
+    const rigid = result[0]?.rigId;
+
+    if (rigId === rigid) {
+      console.log("first");
+      // Update mining_partner status
+      const updateMiningPartnerQuery =
+        "UPDATE mining_partner SET partner_status = 1 WHERE p_userid = ?";
+      await connection.promise().query(updateMiningPartnerQuery, [p_userid]);
+
+      const selectPartnerQuery =
+        "SELECT * FROM mining_partner WHERE p_userid = ?";
+      const [miningPartnerResult] = await connection
+        .promise()
+        .query(selectPartnerQuery, [p_userid]);
+      console.log(miningPartnerResult, 926);
+      const miningPartner = miningPartnerResult[0];
+
+      console.log(miningPartner, 926);
+
+      const liquidity = miningPartner.p_liquidity;
+      console.log(liquidity, 930);
+
+      const referredIdOfPartner = miningPartner.p_reffered_id;
+      console.log(referredIdOfPartner, 932);
+
+      const referralIdOfPartner = miningPartner.p_refferal_id;
+      console.log(referralIdOfPartner, 1409);
+
+      let partnerWallet = miningPartner.partner_wallet;
+      console.log(liquidity, 930);
+      let partnerStatus = miningPartner.partner_status;
+
+      const findReferredPartnerQuery =
+        "SELECT * FROM mining_partner WHERE p_reffered_id = ?";
+      const [partnerResult] = await connection
+        .promise()
+        .query(findReferredPartnerQuery, [referralIdOfPartner]);
+
+      console.log(partnerResult[0], 936);
+
+      const referredPartnerLiquidity = partnerResult[0].p_liquidity;
+      console.log(referredPartnerLiquidity, 1421);
+      const referredPartnerUserId = partnerResult[0].p_userid
+
+      if (partnerResult) {
+        console.log(partnerWallet, 1422);
+        partnerWallet += (referredPartnerLiquidity * 82 * 10) / 10000;
+        console.log(partnerWallet, 1424);
+
+        const partnerUpdatedWalletQuery =
+          "UPDATE mining_partner SET partner_wallet = ? WHERE p_userid = ?";
+
+        await connection
+          .promise()
+          .query(partnerUpdatedWalletQuery, [partnerWallet, p_userid]);
+
+      }  
+      const date = new Date();
+      const userType = "PARTNER"
+
+
+      const insertIntoMyTeamQuery =
+        "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+      await connection
+        .promise()
+        .query(insertIntoMyTeamQuery, [
+          referredPartnerUserId,
+          partnerWallet,
+          p_userid,
+          date,
+          userType,
+        ]);
+
+      const findMemberQuery = "SELECT * FROM create_member WHERE reffer_id = ?";
+      const [memberResult] = await connection
+        .promise()
+        .query(findMemberQuery, [referredIdOfPartner]);
+
+      if (memberResult.length > 0 && memberResult[0].priority === 1) {
+        const member = memberResult[0];
+        let memberWallet = member.member_wallet;
+        let referralIdOfMember = member.reffer_id;
+        let referredIdOfMember = member.m_refferid;
+        let memberid = member.m_userid;
+        let target = member.target;
+        let priority = member.priority;
+        let userType = member.userType;
+        const afterGstLiquidity = (liquidity * 18) / 100;
+        const afterGstAmount = liquidity - afterGstLiquidity;
+        const amount = (afterGstAmount * 10) / 100;
+        memberWallet += (afterGstAmount * 10) / 100;
+        target += liquidity;
+        const date = new Date();
+
+        const updateMemberWalletQuery =
+          "UPDATE create_member SET member_wallet = ?, target = ? WHERE reffer_id = ?";
+        await connection
+          .promise()
+          .query(updateMemberWalletQuery, [
+            memberWallet,
+            target,
+            referralIdOfMember,
+          ]);
+
+        const insertIntoMyTeamQuery =
+          "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+        await connection
+          .promise()
+          .query(insertIntoMyTeamQuery, [
+            memberid,
+            amount,
+            p_userid,
+            date,
+            userType,
+          ]);
+
+        const findFranchiseQuery =
+          "SELECT * FROM create_franchise WHERE referralId = ?";
+        const [franchiseResult] = await connection
+          .promise()
+          .query(findFranchiseQuery, [referredIdOfMember]);
+
+        if (franchiseResult.length > 0) {
+          const franchise = franchiseResult[0];
+          const referredIdOfFranchise = franchise.referredId;
+          let franchiseWallet = franchise.franchiseWallet;
+          const franchiseid = franchise.franchiseId;
+          const userType = franchise.userType;
+          let netLiquidity = (liquidity * 82) / 100;
+          const amount = (netLiquidity * 5) / 100;
+          franchiseWallet += amount;
+          const date = new Date();
+
+          const updateFranchiseWalletquery =
+            "UPDATE create_franchise SET franchiseWallet = ? WHERE referredId = ?";
+          await connection
+            .promise()
+            .query(updateFranchiseWalletquery, [
+              franchiseWallet,
+              referredIdOfFranchise,
+            ]);
+
+          const insertFranchiseIntoMyTeam =
+            "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+          await connection
+            .promise()
+            .query(insertFranchiseIntoMyTeam, [
+              franchiseid,
+              amount,
+              p_userid,
+              date,
+              userType,
+            ]);
+        }
+
+        const findBMMQuery = "SELECT * FROM create_sho WHERE referralId = ?";
+        const [bmmResult] = await connection
+          .promise()
+          .query(findBMMQuery, [referredIdOfFranchise]);
+
+        if (bmmResult.length > 0) {
+          const bmm = bmmResult[0];
+          const referralIdOfBmm = bmm.referralId;
+          let stateHandlerWallet = bmm.stateHandlerWallet;
+          const bmmId = bmm.stateHandlerId;
+          const userType = bmm.userType;
+          let netLiquidity = (liquidity * 82) / 100;
+          const amount = (netLiquidity * 5) / 100;
+          const date = new Date();
+
+          stateHandlerWallet += amount;
+
+          const updateBmmWalletQuery =
+            "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
+          await connection
+            .promise()
+            .query(updateBmmWalletQuery, [stateHandlerWallet, referralIdOfBmm]);
+
+          const insertBmmIntoMyTeam =
+            "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+          await connection
+            .promise()
+            .query(insertBmmIntoMyTeam, [
+              bmmId,
+              amount,
+              p_userid,
+              date,
+              userType,
+            ]);
+        }
+      } else {
+        console.log("2nd condition");
+
+        const findFranchiseQuery =
+          "SELECT * FROM create_franchise WHERE referralId = ?";
+        const [result] = await connection
+          .promise()
+          .query(findFranchiseQuery, [referredIdOfPartner]);
+
+        if (result.length > 0 && result[0].priority === 1) {
+          const franchise = result[0];
+
+          let franchiseReferralId = franchise.referralId;
+          let ReferredIdOfFranchise = franchise.referredId;
+
+          let franchiseWallet = franchise.franchiseWallet;
+          const franchiseid = franchise.franchiseId;
+          let target = franchise.target;
+          const userType = franchise.userType;
+          const afterGstLiquidity = (liquidity * 18) / 100;
+          const afterGstAmount = liquidity - afterGstLiquidity;
+          franchiseWallet += (afterGstAmount * 12) / 100;
+          target += liquidity;
+          const date = new Date();
+          const updateFranchiseWalletQuery =
+            "UPDATE create_franchise SET franchiseWallet = ?, target = ? WHERE franchiseId = ?";
+
+          await connection
+            .promise()
+            .query(updateFranchiseWalletQuery, [
+              franchiseWallet,
+              target,
+              franchiseid,
+            ]);
+
+          const insertFranchiseIntoMyTeam =
+            "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+          await connection
+            .promise()
+            .query(insertFranchiseIntoMyTeam, [
+              franchiseid,
+              amount,
+              partnerid.p_userid,
+              date,
+              userType,
+            ]);
+
+          const findBMMQuery = "SELECT * FROM create_sho WHERE referralId = ?";
+
+          const [bmmResult] = await connection
+            .promise()
+            .query(findBMMQuery, [ReferredIdOfFranchise]);
+
+          if (bmmResult.length > 0) {
+            const bmm = bmmResult[0];
+            const referralIdOfBmm = bmm.referralId;
+
+            let bmmWallet = bmm.stateHandlerWallet;
+            const bmmId = bmm.stateHandlerId;
+            let netLiquidity = (liquidity * 82) / 100;
+            const amount = (netLiquidity * 5) / 100;
+            const date = new Date();
+            const userType = bmm.userType;
+            bmmWallet += amount;
+
+            const updateBmmWalletQuery =
+              "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
+
+            await connection
+              .promise()
+              .query(updateBmmWalletQuery, [bmmWallet, referralIdOfBmm]);
+
+            const insertBmmIntoMyTeam =
+              "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+            await connection
+              .promise()
+              .query(insertBmmIntoMyTeam, [
+                bmmId,
+                amount,
+                partnerid.p_userid,
+                date,
+                userType,
+              ]);
+          }
+
+          // ... (rest of the code for processing and updating other tables)
+
+          return res.status(200).json({
+            message: "Mining Partner Liquidity Paid successfully",
+            // Include necessary information in the response
+          });
+        } else {
+          console.log("3rd condition");
+
+          const findBmmQuery = "SELECT * FROM create_sho WHERE referralId = ?";
+
+          const [result] = await connection
+            .promise()
+            .query(findBmmQuery, [referredIdOfPartner]);
+
+          if (result.length > 0 && result[0].priority === 1) {
+            const bmm = result[0];
+            let bmmWallet = bmm.stateHandlerWallet;
+            const bmmId = bmm.stateHandlerId;
+            const afterGstLiquidity = (liquidity * 18) / 100;
+            const afterGstAmount = liquidity - afterGstLiquidity;
+            const amount = (afterGstAmount * 15) / 100;
+            const date = new Date();
+            bmmWallet += amount;
+            let target = bmm.target;
+            target = target + liquidity;
+            const userType = bmm.userType;
+            const referralIdOfBmm = bmm.referralId;
+
+            const updateBmmWalletQuery =
+              "UPDATE create_sho SET stateHandlerWallet = ?, target = ? WHERE stateHandlerId = ?";
+
+            await connection
+              .promise()
+              .query(updateBmmWalletQuery, [bmmWallet, target, bmmId]);
+
+            const insertBmmIntoMyTeam =
+              "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+            await connection
+              .promise()
+              .query(insertBmmIntoMyTeam, [
+                bmmId,
+                amount,
+                partnerid.p_userid,
+                date,
+                userType,
+              ]);
+          }
+        }
+      }
+    } else {
+      // Update multiple_rig_partner status
+      const updateRigPaymentStatusQuery =
+        "UPDATE multiple_rig_partner SET partner_status = 1 WHERE rigId = ?";
+      await connection.promise().query(updateRigPaymentStatusQuery, [rigId]);
+
+      return res.json({
+        message: "Mining Partner Liquidity Paid successfully",
+      });
+    }
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 exports.perdayAmountTransferToPartnerManual = (req, res) => {
   let reffered_id = "";
@@ -5145,7 +5122,9 @@ exports.createPartnerPayout = async (req, res) => {
     const { rigId, payableAmount, payoutDate } = req.body;
 
     if (!payableAmount || !payoutDate) {
-      return res.status(400).json({ message: "Payable amount and Payout Date are required." });
+      return res
+        .status(400)
+        .json({ message: "Payable amount and Payout Date are required." });
     }
 
     // Check if rigId already exists in the table
@@ -5194,25 +5173,63 @@ exports.createPartnerPayout = async (req, res) => {
   }
 };
 
+// Fetch partner payouts by rigId
+exports.fetchPartnerPayouts = async (req, res) => {
+  try {
+    const { rigId } = req.body;
+
+    if (!rigId) {
+      return res.status(400).json({ message: "Rig ID is required." });
+    }
+
+    // Fetch partner payouts for a specific rigId
+    const [partnerPayouts] = await connection
+      .promise()
+      .query(
+        "SELECT * FROM partner_payout WHERE rigId = ?",
+        [rigId]
+      );
+
+    return res.status(200).json({message:"Partner Payout fetched successfully",data: partnerPayouts });
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+
 exports.fetchPartnerByRigId = async (req, res) => {
   try {
     const { rigId } = req.body;
 
     const miningPartnerQuery = "SELECT * FROM mining_partner WHERE rigId = ?";
-    const [miningPartnerResult] = await connection.promise().query(miningPartnerQuery, [rigId]);
+    const [miningPartnerResult] = await connection
+      .promise()
+      .query(miningPartnerQuery, [rigId]);
 
     if (miningPartnerResult.length > 0) {
-      console.log("first")
-      return res.status(200).json({ message: "Mining Partner fetched successfully.", data: miningPartnerResult });
+      console.log("first");
+      return res.status(200).json({
+        message: "Mining Partner fetched successfully.",
+        data: miningPartnerResult,
+      });
     } else {
-      console.log("111111")
-      const multipleRigPartnerQuery = "SELECT * FROM multiple_rig_partner WHERE rigId = ?";
-      const [multipleRigPartnerResult] = await connection.promise().query(multipleRigPartnerQuery, [rigId]);
+      console.log("111111");
+      const multipleRigPartnerQuery =
+        "SELECT * FROM multiple_rig_partner WHERE rigId = ?";
+      const [multipleRigPartnerResult] = await connection
+        .promise()
+        .query(multipleRigPartnerQuery, [rigId]);
 
       if (multipleRigPartnerResult.length > 0) {
-        return res.status(200).json({ message: "Multiple Rig Partner fetched successfully.", data: multipleRigPartnerResult });
+        return res.status(200).json({
+          message: "Multiple Rig Partner fetched successfully.",
+          data: multipleRigPartnerResult,
+        });
       } else {
-        return res.status(404).json({ message: "No partner found for the provided rigId." });
+        return res
+          .status(404)
+          .json({ message: "No partner found for the provided rigId." });
       }
     }
   } catch (error) {
@@ -5220,4 +5237,3 @@ exports.fetchPartnerByRigId = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
-
