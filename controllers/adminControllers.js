@@ -4407,7 +4407,7 @@ exports.uploadBond = async (req, res) => {
 
    
     if (isRigIdExistInMiningPartner.length > 0) {
-      await connection.promise().query("UPDATE mining_rig SET bond = ?, invoice = ? WHERE rigId = ?", [bondLocation, invoiceLocation, rigId])
+      await connection.promise().query("UPDATE mining_partner SET bond = ?, invoice = ? WHERE rigId = ?", [bondLocation, invoiceLocation, rigId])
     } else {
       await connection.promise().query("UPDATE multiple_rig_partner SET bond = ?, invoice = ? WHERE rigId = ?", [bondLocation, invoiceLocation, rigId])
     }
