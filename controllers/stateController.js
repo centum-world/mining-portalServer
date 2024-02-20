@@ -33,7 +33,7 @@ exports.loginSHO = async (req, res) => {
     }
 
     const user = bmm[0];
-    console.log(user, "user")
+    console.log(user, "user");
 
     if (user.priority === 0) {
       const findFranchiseQuery =
@@ -69,20 +69,21 @@ exports.loginSHO = async (req, res) => {
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res
-        .status(400)
-        .json({ message: "Invalid User Id  or password." });
+      return res.status(400).json({ message: "Invalid User Id  or password." });
     }
 
     //generate jwt token
     const token = jwt.sign(
       { s_userid: user.stateHandlerId, role: "state" },
-      process.env.ACCESS_TOKEN,{
-        expiresIn:28800
+      process.env.ACCESS_TOKEN,
+      {
+        expiresIn: 28800,
       }
     );
 
-    return res.status(200).json({ message: "BMM login successfully", user, token });
+    return res
+      .status(200)
+      .json({ message: "BMM login successfully", user, token });
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ message: "Internal server Error" });
@@ -368,6 +369,7 @@ exports.updateSho = async (req, res) => {
 };
 
 exports.verifySho = async (req, res) => {
+  let lastExecutionTimestamp = 0;
   try {
     const { stateHandlerId, isVerify } = req.body;
 
@@ -375,13 +377,13 @@ exports.verifySho = async (req, res) => {
       return res.status(400).json({ message: "Invalid 'isVerify' value" });
     }
 
-    let verifyDate = new Date()
+    let verifyDate = new Date();
     const upadteShoQuery =
       "UPDATE create_sho SET isVerify =?, verifyDate = ? WHERE stateHandlerId = ?";
 
     connection.query(
       upadteShoQuery,
-      [isVerify,verifyDate, stateHandlerId],
+      [isVerify, verifyDate, stateHandlerId],
       (error, result) => {
         if (error) {
           console.error("Error updating sho:", error);
@@ -392,172 +394,183 @@ exports.verifySho = async (req, res) => {
           return res.status(200).json({ message: "BMM not found" });
         }
 
-        cron.schedule("0 */10 * * *", () => {
-          console.log("Running a task every minute!");
-          let selectBmmDetails =
-            "select * from create_sho where stateHandlerId = ?";
-          connection.query(
-            selectBmmDetails,
-            [stateHandlerId],
-            (err, result) => {
-              if (err) {
-                console.log(err,400);
-                return res.status(500).json({
-                  message: "Internal server error",
-                });
-              }
-              if (result.length > 0) {
-                const fname = result[0].fname;
-                const lname = result[0].lname;
-                const phone = result[0].phone;
-                // const address = result[0].add;
-                const referralId = result[0].referralId;
-                const referredId = result[0].referredId;
-                const state = result[0].selectedState;
-                const email = result[0].email;
-                const gender = result[0].gender;
-                const verifydate = new Date();
-                const userid = result[0].stateHandlerId;
-                const password = result[0].password;
-                const wallet = result[0].stateHandlerWallet;
-                let isVerify = result[0].isVerify;
-                const isBlocked = result[0].isBlocked;
-                const aadharFront = result[0].adhar_front_side;
-                const aadharBack = result[0].adhar_back_side;
-                const panCard = result[0].panCard;
-                const dob = result[0].m_dob;
-                let priority = result[0]?.priority;
-                let userType = result[0]?.userType;
-
-                let target = result[0]?.target;
-
-                if(target>= 2500000 && priority === 1){
-
-                  const updateBmm =  "update create_sho set target = 0 where stateHandlerId = ?"
-
-                  connection.query(updateBmm, [userid], (err, result)=> {
-                    if(err){
-                      console.log(err.message)
-                      return res.status(500).json({mesage: "Internal server error"})
-                    }
-
-                    if (result.affectedRows > 0) {
-                      console.log("You are still in BMM")
-                    }
-
-
-                  })
-
-
-                }
-
-                if (target < 2500000 && priority === 1) {
-                  let checkIfBmmIsMemberBefore =
-                    "select * from create_member where m_userid = ?";
-                  connection.query(
-                    checkIfBmmIsMemberBefore,
-                    [userid],
-                    (err, result) => {
-                      if (err) {
-                        console.log(err);
-                        return res
-                          .status(500)
-                          .json({ message: "Internal Server error" });
-                      } else {
-                        if (result.length > 0) {
-                          let reActivateMemberPosotionAgain =
-                            "update create_member SET priority = 1 , member_wallet = ? where m_userid = ?";
-                          connection.query(
-                            reActivateMemberPosotionAgain,
-                            [wallet, userid],
-                            (err, result) => {
-                              if (err) {
-                                console.log(err);
-                                return res.status(500).json({
-                                  message: "Something went wrong",
-                                });
-                              } else {
-                                console.log(userid,455)
-                                let updateBmmTable =
-                                  "update create_sho SET priority = 0 , stateHandlerWallet = 0, target = 0 , isVerify = 0 where stateHandlerId = ?";
-                                connection.query(
-                                  updateBmmTable,
-                                  [userid],
-                                  (err, result) => {
-                                    if (err) {
-                                      console.log(err);
-                                      return res.status(500).json({
-                                        message: "Internal Server error",
-                                      });
-                                    }
-                                  }
-                                );
-                              }
-                            }
-                          );
-                        } else {
-                          let downgradeBmmToMember =
-                            "insert into create_member(m_name,m_lname,m_phone,m_refferid,m_state,m_email,m_gender,m_userid,m_password,reffer_id,member_wallet,isVerify,isBlocked,adhar_front_side,adhar_back_side,panCard,priority,target,userType) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                          connection.query(
-                            downgradeBmmToMember,
-                            [
-                              fname,
-                              lname,
-                              phone,
-                              referredId,
-                              state,
-                              email,
-                              gender,
-                              userid,
-                              password,
-                              referralId,
-                              wallet,
-                              (isVerify = 0),
-                              isBlocked,
-                              aadharFront,
-                              aadharBack,
-                              panCard,
-                              (priority = 1),
-                              (target = 0),
-                              userType
-                            ],
-                            (err, result) => {
-                              if (err) {
-                                console.log(err);
-                                return res
-                                  .status(500)
-                                  .json({ message: "Something went wrong" });
-                              } else {
-                                let updateBmmAfterUpgrade =
-                                  "update create_sho SET priority = 0 , stateHandlerWallet = 0 , target = 0, isVerify = 0 where stateHandlerId = ?";
-                                connection.query(
-                                  updateBmmAfterUpgrade,
-                                  [userid],
-                                  (err, result) => {
-                                    if (err) {
-                                      console.log(err);
-                                      return res.status(500).json({
-                                        message: "Internal Server error",
-                                      });
-                                    } else {
-                                      console.log("updated BMM table");
-                                    }
-                                  }
-                                );
-                              }
-                            }
-                          );
-                        }
-                      }
-                    }
-                  );
-                }
-              }
-            }
-          );
+        let fetchVerifyDate =
+          "select verifyDate from create_sho where stateHandlerId = ? ";
+        connection.query(fetchVerifyDate, [stateHandlerId], (err, result) => {
+          if (result.length > 0) {
+            lastExecutionTimestamp = result[0]?.verifyDate;
+            console.log(lastExecutionTimestamp, "150");
+          }
         });
 
-         return res.status(200).json({ message: "S.H.O verified" });
+        cron.schedule("* * * * *", () => {
+          const currentTimestamp = Date.now();
+          if (currentTimestamp - lastExecutionTimestamp >=30 * 24 * 3600 * 1000 ) {
+            let selectBmmDetails =
+              "select * from create_sho where stateHandlerId = ?";
+            connection.query(
+              selectBmmDetails,
+              [stateHandlerId],
+              (err, result) => {
+                if (err) {
+                  console.log(err, 400);
+                  return res.status(500).json({
+                    message: "Internal server error",
+                  });
+                }
+                if (result.length > 0) {
+                  const fname = result[0].fname;
+                  const lname = result[0].lname;
+                  const phone = result[0].phone;
+                  // const address = result[0].add;
+                  const referralId = result[0].referralId;
+                  const referredId = result[0].referredId;
+                  const state = result[0].selectedState;
+                  const email = result[0].email;
+                  const gender = result[0].gender;
+                  const verifydate = new Date();
+                  const userid = result[0].stateHandlerId;
+                  const password = result[0].password;
+                  const wallet = result[0].stateHandlerWallet;
+                  let isVerify = result[0].isVerify;
+                  const isBlocked = result[0].isBlocked;
+                  const aadharFront = result[0].adhar_front_side;
+                  const aadharBack = result[0].adhar_back_side;
+                  const panCard = result[0].panCard;
+                  const dob = result[0].m_dob;
+                  let priority = result[0]?.priority;
+                  let userType = result[0]?.userType;
+
+                  let target = result[0]?.target;
+
+                  if (target >= 2500000 && priority === 1) {
+                    const updateBmm =
+                      "update create_sho set target = 0 where stateHandlerId = ?";
+
+                    connection.query(updateBmm, [userid], (err, result) => {
+                      if (err) {
+                        console.log(err.message);
+                        return res
+                          .status(500)
+                          .json({ mesage: "Internal server error" });
+                      }
+
+                      if (result.affectedRows > 0) {
+                        console.log("You are still in BMM");
+                      }
+                    });
+                  }
+
+                  if (target < 2500000 && priority === 1) {
+                    let checkIfBmmIsMemberBefore =
+                      "select * from create_member where m_userid = ?";
+                    connection.query(
+                      checkIfBmmIsMemberBefore,
+                      [userid],
+                      (err, result) => {
+                        if (err) {
+                          console.log(err);
+                          return res
+                            .status(500)
+                            .json({ message: "Internal Server error" });
+                        } else {
+                          if (result.length > 0) {
+                            let reActivateMemberPosotionAgain =
+                              "update create_member SET priority = 1 , member_wallet = ? where m_userid = ?";
+                            connection.query(
+                              reActivateMemberPosotionAgain,
+                              [wallet, userid],
+                              (err, result) => {
+                                if (err) {
+                                  console.log(err);
+                                  return res.status(500).json({
+                                    message: "Something went wrong",
+                                  });
+                                } else {
+                                  console.log(userid, 455);
+                                  let updateBmmTable =
+                                    "update create_sho SET priority = 0 , stateHandlerWallet = 0, target = 0 , isVerify = 0 where stateHandlerId = ?";
+                                  connection.query(
+                                    updateBmmTable,
+                                    [userid],
+                                    (err, result) => {
+                                      if (err) {
+                                        console.log(err);
+                                        return res.status(500).json({
+                                          message: "Internal Server error",
+                                        });
+                                      }
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          } else {
+                            let downgradeBmmToMember =
+                              "insert into create_member(m_name,m_lname,m_phone,m_refferid,m_state,m_email,m_gender,m_userid,m_password,reffer_id,member_wallet,isVerify,isBlocked,adhar_front_side,adhar_back_side,panCard,priority,target,userType) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                            connection.query(
+                              downgradeBmmToMember,
+                              [
+                                fname,
+                                lname,
+                                phone,
+                                referredId,
+                                state,
+                                email,
+                                gender,
+                                userid,
+                                password,
+                                referralId,
+                                wallet,
+                                (isVerify = 0),
+                                isBlocked,
+                                aadharFront,
+                                aadharBack,
+                                panCard,
+                                (priority = 1),
+                                (target = 0),
+                                userType,
+                              ],
+                              (err, result) => {
+                                if (err) {
+                                  console.log(err);
+                                  return res
+                                    .status(500)
+                                    .json({ message: "Something went wrong" });
+                                } else {
+                                  let updateBmmAfterUpgrade =
+                                    "update create_sho SET priority = 0 , stateHandlerWallet = 0 , target = 0, isVerify = 0 where stateHandlerId = ?";
+                                  connection.query(
+                                    updateBmmAfterUpgrade,
+                                    [userid],
+                                    (err, result) => {
+                                      if (err) {
+                                        console.log(err);
+                                        return res.status(500).json({
+                                          message: "Internal Server error",
+                                        });
+                                      } else {
+                                        console.log("updated BMM table");
+                                      }
+                                    }
+                                  );
+                                }
+                              }
+                            );
+                          }
+                        }
+                      }
+                    );
+                  }
+                }
+              }
+            );
+          } else {
+            console.log("It's not time to run the logic yet.");
+          }
+        });
+
+        return res.status(200).json({ message: "S.H.O verified" });
       }
     );
   } catch (error) {
