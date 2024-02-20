@@ -942,26 +942,27 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
       const [partnerReferredByPartner] = await connection
         .promise()
         .query(findReferredPartnerQuery, [referredIdOfPartner]);
-        console.log(partnerReferredByPartner,1413)
+      console.log(partnerReferredByPartner, 1413);
 
       const referredPartnerUserId = partnerReferredByPartner[0]?.p_userid;
 
-         // Find member details if partner referred by member
-         const findMemberQuery = "SELECT * FROM create_member WHERE reffer_id = ?";
-         const [partnerReferredByMember] = await connection
-           .promise()
-           .query(findMemberQuery, [referredIdOfPartner]);
-         console.log(partnerReferredByMember, "memberResult");
-   
-         //find frnachise details if partner referred By franchise
-         const findFranchiseQuery = "SELECT * FROM create_franchise WHERE referralId = ?";
-   
-         const [partnerReferredByFranchise] = await connection
-           .promise()
-           .query(findFranchiseQuery, [referredIdOfPartner]);
-         console.log(partnerReferredByFranchise, "franchise Result");
+      // Find member details if partner referred by member
+      const findMemberQuery = "SELECT * FROM create_member WHERE reffer_id = ?";
+      const [partnerReferredByMember] = await connection
+        .promise()
+        .query(findMemberQuery, [referredIdOfPartner]);
+      console.log(partnerReferredByMember, "memberResult");
 
-      if (partnerReferredByPartner.length> 0 ) {
+      //find frnachise details if partner referred By franchise
+      const findFranchiseQuery =
+        "SELECT * FROM create_franchise WHERE referralId = ?";
+
+      const [partnerReferredByFranchise] = await connection
+        .promise()
+        .query(findFranchiseQuery, [referredIdOfPartner]);
+      console.log(partnerReferredByFranchise, "franchise Result");
+
+      if (partnerReferredByPartner.length > 0) {
         console.log("partner to partner");
 
         console.log(partnerWallet, 1422);
@@ -993,12 +994,13 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
             date,
             userType,
           ]);
-      }
-
-      else if (partnerReferredByMember.length > 0 && partnerReferredByMember[0].priority === 1) {
-        console.log("first condition chaining")
+      } else if (
+        partnerReferredByMember.length > 0 &&
+        partnerReferredByMember[0].priority === 1
+      ) {
+        console.log("first condition chaining");
         const member = partnerReferredByMember[0];
-        console.log(member, "member")
+        console.log(member, "member");
 
         let memberWallet = member.member_wallet;
         let referralIdOfMember = member.reffer_id;
@@ -1049,7 +1051,7 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
         if (franchiseResult.length > 0) {
           const franchise = franchiseResult[0];
           const referredIdOfFranchise = franchise.referredId;
-          console.log(referredIdOfFranchise, "referredIdOfFranchise")
+          console.log(referredIdOfFranchise, "referredIdOfFranchise");
           let franchiseWallet = franchise.franchiseWallet;
           const franchiseid = franchise.franchiseId;
           const userType = franchise.userType;
@@ -1087,7 +1089,7 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
           .promise()
           .query(findBMMQuery, [franchiseResult[0].referredId]);
 
-          console.log(bmmResult[0], 1552, "bmmresult")
+        console.log(bmmResult[0], 1552, "bmmresult");
 
         if (bmmResult.length > 0) {
           const bmm = bmmResult[0];
@@ -1119,15 +1121,14 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
               userType,
             ]);
         }
-
-
-
-      }  else if (partnerReferredByFranchise.length > 0 && partnerReferredByFranchise[0].priority === 1) {
+      } else if (
+        partnerReferredByFranchise.length > 0 &&
+        partnerReferredByFranchise[0].priority === 1
+      ) {
         console.log("2nd condition frnachise and bmm");
-      
 
         const franchise = partnerReferredByFranchise[0];
-        console.log(franchise, "franchise")
+        console.log(franchise, "franchise");
         let franchiseReferralId = franchise.referralId;
 
         let ReferredIdOfFranchise = franchise.referredId;
@@ -1204,7 +1205,6 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
       } else {
         //partner referred by bmm
         console.log("3rd condition only bmm");
-  
 
         const findBmmQuery = "SELECT * FROM create_sho WHERE referralId = ?";
 
@@ -2944,7 +2944,7 @@ exports.adminVerifyMember = async (req, res) => {
         }
 
         let fetchVerifyDate =
-          "select verifyDate from create_member where m_userid= ? ";
+          "select verifyDate from create_member where m_userid = ? ";
         connection.query(fetchVerifyDate, [m_userid], (err, result) => {
           if (result.length > 0) {
             lastExecutionTimestamp = result[0]?.verifyDate;
@@ -3066,120 +3066,126 @@ exports.adminVerifyMember = async (req, res) => {
                   INSERT INTO create_franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adhar_front_side,adhar_back_side, panCard, referralId,franchiseWallet,isVerify,isBlocked,priority,userType)
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
-                        connection.query(
-                          updateMemberToFranchise,
-                          [
-                            fname,
-                            lname,
-                            phone,
-                            email,
-                            gender,
-                            password,
-                            userid,
-                            state,
-                            address,
-                            referredId,
-                            aadharFront,
-                            aadharBack,
-                            panCard,
-                            referralId,
-                            // verifydate,
-                            wallet,
-                            (isVerify = 0),
-                            isBlocked,
-                            (priority = 1),
-                            userType,
-                          ],
-                          (err, result) => {
-                            if (err) {
-                              console.log(err);
-                              return res.status(500).json({
-                                mesaage: "Internal Server Error",
-                              });
-                            } else {
-                              const updateMemberTable =
-                                "UPDATE create_member SET priority = 0 , target = 0,member_wallet = 0, isVerify = 0  WHERE m_userid = ?";
-                              connection.query(
-                                updateMemberTable,
-                                [userid],
-                                (err, result) => {
-                                  if (err) {
-                                    console.log(err);
-                                    return res.status(500).send({
-                                      message: "Something went to wrong",
-                                    });
-                                  } else {
-                                    const foundFranchiseOfUpgradeMember =
-                                      "select * from create_franchise where referralId = ?";
-                                    connection.query(
-                                      foundFranchiseOfUpgradeMember,
-                                      [referredId],
-                                      (err, result) => {
-                                        if (err) {
-                                          console.log(err);
-                                          return res.status(500).json({
-                                            message: "Something went wrong",
-                                          });
-                                        } else {
-                                          const franchiseReferralId =
-                                            result[0]?.referralId;
+                          connection.query(
+                            updateMemberToFranchise,
+                            [
+                              fname,
+                              lname,
+                              phone,
+                              email,
+                              gender,
+                              password,
+                              userid,
+                              state,
+                              address,
+                              referredId,
+                              aadharFront,
+                              aadharBack,
+                              panCard,
+                              referralId,
+                              // verifydate,
+                              wallet,
+                              (isVerify = 0),
+                              isBlocked,
+                              (priority = 1),
+                              userType,
+                            ],
+                            (err, result) => {
+                              if (err) {
+                                console.log(err);
+                                return res.status(500).json({
+                                  mesaage: "Internal Server Error",
+                                });
+                              } else {
+                                const updateMemberTable =
+                                  "UPDATE create_member SET priority = 0 , target = 0,member_wallet = 0, isVerify = 0  WHERE m_userid = ?";
+                                connection.query(
+                                  updateMemberTable,
+                                  [userid],
+                                  (err, result) => {
+                                    if (err) {
+                                      console.log(err);
+                                      return res.status(500).send({
+                                        message: "Something went to wrong",
+                                      });
+                                    } else {
+                                      const foundFranchiseOfUpgradeMember =
+                                        "select * from create_franchise where referralId = ?";
+                                      connection.query(
+                                        foundFranchiseOfUpgradeMember,
+                                        [referredId],
+                                        (err, result) => {
+                                          if (err) {
+                                            console.log(err);
+                                            return res.status(500).json({
+                                              message: "Something went wrong",
+                                            });
+                                          } else {
+                                            const franchiseReferralId =
+                                              result[0]?.referralId;
 
-                                          const franchiseAllDetails =
-                                            "select * from create_franchise where referralId = ?";
-                                          connection.query(
-                                            franchiseAllDetails,
-                                            [franchiseReferralId],
-                                            (err, result) => {
-                                              if (err) {
-                                                console.log(err);
-                                                return res.status(500).json({
-                                                  mesaage:
-                                                    "Something went to wrong",
-                                                });
-                                              } else {
-                                                const franchiseReferredId =
-                                                  result[0].referredId;
-                                                // const franchiseId = result[0].franchiseId
-                                                const updateUpgradeFranchise =
-                                                  "update create_franchise SET referredId = ? where franchiseId = ?";
-                                                connection.query(
-                                                  updateUpgradeFranchise,
-                                                  [franchiseReferredId, userid],
-                                                  (err, result) => {
-                                                    if (err) {
-                                                      console.log(err);
-                                                      return res
-                                                        .status(500)
-                                                        .json({
-                                                          message:
-                                                            "Something went wrong",
-                                                        });
-                                                    } else {
-                                                      console.log(
-                                                        "You have become now Franchise"
-                                                      );
+                                            const franchiseAllDetails =
+                                              "select * from create_franchise where referralId = ?";
+                                            connection.query(
+                                              franchiseAllDetails,
+                                              [franchiseReferralId],
+                                              (err, result) => {
+                                                if (err) {
+                                                  console.log(err);
+                                                  return res.status(500).json({
+                                                    mesaage:
+                                                      "Something went to wrong",
+                                                  });
+                                                } else {
+                                                  const franchiseReferredId =
+                                                    result[0].referredId;
+                                                  // const franchiseId = result[0].franchiseId
+                                                  const updateUpgradeFranchise =
+                                                    "update create_franchise SET referredId = ? where franchiseId = ?";
+                                                  connection.query(
+                                                    updateUpgradeFranchise,
+                                                    [
+                                                      franchiseReferredId,
+                                                      userid,
+                                                    ],
+                                                    (err, result) => {
+                                                      if (err) {
+                                                        console.log(err);
+                                                        return res
+                                                          .status(500)
+                                                          .json({
+                                                            message:
+                                                              "Something went wrong",
+                                                          });
+                                                      } else {
+                                                        console.log(
+                                                          "You have become now Franchise"
+                                                        );
+                                                      }
                                                     }
-                                                  }
-                                                );
+                                                  );
+                                                }
                                               }
-                                            }
-                                          );
+                                            );
+                                          }
                                         }
-                                      }
-                                    );
+                                      );
+                                    }
                                   }
-                                }
-                              );
+                                );
+                              }
                             }
-                          }
-                        );
+                          );
+                        }
                       }
                     }
-                  }
-                );
+                  );
+                }
               }
-            }
-          });
+            });
+          } else {
+            console.log("It's not time to run the logic yet.");
+          }
           // Your task logic goes here
         });
 
@@ -4762,12 +4768,10 @@ exports.fetchPartnerPayouts = async (req, res) => {
       .promise()
       .query("SELECT * FROM partner_payout WHERE rigId = ?", [rigId]);
 
-    return res
-      .status(200)
-      .json({
-        message: "Partner Payout fetched successfully",
-        data: partnerPayouts,
-      });
+    return res.status(200).json({
+      message: "Partner Payout fetched successfully",
+      data: partnerPayouts,
+    });
   } catch (error) {
     console.error(error.message);
     return res.status(500).json({ message: "Internal server error." });
