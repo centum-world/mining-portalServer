@@ -35,7 +35,9 @@ const upload = multer({
       file.fieldname === "profilePhoto" ||
       file.fieldname === "adhar_front_side" ||
       file.fieldname === "adhar_back_side" ||
-      file.fieldname === "bond"
+      file.fieldname === "bond"||
+      file.fieldname === "invoice"
+
     ) {
       cb(null, true);
     } else {

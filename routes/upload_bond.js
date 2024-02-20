@@ -8,9 +8,9 @@ const { uploadBond } = require("../controllers/adminControllers");
 
 router.post(
   "/upload-bond",
-  upload.fields([{ name: "bond" }]),
+  upload.fields([{ name: "bond"}, {name: "invoice" }]),
   isAuthenticated,
-  authorizeRole(["franchise","bd", "state","partner", "member", "admin"]),
+  authorizeRole(["admin"]),
   uploadBond
 );
 

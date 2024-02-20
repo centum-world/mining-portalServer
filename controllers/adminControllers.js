@@ -4383,72 +4383,42 @@ exports.uploadPanCardPartner = async (req, res) => {
 
 exports.uploadBond = async (req, res) => {
   try {
-    // Extract userId from the request
-    const userId = req.body.userId; // Assuming userId is sent in the request body
+    const { rigId } = req.body;
 
     if (!req.files["bond"]) {
       return res.status(400).json({ message: "Bond file is missing." });
     }
+    if (!req.files["invoice"]) {
+      return res.status(400).json({ message: "Invoice file is missing." });
+    }
     const bondFile = req.files["bond"][0];
-    const bondLocation = bondFile.location;
+    const invoiceFile = req.files["invoice"][0]; // Fix: use "invoice" instead of "bond"
 
+    const bondLocation = bondFile.location;
+    const invoiceLocation = invoiceFile.location;
     // Check if the file is a PDF
-    if (bondFile.mimetype !== "application/pdf") {
+    if (bondFile.mimetype !== "application/pdf" || invoiceFile.mimetype !== "application/pdf") {
       return res
         .status(400)
-        .json({ message: "Bond file must be in PDF format." });
+        .json({ message: "Bond File or Invoice File must be in PDF format." });
     }
 
-    const findBondQuery = "SELECT * FROM upload_bond WHERE userId = ?";
-    connection.query(findBondQuery, [userId], (error, result) => {
-      if (error) {
-        console.log(error.message);
-        return res.status(500).json({ message: "Internal server error" });
-      }
+    const [isRigIdExistInMiningPartner] = await connection.promise().query("SELECT rigId FROM mining_partner WHERE rigId = ?", [rigId])
 
-      if (result.length === 0 || !result) {
-        const insertBondQuery = `
-        INSERT INTO upload_bond (userId, bond) VALUES (?, ?)
-      `;
+   
+    if (isRigIdExistInMiningPartner.length > 0) {
+      await connection.promise().query("UPDATE mining_rig SET bond = ?, invoice = ? WHERE rigId = ?", [bondLocation, invoiceLocation, rigId])
+    } else {
+      await connection.promise().query("UPDATE multiple_rig_partner SET bond = ?, invoice = ? WHERE rigId = ?", [bondLocation, invoiceLocation, rigId])
+    }
 
-        connection.query(
-          insertBondQuery,
-          [userId, bondLocation],
-          (error, result) => {
-            if (error) {
-              console.log(error.message);
-              return res.status(500).json({ message: "Internal server error" });
-            }
-
-            return res
-              .status(200)
-              .json({ message: "Bond file uploaded successfully" });
-          }
-        );
-      } else {
-        const updateBondQuery =
-          "UPDATE upload_bond SET bond = ? WHERE userId = ?";
-        connection.query(
-          updateBondQuery,
-          [bondLocation, userId],
-          (error, result) => {
-            if (error) {
-              console.log(error.message);
-              return res.status(500).json({ message: "Internal server error" });
-            }
-
-            return res
-              .status(200)
-              .json({ message: "Bond file updated successfully" });
-          }
-        );
-      }
-    });
+    return res.status(200).json({ message: "File uploaded successfully." });
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 //fetch bond
 exports.fetchBond = async (req, res) => {
@@ -4817,3 +4787,5 @@ exports.fetchPartnerByRigId = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
+
