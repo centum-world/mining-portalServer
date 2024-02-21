@@ -914,7 +914,7 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
       console.log("first");
       // Update mining_partner status
       const updateMiningPartnerQuery =
-        "UPDATE mining_partner SET partner_status = 1 WHERE p_userid = ?";
+        "UPDATE mining_partner SET partner_status = 1,  p_dop = CURRENT_DATE  WHERE p_userid = ?";
       await connection.promise().query(updateMiningPartnerQuery, [p_userid]);
 
       const selectPartnerQuery =
@@ -1256,7 +1256,7 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
     } else {
       // Update multiple_rig_partner status
       const updateRigPaymentStatusQuery =
-        "UPDATE multiple_rig_partner SET partner_status = 1 WHERE rigId = ?";
+        "UPDATE multiple_rig_partner SET partner_status = 1, doj = CURRENT_DATE WHERE rigId = ?";
       await connection.promise().query(updateRigPaymentStatusQuery, [rigId]);
     }
     return res.json({
@@ -4392,7 +4392,7 @@ exports.uploadBond = async (req, res) => {
       return res.status(400).json({ message: "Invoice file is missing." });
     }
     const bondFile = req.files["bond"][0];
-    const invoiceFile = req.files["invoice"][0]; // Fix: use "invoice" instead of "bond"
+    const invoiceFile = req.files["invoice"][0]; 
 
     const bondLocation = bondFile.location;
     const invoiceLocation = invoiceFile.location;
