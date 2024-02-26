@@ -4801,3 +4801,63 @@ exports.fetchPartnerByRigId = async (req, res) => {
 };
 
 
+exports.fetchTotalReferralCountAndTodayReferralCount = async (req, res) => {
+  try {
+    // Fetch total member referral count
+    const totalMemberReferralQuery = "SELECT COUNT(*) AS totalReferralCount FROM create_member WHERE isVerify = 1";
+    const totalMemberReferralResult = await connection.promise().query(totalMemberReferralQuery);
+    const totalMemberReferralCount = totalMemberReferralResult[0][0].totalReferralCount;
+
+    // Fetch today's member referral count
+    const todayMemberReferralQuery = "SELECT COUNT(*) AS todayReferralCount FROM create_member WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
+    const todayMemberReferralResult = await connection.promise().query(todayMemberReferralQuery);
+    const todayMemberReferralCount = todayMemberReferralResult[0][0].todayReferralCount;
+
+    // Fetch total partner count
+    const totalPartnerQuery = "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1";
+    const totalPartnerResult = await connection.promise().query(totalPartnerQuery);
+    const totalPartnerCount = totalPartnerResult[0][0].totalPartnerCount;
+
+    // Fetch today's partner count
+    const todayPartnerQuery = "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
+    const todayPartnerResult = await connection.promise().query(todayPartnerQuery);
+    const todayPartnerCount = todayPartnerResult[0][0].todayPartnerCount;
+
+    // Fetch total franchise count
+    const totalFranchiseQuery = "SELECT COUNT(*) AS totalFranchiseCount FROM create_franchise WHERE isVerify = 1";
+    const totalFranchiseResult = await connection.promise().query(totalFranchiseQuery);
+    const totalFranchiseCount = totalFranchiseResult[0][0].totalFranchiseCount;
+
+    // Fetch today's franchise count
+    const todayFranchiseQuery = "SELECT COUNT(*) AS todayFranchiseCount FROM create_franchise WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
+    const todayFranchiseResult = await connection.promise().query(todayFranchiseQuery);
+    const todayFranchiseCount = todayFranchiseResult[0][0].todayFranchiseCount;
+
+    // Fetch total BMM count
+    const totalBMMQuery = "SELECT COUNT(*) AS totalBMMCount FROM create_sho WHERE isVerify = 1";
+    const totalBMMResult = await connection.promise().query(totalBMMQuery);
+    const totalBMMCount = totalBMMResult[0][0].totalBMMCount;
+
+    // Fetch today's BMM count
+    const todayBMMQuery = "SELECT COUNT(*) AS todayBMMCount FROM create_sho WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
+    const todayBMMResult = await connection.promise().query(todayBMMQuery);
+    const todayBMMCount = todayBMMResult[0][0].todayBMMCount;
+
+    return res.status(200).json({
+      totalReferralCount:totalMemberReferralCount,
+      todayReferralCount:todayMemberReferralCount,
+      totalPartnerCount,
+      todayPartnerCount,
+      totalFranchiseCount,
+      todayFranchiseCount,
+      totalBMMCount,
+      todayBMMCount,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
+
+
