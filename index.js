@@ -395,6 +395,7 @@ app.use('/admin', fetchPartnerByRigId)
 app.use('/admin', fetchPartnerPayouts)
 app.use('/admin', fetchTotalReferralCountAndTodayReferralCount)
 
+
 // --------------------state------------------------///
 app.use('/state',fetchOwnBankDetails);
 app.use('/state', updateSho)

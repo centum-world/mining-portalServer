@@ -4676,7 +4676,7 @@ exports.fetchUpgradeDowngradeBmm = async (req, res) => {
 
 exports.createPartnerPayout = async (req, res) => {
   try {
-    const { rigId, payableAmount, payoutDate, liquidity } = req.body;
+    const { rigId, payableAmount, payoutDate, liquidity,partnerId } = req.body;
 
     if (!payableAmount || !payoutDate) {
       return res
@@ -4726,6 +4726,10 @@ exports.createPartnerPayout = async (req, res) => {
         newPayableCount,
         liquidity,
       ]);
+      const insertIntoTransactionHistory = "INSERT INTO transaction_history (partnerId,rigId,credited_date,amount) VALUES (?,?,?,?)";
+      await connection 
+      .promise()
+      .query(insertIntoTransactionHistory,[partnerId,rigId,payoutDate,payableAmount]);
 
     return res
       .status(200)
@@ -4858,6 +4862,10 @@ exports.fetchTotalReferralCountAndTodayReferralCount = async (req, res) => {
     return res.status(500).json(error);
   }
 };
+
+exports.payoutTransactionHistory = async (req,res) => {
+
+}
 
 
 
