@@ -3234,18 +3234,30 @@ exports.adminBlockMember = async (req, res) => {
 
 // adminFetchAllMiningPartner
 exports.adminFetchAllMiningPartner = async (req, res) => {
-  let query = "select *from mining_partner";
-  connection.query(query, (err, results) => {
-    if (!err) {
-      return res.status(200).json({
-        message: "Fetched data successfully",
-        miningPartnerData: results,
-      });
-    } else {
-      return res.status(500).json(err);
-    }
-  });
+
+  const query = "SELECT * FROM mining_partner";
+
+  try {
+    const [results] = await connection.promise().query(query);
+    console.log(results)
+
+    // Separate data based on the date part of p_dop column
+    const beforeDec152023 = results.filter(entry => new Date(entry.p_dop).setHours(0, 0, 0, 0) < new Date('2023-12-15'));
+    const afterDec152023 = results.filter(entry => new Date(entry.p_dop).setHours(0, 0, 0, 0) >= new Date('2023-12-15'));
+
+    return res.status(200).json({
+      message: "Fetched data successfully",
+      beforeDec152023,
+      afterDec152023,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json(err);
+  }
 };
+
+
+
 
 // adminVerifyPartner
 exports.adminVerifyPartner = async (req, res) => {
