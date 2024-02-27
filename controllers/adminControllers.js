@@ -4947,7 +4947,7 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
         .query(referralPayoutInsertQuery, [
           memberId,
           referralAmount,
-          date,
+          payoutDate,
           partnerId,
         ]);
 
