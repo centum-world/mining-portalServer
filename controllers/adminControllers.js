@@ -4856,19 +4856,24 @@ exports.fetchTotalReferralCountAndTodayReferralCount = async (req, res) => {
       .query(todayPartnerQuery);
     const todayPartnerCount = todayPartnerResult[0][0].todayPartnerCount;
 
+    // Fetch total mining RIG partner count
 
+    const totalMultipleRIGPartnerQuery =
+      "SELECT COUNT(*) AS totalMultipleRIGPartnerCount FROM multiple_rig_partner WHERE isVerify = 1";
+    const totalMultipleRIGPartnerResult = await connection
+      .promise()
+      .query(totalMultipleRIGPartnerQuery);
+    const totalMultipleRIGPartnerCount =
+      totalMultipleRIGPartnerResult[0][0].totalMultipleRIGPartnerCount;
 
-     // Fetch total mining RIG partner count
-
-     const totalMultipleRIGPartnerQuery = "SELECT COUNT(*) AS totalMultipleRIGPartnerCount FROM multiple_rig_partner WHERE isVerify = 1";
-     const totalMultipleRIGPartnerResult = await connection.promise().query(totalMultipleRIGPartnerQuery);
-     const totalMultipleRIGPartnerCount = totalMultipleRIGPartnerResult[0][0].totalMultipleRIGPartnerCount;
- 
-     // Fetch today's mining partner count
-     const todayMultipleRIGPartnerQuery = "SELECT COUNT(*) AS todayMultiplRIGPartnerCount FROM multiple_rig_partner WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
-     const todayMultipleRIGPartnerResult = await connection.promise().query(todayMultipleRIGPartnerQuery);
-     const todayMultipleRIGPartnerCount = todayMultipleRIGPartnerResult[0][0].todayMultiplRIGPartnerCount;
- 
+    // Fetch today's mining partner count
+    const todayMultipleRIGPartnerQuery =
+      "SELECT COUNT(*) AS todayMultiplRIGPartnerCount FROM multiple_rig_partner WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
+    const todayMultipleRIGPartnerResult = await connection
+      .promise()
+      .query(todayMultipleRIGPartnerQuery);
+    const todayMultipleRIGPartnerCount =
+      todayMultipleRIGPartnerResult[0][0].todayMultiplRIGPartnerCount;
 
     // Fetch total franchise count
     const totalFranchiseQuery =
@@ -4898,7 +4903,6 @@ exports.fetchTotalReferralCountAndTodayReferralCount = async (req, res) => {
     const todayBMMResult = await connection.promise().query(todayBMMQuery);
     const todayBMMCount = todayBMMResult[0][0].todayBMMCount;
 
-
     return res.status(200).json({
       totalReferralCount: totalMemberReferralCount,
       todayReferralCount: todayMemberReferralCount,
@@ -4911,7 +4915,6 @@ exports.fetchTotalReferralCountAndTodayReferralCount = async (req, res) => {
       totalBMMCount,
       todayBMMCount,
     });
-    
   } catch (error) {
     console.error(error);
     return res.status(500).json(error);
@@ -4988,17 +4991,17 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
 
     console.log(memberId, "memberId");
 
-        // Insert a new rowin referral_payout table
-        const referralPayoutInsertQuery =
-        "INSERT INTO referral_payout (memberId, referralAmount, date, referPartnerId) VALUES (?, ?, ?, ?)";
-      await connection
-        .promise()
-        .query(referralPayoutInsertQuery, [
-          memberId,
-          referralAmount,
-          payoutDate,
-          partnerId,
-        ]);
+    // Insert a new rowin referral_payout table
+    const referralPayoutInsertQuery =
+      "INSERT INTO referral_payout (memberId, referralAmount, date, referPartnerId) VALUES (?, ?, ?, ?)";
+    await connection
+      .promise()
+      .query(referralPayoutInsertQuery, [
+        memberId,
+        referralAmount,
+        payoutDate,
+        partnerId,
+      ]);
 
     if (!payableAmount || !payoutDate) {
       return res
@@ -5067,5 +5070,19 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
   } catch (error) {
     console.error(error.message);
     return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+
+exports.verifyMultipleRigPartner = async (req, res) => {
+  try {
+    const { rigId } = req.body;
+    const updateQuery = "UPDATE multiple_rig_partner SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
+    await connection.promise().query(updateQuery, [rigId]);
+
+    return res.status(200).json({message: "Successfully verified multiple rig partner." });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({message : "Internal Server Error" });
   }
 };

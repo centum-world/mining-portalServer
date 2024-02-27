@@ -810,3 +810,72 @@ exports.fetchPartnerMyTeam = async (req, res) => {
     );
   });
 };
+
+
+
+exports.totalCountMemberPartner = async (req, res) => {
+  try {
+    const { referralId } = req.body;
+
+    // Find referralId in create_member based on referredId
+    const findReferralIdQuery =
+      "SELECT reffer_id FROM create_member WHERE isVerify = 1 AND m_refferid = ?";
+
+    const findReferralIdResult = await connection
+      .promise()
+      .query(findReferralIdQuery, [referralId]);
+
+    const memberReferralId = findReferralIdResult[0][0].reffer_id;
+    console.log(memberReferralId, "member referalId");
+
+    // Fetch total member referral count
+    const totalMemberReferralQuery =
+      "SELECT COUNT(*) AS totalReferralCount FROM create_member WHERE isVerify = 1 AND m_refferid = ?";
+    const totalMemberReferralResult = await connection
+      .promise()
+      .query(totalMemberReferralQuery, [referralId]);
+    const totalMemberReferralCount =
+      totalMemberReferralResult[0][0].totalReferralCount;
+
+    // Fetch today's member referral count
+    const todayMemberReferralQuery =
+      "SELECT COUNT(*) AS todayReferralCount FROM create_member WHERE isVerify = 1 AND m_refferid = ? AND DATE(verifyDate) = CURDATE()";
+    const todayMemberReferralResult = await connection
+      .promise()
+      .query(todayMemberReferralQuery, [referralId]);
+    const todayMemberReferralCount =
+      todayMemberReferralResult[0][0].todayReferralCount;
+
+
+    // Fetch total Partner count
+    const totalPartnerQuery =
+      "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ?";
+    const totalPartnerResult = await connection
+      .promise()
+      .query(totalPartnerQuery, [
+        memberReferralId || referralId,
+      ]);
+
+    // Fetch today's Partner count
+    const todayPartnerQuery =
+      "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ? AND DATE(verifyDate) = CURDATE()";
+    const todayPartnerResult = await connection
+      .promise()
+      .query(todayPartnerQuery, [
+        memberReferralId|| referralId,
+      ]);
+
+    // Process results as needed
+
+    return res.status(200).json({
+
+      totalMemberReferralCount,
+      todayMemberReferralCount,
+      totalPartnerCount: totalPartnerResult[0][0].totalPartnerCount,
+      todayPartnerCount: todayPartnerResult[0][0].todayPartnerCount,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};

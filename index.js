@@ -132,6 +132,7 @@ const updateMember = require('./routes/update-member')
 const fetchPartnerByReferralIdOfPartner = require('./routes/fetchPartnerByReferralIdOfPartner')
 
 // -----------------------admin-----------------------------//
+const verifyMultipleRigPartner = require('./routes/verify-multiple-rig-partner')
 const adminVerifyMember = require('./routes/admin-verify-member');
 const adminBlockMember = require('./routes/admin-block-member');
 const adminFetchAllMiningPartner = require('./routes/admin-fetch-all-mining-partner');
@@ -227,6 +228,7 @@ const businessDevFetchPartnerTeam = require('./routes/bd/businessDev-fetch-partn
 const memberWithdrawalRequest = require('./routes/member/member-withdrawal-request');
 const fetchUpgradedMember = require('./routes/member/fetch-upgraded-member');
 const fetchMemberWallet = require('./routes/member/fetch-member-wallet')
+const totalCountMemberPartner = require('./routes/member/total-count-member-partner')
 
 // ----------------------- portfolio-------------------------//
 const fetchAllBmmFromPortfolio = require('./routes/portfolio/fetch-all-bmm');
@@ -355,6 +357,7 @@ app.use('/admin', fetchPartnerReferWithdrawlHistory)
 app.use("/mining", fetchPartnerAndMultipleRig)
 
 // --------------------------admin-------------------//
+app.use('/admin', verifyMultipleRigPartner)
 app.use("/admin", fetchQuery)
 app.use('/admin', queryResolve)
 app.use('/admin', transferPartnerWithdrawlToWithdrawlHistory)
@@ -445,6 +448,7 @@ app.use('/bd',businessDevFetchPartnerTeam);
 app.use('/member',memberWithdrawalRequest);
 app.use('/member',fetchUpgradedMember);
 app.use('/member', fetchMemberWallet)
+app.use('/member', totalCountMemberPartner)
 
 // -----------------------portfolio-------------------//
 app.use('/portfolio',fetchAllBmmFromPortfolio);
