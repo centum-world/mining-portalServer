@@ -4939,9 +4939,13 @@ exports.fetchTransactionHistory = async (req, res) => {
       .promise()
       .query(fetchTransactionQuery, queryParams);
 
-    if (transactionHistory.length === 0) {
-      return res.status(404).json({ message: "No Transaction History Found" });
-    }
+      if (!transactionHistory || transactionHistory.length === 0) {
+        return res.status(200).json({
+          message: "No Transaction History Found",
+          data: [],
+        });
+      }
+  
 
     return res.status(200).json({
       message: "Transaction history fetched successfully",
