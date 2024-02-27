@@ -181,6 +181,7 @@ const fetchPartnerByRigId = require('./routes/fetch-partner-by-rig-id')
 const fetchPartnerPayouts = require('./routes/fetch-partner-payouts')
 const fetchTotalReferralCountAndTodayReferralCount  = require('./routes/fetch-total-referral-count-and-today-referral-count')
 const fetchTransactionHistory = require('./routes/fetch-transaction-history');
+const createPartnerPayoutForMonthly = require('./routes/create-partner-payout-for-monthly')
 
 // -------------------State ----------------------------------///
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
@@ -399,6 +400,7 @@ app.use('/admin', fetchPartnerByRigId)
 app.use('/admin', fetchPartnerPayouts)
 app.use('/admin', fetchTotalReferralCountAndTodayReferralCount)
 app.use('/admin',fetchTransactionHistory);
+app.use('/admin', createPartnerPayoutForMonthly)
 
 
 // --------------------state------------------------///
