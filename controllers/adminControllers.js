@@ -5091,7 +5091,7 @@ exports.verifyMultipleRigPartner = async (req, res) => {
 
     await connection.promise().query(updateQuery, [rigId]);
 
-    return res.status(200).json({ message: "Successfully verified multiple rig partner." });
+    return res.status(200).json({ message: "Successfully verified RIG partner." });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
