@@ -4872,15 +4872,20 @@ exports.fetchTotalReferralCountAndTodayReferralCount = async (req, res) => {
 
 exports.fetchTransactionHistory = async (req, res) => {
   try {
-    const { currentDate } = req.body; // currentDate should be sent from the client side
+    const { currentDate, currentMonth, currentYear } = req.body; // currentDate, currentMonth, and currentYear should be sent from the client side
 
-    let fetchTransactionQuery = "SELECT * FROM transaction_history";
+    let fetchTransactionQuery = "SELECT * FROM transaction_history WHERE 1=1"; // Initial query with always true condition
 
     const queryParams = [];
 
     if (currentDate) {
-      fetchTransactionQuery += " WHERE DATE(credited_date) = ?";
+      fetchTransactionQuery += " AND DATE(credited_date) = ?";
       queryParams.push(currentDate);
+    }
+
+    if (currentMonth && currentYear) {
+      fetchTransactionQuery += " AND MONTH(credited_date) = ? AND YEAR(credited_date) = ?";
+      queryParams.push(currentMonth, currentYear);
     }
     
     const [transactionHistory] = await connection.promise().query(fetchTransactionQuery, queryParams);
@@ -4899,6 +4904,7 @@ exports.fetchTransactionHistory = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
 
 
 
