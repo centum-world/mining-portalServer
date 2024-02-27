@@ -233,6 +233,9 @@ const filterBmmByState = require('./routes/portfolio/filter-bmm-by-state');
 const fetchAllFranchiseFromPortfolio = require('./routes/portfolio/fetch-all-franchise');
 const filterFranchiseByState = require('./routes/portfolio/filter-franchise-by-state');
 
+// --------------------------Partner-----------------------------------------//
+const partnerFetchTransactionHistory = require('./routes/partner/fetch-transaction-history')
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -447,6 +450,9 @@ app.use('/portfolio',fetchAllBmmFromPortfolio);
 app.use('/portfolio',filterBmmByState);
 app.use('/portfolio',fetchAllFranchiseFromPortfolio);
 app.use('/portfolio',filterFranchiseByState);
+
+// ------------------------Partner-------------------------//
+app.use('/mining',partnerFetchTransactionHistory);
 
 
 module.exports = app;
