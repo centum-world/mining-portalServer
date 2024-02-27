@@ -405,7 +405,10 @@ exports.verifySho = async (req, res) => {
 
         cron.schedule("* * * * *", () => {
           const currentTimestamp = Date.now();
-          if (currentTimestamp - lastExecutionTimestamp >=30 * 24 * 3600 * 1000 ) {
+          if (
+            currentTimestamp - lastExecutionTimestamp >=
+            30 * 24 * 3600 * 1000
+          ) {
             let selectBmmDetails =
               "select * from create_sho where stateHandlerId = ?";
             connection.query(
@@ -894,5 +897,99 @@ exports.fetchPartnerByReferralId = async (req, res) => {
   } catch (error) {
     console.error("Error fetching partners:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.totalcountFranchiseMemberPartner = async (req, res) => {
+  try {
+    const { referralId } = req.body;
+
+    // Find referralId in create_franchise based on referredId
+    const findReferralIdQuery =
+      "SELECT referralId FROM create_franchise WHERE isVerify = 1 AND referredId = ?";
+    const findReferralIdResult = await connection
+      .promise()
+      .query(findReferralIdQuery, [referralId]);
+
+    const franchiseReferralId = findReferralIdResult[0][0].referralId;
+    console.log(franchiseReferralId, "franchisereferalId")
+
+    // Find referralId in create_member based on m_refferid
+    const findReferralIdMemberQuery =
+      "SELECT reffer_id FROM create_member WHERE isVerify = 1 AND m_refferid = ?";
+    const findReferralIdMemberResult = await connection
+      .promise()
+      .query(findReferralIdMemberQuery, [franchiseReferralId]);
+
+    const memberReferralId = findReferralIdMemberResult[0][0].reffer_id;
+
+    console.log(memberReferralId, "member referral id")
+
+    const totalFranchiseQuery =
+      "SELECT COUNT(*) AS totalFranchiseCount FROM create_franchise WHERE isVerify = 1 AND referredId = ?";
+    const totalFranchiseResult = await connection
+      .promise()
+      .query(totalFranchiseQuery, [referralId]);
+    const totalFranchiseCount = totalFranchiseResult[0][0].totalFranchiseCount;
+
+    // Fetch today's franchise count
+    const todayFranchiseQuery =
+      "SELECT COUNT(*) AS todayFranchiseCount FROM create_franchise WHERE isVerify = 1 AND referredId = ? AND DATE(verifyDate) = CURDATE()";
+    const todayFranchiseResult = await connection
+      .promise()
+      .query(todayFranchiseQuery, [referralId]);
+    const todayFranchiseCount = todayFranchiseResult[0][0].todayFranchiseCount;
+
+    // Fetch total member referral count
+    const totalMemberReferralQuery =
+      "SELECT COUNT(*) AS totalReferralCount FROM create_member WHERE isVerify = 1 AND m_refferid = ?";
+    const totalMemberReferralResult = await connection
+      .promise()
+      .query(totalMemberReferralQuery, [franchiseReferralId]);
+    const totalMemberReferralCount =
+      totalMemberReferralResult[0][0].totalReferralCount;
+
+    // Fetch today's member referral count
+    const todayMemberReferralQuery =
+      "SELECT COUNT(*) AS todayReferralCount FROM create_member WHERE isVerify = 1 AND m_refferid = ? AND DATE(verifyDate) = CURDATE()";
+    const todayMemberReferralResult = await connection
+      .promise()
+      .query(todayMemberReferralQuery, [franchiseReferralId]);
+    const todayMemberReferralCount =
+      todayMemberReferralResult[0][0].todayReferralCount;
+
+    // Fetch total Partner count
+    const totalPartnerQuery =
+      "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ?";
+    const totalPartnerResult = await connection
+      .promise()
+      .query(totalPartnerQuery, [
+        memberReferralId || franchiseReferralId || referralId,
+      ]);
+
+    // Fetch today's Partner count
+    const todayPartnerQuery =
+      "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ? AND DATE(verifyDate) = CURDATE()";
+    const todayPartnerResult = await connection
+      .promise()
+      .query(todayPartnerQuery, [
+        memberReferralId || franchiseReferralId || referralId,
+      ]);
+
+    // Process results as needed
+
+    return res
+      .status(200)
+      .json({
+        totalFranchiseCount,
+        todayFranchiseCount,
+        totalMemberReferralCount,
+        todayMemberReferralCount,
+        totalPartnerCount: totalPartnerResult[0][0].totalPartnerCount,
+        todayPartnerCount: todayPartnerResult[0][0].todayPartnerCount,
+      });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
