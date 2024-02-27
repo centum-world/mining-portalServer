@@ -228,7 +228,7 @@ const businessDevFetchPartnerTeam = require('./routes/bd/businessDev-fetch-partn
 const memberWithdrawalRequest = require('./routes/member/member-withdrawal-request');
 const fetchUpgradedMember = require('./routes/member/fetch-upgraded-member');
 const fetchMemberWallet = require('./routes/member/fetch-member-wallet')
-const totalCountMemberPartner = require('./routes/member/total-count-member-partner')
+const totalCountMemberPartner = require('./routes/frenchise/total-count-member-partner')
 
 // ----------------------- portfolio-------------------------//
 const fetchAllBmmFromPortfolio = require('./routes/portfolio/fetch-all-bmm');

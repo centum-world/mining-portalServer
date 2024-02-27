@@ -730,8 +730,21 @@ exports.fetchMemberWallet = async(req, res) => {
     
   } catch (error) {
 
+
     return res.status(500).json(error);
 
+    
+  }
+}
+
+exports.totalCountPartner = async(req, res) => {
+  try {
+    const {referralId} = req.body
+    
+    
+  } catch (error) {
+    console.log(error.message)
+    return res.status(500).json({message: "Internal server error"})
     
   }
 }

@@ -755,62 +755,41 @@ exports.fetchTotalWithdrawal = async (req, res) => {
 };
 
 // fetchPartnerMyTeam
+
 exports.fetchPartnerMyTeam = async (req, res) => {
   const { referralId } = req.body;
 
-  const findbdquery = "SELECT * FROM create_bd Where referredId = ?";
-
-  connection.query(findbdquery, [referralId], (error, result) => {
-    if (error) {
-      console.log(error);
-      return res.status(500).json({ message: "internal server error" });
+  const findMemberQuery =
+    "SELECT * FROM create_member WHERE m_refferid = ?";
+  connection.query(findMemberQuery, [referralId], (err, memberResult) => {
+    if (err) {
+      return res.status(500).json({ message: "Internal server error" });
     }
-    if (result.length == 0) {
-      return res.status(404).json({ message: "BusinessDev not found" });
+    if (memberResult.length === 0) {
+      return res.status(404).json({ message: "No Member found" });
     }
-    const businessReferredIds = result.map((entry) => entry.referralId);
 
-    const findMemberQuery =
-      "SELECT * FROM create_member WHERE m_refferid IN (?)";
-    connection.query(
-      findMemberQuery,
-      [businessReferredIds],
-      (err, memberResult) => {
-        if (err) {
-          return res.status(500).json({ message: "Internal server error" });
-        }
-        if (memberResult.length === 0) {
-          return res.status(404).json({ message: "No Member found" });
-        }
+    const memberDetails = memberResult;
+    const refferIds = memberDetails.map((member) => member.reffer_id);
 
-        const memberDetails = memberResult;
-        const refferIds = memberDetails.map((member) => member.reffer_id);
-
-        const findPartnerQuery =
-          "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
-        connection.query(
-          findPartnerQuery,
-          [refferIds],
-          (err, partnerResult) => {
-            if (err) {
-              return res.status(500).json({ message: "Internal server error" });
-            }
-            if (partnerResult.length === 0) {
-              return res.status(404).json({ message: "No Partners found" });
-            }
-
-            const partnerDetails = partnerResult;
-
-            return res
-              .status(200)
-              .json({ message: "Partner details fetched", partnerDetails });
-          }
-        );
+    const findPartnerQuery =
+      "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+    connection.query(findPartnerQuery, [refferIds], (err, partnerResult) => {
+      if (err) {
+        return res.status(500).json({ message: "Internal server error" });
       }
-    );
+      if (partnerResult.length === 0) {
+        return res.status(404).json({ message: "No Partners found" });
+      }
+
+      const partnerDetails = partnerResult;
+
+      return res
+        .status(200)
+        .json({ message: "Partner details fetched", partnerDetails });
+    });
   });
 };
-
 
 
 exports.totalCountMemberPartner = async (req, res) => {
