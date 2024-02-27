@@ -5047,17 +5047,6 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
         liquidity,
       ]);
 
-    const insertIntoTransactionHistory =
-      "INSERT INTO transaction_history (partnerId,rigId,credited_date,amount,liquidity) VALUES (?,?,?,?,?)";
-    await connection
-      .promise()
-      .query(insertIntoTransactionHistory, [
-        partnerId,
-        rigId,
-        payoutDate,
-        payableAmount,
-        liquidity,
-      ]);
 
     return res
       .status(200)
