@@ -1366,10 +1366,10 @@ exports.partnerFetchTransactionHistory = async(req,res)=>{
       return res.status(400).json({ message: "Partner ID is required." });
     }
 
-    let fetchTransactionQuery = "SELECT * FROM transaction_history WHERE partnerId = ?";
+    let fetchTransactionQuery = "SELECT * FROM partner_payout WHERE partnerId = ?";
 
     if (currentDate) {
-      fetchTransactionQuery += " AND DATE(credited_date) = ?";
+      fetchTransactionQuery += " AND DATE(payoutDate) = ?";
     }
 
     const queryParams = currentDate ? [partnerId, currentDate] : [partnerId];
