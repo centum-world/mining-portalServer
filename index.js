@@ -184,6 +184,7 @@ const fetchTransactionHistory = require('./routes/fetch-transaction-history');
 const createPartnerPayoutForMonthly = require('./routes/create-partner-payout-for-monthly')
 
 // -------------------State ----------------------------------///
+const totalcountFranchiseMemberPartner = require('./routes/state/total-count-franchise-member-partner')
 const fetchOwnBankDetails = require('./routes/state/fetch-own-bank-details')
 const updateSho = require('./routes/update-sho')
 const createPaymentRequest = require('./routes/state/create-sho-payment-request')
@@ -411,7 +412,7 @@ app.use('/state', makePrimaryBank)
 app.use('/state', fetchPrimaryBank)
 app.use('/state',statePartnerMyTeam);
 app.use('/state', fetchPartnerByReferralId)
-
+app.use('/state', totalcountFranchiseMemberPartner)
 
 // ---------------------------------------------------//
 

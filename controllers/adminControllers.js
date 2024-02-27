@@ -4870,6 +4870,20 @@ exports.fetchTotalReferralCountAndTodayReferralCount = async (req, res) => {
       .query(todayPartnerQuery);
     const todayPartnerCount = todayPartnerResult[0][0].todayPartnerCount;
 
+
+
+     // Fetch total mining RIG partner count
+
+     const totalMultipleRIGPartnerQuery = "SELECT COUNT(*) AS totalMultipleRIGPartnerCount FROM multiple_rig_partner WHERE isVerify = 1";
+     const totalMultipleRIGPartnerResult = await connection.promise().query(totalMultipleRIGPartnerQuery);
+     const totalMultipleRIGPartnerCount = totalMultipleRIGPartnerResult[0][0].totalMultipleRIGPartnerCount;
+ 
+     // Fetch today's mining partner count
+     const todayMultipleRIGPartnerQuery = "SELECT COUNT(*) AS todayMultiplRIGPartnerCount FROM multiple_rig_partner WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
+     const todayMultipleRIGPartnerResult = await connection.promise().query(todayMultipleRIGPartnerQuery);
+     const todayMultipleRIGPartnerCount = todayMultipleRIGPartnerResult[0][0].todayMultiplRIGPartnerCount;
+ 
+
     // Fetch total franchise count
     const totalFranchiseQuery =
       "SELECT COUNT(*) AS totalFranchiseCount FROM create_franchise WHERE isVerify = 1";
@@ -4898,16 +4912,20 @@ exports.fetchTotalReferralCountAndTodayReferralCount = async (req, res) => {
     const todayBMMResult = await connection.promise().query(todayBMMQuery);
     const todayBMMCount = todayBMMResult[0][0].todayBMMCount;
 
+
     return res.status(200).json({
       totalReferralCount: totalMemberReferralCount,
       todayReferralCount: todayMemberReferralCount,
       totalPartnerCount,
       todayPartnerCount,
+      totalMultipleRIGPartnerCount,
+      todayMultipleRIGPartnerCount,
       totalFranchiseCount,
       todayFranchiseCount,
       totalBMMCount,
       todayBMMCount,
     });
+    
   } catch (error) {
     console.error(error);
     return res.status(500).json(error);
@@ -4984,17 +5002,17 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
 
     console.log(memberId, "memberId");
 
-    // Insert a new rowin referral_payout table
-    const referralPayoutInsertQuery =
-      "INSERT INTO referral_payout (memberId, referralAmount, date, referPartnerId) VALUES (?, ?, ?, ?)";
-    await connection
-      .promise()
-      .query(referralPayoutInsertQuery, [
-        memberId,
-        referralAmount,
-        date,
-        partnerId,
-      ]);
+        // Insert a new rowin referral_payout table
+        const referralPayoutInsertQuery =
+        "INSERT INTO referral_payout (memberId, referralAmount, date, referPartnerId) VALUES (?, ?, ?, ?)";
+      await connection
+        .promise()
+        .query(referralPayoutInsertQuery, [
+          memberId,
+          referralAmount,
+          payoutDate,
+          partnerId,
+        ]);
 
     if (!payableAmount || !payoutDate) {
       return res
