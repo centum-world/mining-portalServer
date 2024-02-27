@@ -4863,9 +4863,69 @@ exports.fetchTotalReferralCountAndTodayReferralCount = async (req, res) => {
   }
 };
 
-exports.payoutTransactionHistory = async (req,res) => {
+// exports.fetchTransactionHistory = async (req, res) => {
+//   try {
+//     const { partnerId, currentDate } = req.body; 
 
-}
+//     if (!partnerId) {
+//       return res.status(400).json({ message: "Partner ID is required." });
+//     }
+
+//     let fetchTransactionQuery = "SELECT * FROM transaction_history WHERE partnerId = ?";
+
+//     if (currentDate) {
+//       fetchTransactionQuery += " AND DATE(credited_date) = ?";
+//     }
+
+//     const queryParams = currentDate ? [partnerId, currentDate] : [partnerId];
+    
+//     const [transactionHistory] = await connection.promise().query(fetchTransactionQuery, queryParams);
+
+//     if (transactionHistory.length === 0) {
+//       return res.status(404).json({ message: "No Transaction History Found" });
+//     }
+
+//     return res.status(200).json({
+//       message: "Partner Payout fetched successfully",
+//       data: transactionHistory,
+//     });
+
+//   } catch (error) {
+//     console.error("Error:", error);
+//     return res.status(500).json({ message: "Internal server error." });
+//   }
+// };
+
+exports.fetchTransactionHistory = async (req, res) => {
+  try {
+    const { currentDate } = req.body; // currentDate should be sent from the client side
+
+    let fetchTransactionQuery = "SELECT * FROM transaction_history";
+
+    const queryParams = [];
+
+    if (currentDate) {
+      fetchTransactionQuery += " WHERE DATE(credited_date) = ?";
+      queryParams.push(currentDate);
+    }
+    
+    const [transactionHistory] = await connection.promise().query(fetchTransactionQuery, queryParams);
+
+    if (transactionHistory.length === 0) {
+      return res.status(404).json({ message: "No Transaction History Found" });
+    }
+
+    return res.status(200).json({
+      message: "Transaction history fetched successfully",
+      data: transactionHistory,
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
 
 
 
