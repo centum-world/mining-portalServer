@@ -5077,12 +5077,24 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
 exports.verifyMultipleRigPartner = async (req, res) => {
   try {
     const { rigId } = req.body;
-    const updateQuery = "UPDATE multiple_rig_partner SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
+
+    const selectPartnerQuery = "SELECT rigId FROM mining_rig WHERE rigId = ?";
+    const [partnerInMiningResult] = await connection.promise().query(selectPartnerQuery, [rigId]);
+
+    let updateQuery;
+
+    if (partnerInMiningResult.length > 0) {
+      updateQuery = "UPDATE mining_rig SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
+    } else {
+      updateQuery = "UPDATE multiple_rig_partner SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
+    }
+
     await connection.promise().query(updateQuery, [rigId]);
 
-    return res.status(200).json({message: "Successfully verified multiple rig partner." });
+    return res.status(200).json({ message: "Successfully verified multiple rig partner." });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({message : "Internal Server Error" });
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
