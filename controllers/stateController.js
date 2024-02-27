@@ -912,7 +912,7 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
       .query(findReferralIdQuery, [referralId]);
 
     const franchiseReferralId = findReferralIdResult[0][0].referralId;
-    console.log(franchiseReferralId, "franchisereferalId")
+    console.log(franchiseReferralId, "franchisereferalId");
 
     // Find referralId in create_member based on m_refferid
     const findReferralIdMemberQuery =
@@ -923,7 +923,7 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
 
     const memberReferralId = findReferralIdMemberResult[0][0].reffer_id;
 
-    console.log(memberReferralId, "member referral id")
+    console.log(memberReferralId, "member referral id");
 
     const totalFranchiseQuery =
       "SELECT COUNT(*) AS totalFranchiseCount FROM create_franchise WHERE isVerify = 1 AND referredId = ?";
@@ -978,16 +978,14 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
 
     // Process results as needed
 
-    return res
-      .status(200)
-      .json({
-        totalFranchiseCount,
-        todayFranchiseCount,
-        totalMemberReferralCount,
-        todayMemberReferralCount,
-        totalPartnerCount: totalPartnerResult[0][0].totalPartnerCount,
-        todayPartnerCount: todayPartnerResult[0][0].todayPartnerCount,
-      });
+    return res.status(200).json({
+      totalFranchiseCount,
+      todayFranchiseCount,
+      totalMemberReferralCount,
+      todayMemberReferralCount,
+      totalPartnerCount: totalPartnerResult[0][0].totalPartnerCount,
+      todayPartnerCount: todayPartnerResult[0][0].todayPartnerCount,
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error" });
