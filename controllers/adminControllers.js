@@ -4928,4 +4928,101 @@ exports.fetchTransactionHistory = async (req, res) => {
 
 
 
+exports.createPartnerPayoutForMonthly = async (req, res) => {
+  try {
+    const { rigId, payableAmount, payoutDate, liquidity,partnerId, referralAmount, date, referPartnerId } = req.body;
 
+    findPartnerReferralQuery = "select p_reffered_id from mining_partner where p_userid = ?"
+
+    const [partnerResult] = await connection.promise().query(findPartnerReferralQuery, [partnerId])
+
+    const partnerReferredId = partnerResult[0].p_reffered_id
+    console.log(partnerReferredId, "partnerRefelll")
+
+    findMemberQuery = "select m_userid from create_member where reffer_id =?"
+
+    const [findMemberIdResult] = await connection.promise().query(findMemberQuery, [partnerReferredId])
+
+    const memberId = findMemberIdResult[0].m_userid
+
+    console.log(memberId, "memberId")
+
+        // Insert a new rowin referral_payout table
+        const referralPayoutInsertQuery =
+        "INSERT INTO referral_payout (memberId, referralAmount, date, referPartnerId) VALUES (?, ?, ?, ?)";
+      await connection
+        .promise()
+        .query(referralPayoutInsertQuery, [
+          memberId,
+          referralAmount,
+          date,
+          partnerId,
+        ]);
+
+
+
+
+    if (!payableAmount || !payoutDate) {
+      return res
+        .status(400)
+        .json({ message: "Payable amount and Payout Date are required." });
+    }
+
+    // Check if rigId already exists in the table
+    const [existingResult] = await connection
+      .promise()
+      .query(
+        "SELECT payableCount,payoutDate  FROM partner_payout WHERE rigId = ?",
+        [rigId]
+      );
+
+    let newPayableCount = 1;
+    let lastPayoutDate;
+
+    if (existingResult.length > 0) {
+      // If rigId exists, increment payableCount by 1
+      newPayableCount =
+        existingResult[existingResult.length - 1].payableCount + 1;
+      console.log(newPayableCount, 4612);
+
+      lastPayoutDate = existingResult[existingResult.length - 1].payoutDate;
+      console.log(lastPayoutDate, 4614);
+
+      const providedMonth = new Date(payoutDate).getMonth();
+
+      const lastMonth = new Date(lastPayoutDate).getMonth();
+      if (providedMonth === lastMonth) {
+        return res
+          .status(400)
+          .json({ message: "Payout for this month has already happened." });
+      }
+    }
+
+    // Insert a new row
+    const insertQuery =
+      "INSERT INTO partner_payout (rigId, payableAmount, payoutDate, payableCount, liquidity) VALUES (?, ?, ?, ?, ?)";
+    await connection
+      .promise()
+      .query(insertQuery, [
+        rigId,
+        payableAmount,
+        payoutDate,
+        newPayableCount,
+        liquidity,
+      ]);
+
+
+
+      const insertIntoTransactionHistory = "INSERT INTO transaction_history (partnerId,rigId,credited_date,amount,liquidity) VALUES (?,?,?,?,?)";
+      await connection 
+      .promise()
+      .query(insertIntoTransactionHistory,[partnerId,rigId,payoutDate,payableAmount,liquidity]);
+
+    return res
+      .status(200)
+      .json({ message: "New partner payout created successfully." });
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
