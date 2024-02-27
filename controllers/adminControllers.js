@@ -4726,16 +4726,11 @@ exports.createPartnerPayout = async (req, res) => {
         newPayableCount,
         liquidity,
       ]);
-      const formattedPayoutDate = new Date(payoutDate).toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      });
       
       const insertIntoTransactionHistory = "INSERT INTO transaction_history (partnerId,rigId,credited_date,amount) VALUES (?,?,?,?)";
       await connection 
       .promise()
-      .query(insertIntoTransactionHistory,[partnerId,rigId,formattedPayoutDate,payableAmount]);
+      .query(insertIntoTransactionHistory,[partnerId,rigId,payoutDate,payableAmount]);
 
     return res
       .status(200)
