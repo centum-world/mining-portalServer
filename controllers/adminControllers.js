@@ -4731,7 +4731,7 @@ exports.createPartnerPayout = async (req, res) => {
 
     // Insert a new row
     const insertQuery =
-      "INSERT INTO partner_payout (rigId, payableAmount, payoutDate, payableCount, liquidity) VALUES (?, ?, ?, ?, ?)";
+      "INSERT INTO partner_payout (rigId, payableAmount, payoutDate, payableCount, liquidity, partnerId) VALUES (?, ?, ?, ?, ?, ?)";
     await connection
       .promise()
       .query(insertQuery, [
@@ -4740,6 +4740,7 @@ exports.createPartnerPayout = async (req, res) => {
         payoutDate,
         newPayableCount,
         liquidity,
+        partnerId
       ]);
       
       const insertIntoTransactionHistory = "INSERT INTO transaction_history (partnerId,rigId,credited_date,amount) VALUES (?,?,?,?)";
