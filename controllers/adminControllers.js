@@ -3234,16 +3234,21 @@ exports.adminBlockMember = async (req, res) => {
 
 // adminFetchAllMiningPartner
 exports.adminFetchAllMiningPartner = async (req, res) => {
-
   const query = "SELECT * FROM mining_partner";
 
   try {
     const [results] = await connection.promise().query(query);
-    console.log(results)
+    console.log(results);
 
     // Separate data based on the date part of p_dop column
-    const beforeDec152023 = results.filter(entry => new Date(entry.p_dop).setHours(0, 0, 0, 0) < new Date('2023-12-15'));
-    const afterDec152023 = results.filter(entry => new Date(entry.p_dop).setHours(0, 0, 0, 0) >= new Date('2023-12-15'));
+    const beforeDec152023 = results.filter(
+      (entry) =>
+        new Date(entry.p_dop).setHours(0, 0, 0, 0) < new Date("2023-12-15")
+    );
+    const afterDec152023 = results.filter(
+      (entry) =>
+        new Date(entry.p_dop).setHours(0, 0, 0, 0) >= new Date("2023-12-15")
+    );
 
     return res.status(200).json({
       message: "Fetched data successfully",
@@ -3255,9 +3260,6 @@ exports.adminFetchAllMiningPartner = async (req, res) => {
     return res.status(500).json(err);
   }
 };
-
-
-
 
 // adminVerifyPartner
 exports.adminVerifyPartner = async (req, res) => {
@@ -4404,24 +4406,38 @@ exports.uploadBond = async (req, res) => {
       return res.status(400).json({ message: "Invoice file is missing." });
     }
     const bondFile = req.files["bond"][0];
-    const invoiceFile = req.files["invoice"][0]; 
+    const invoiceFile = req.files["invoice"][0];
 
     const bondLocation = bondFile.location;
     const invoiceLocation = invoiceFile.location;
     // Check if the file is a PDF
-    if (bondFile.mimetype !== "application/pdf" || invoiceFile.mimetype !== "application/pdf") {
+    if (
+      bondFile.mimetype !== "application/pdf" ||
+      invoiceFile.mimetype !== "application/pdf"
+    ) {
       return res
         .status(400)
         .json({ message: "Bond File or Invoice File must be in PDF format." });
     }
 
-    const [isRigIdExistInMiningPartner] = await connection.promise().query("SELECT rigId FROM mining_partner WHERE rigId = ?", [rigId])
+    const [isRigIdExistInMiningPartner] = await connection
+      .promise()
+      .query("SELECT rigId FROM mining_partner WHERE rigId = ?", [rigId]);
 
-   
     if (isRigIdExistInMiningPartner.length > 0) {
-      await connection.promise().query("UPDATE mining_partner SET bond = ?, invoice = ? WHERE rigId = ?", [bondLocation, invoiceLocation, rigId])
+      await connection
+        .promise()
+        .query(
+          "UPDATE mining_partner SET bond = ?, invoice = ? WHERE rigId = ?",
+          [bondLocation, invoiceLocation, rigId]
+        );
     } else {
-      await connection.promise().query("UPDATE multiple_rig_partner SET bond = ?, invoice = ? WHERE rigId = ?", [bondLocation, invoiceLocation, rigId])
+      await connection
+        .promise()
+        .query(
+          "UPDATE multiple_rig_partner SET bond = ?, invoice = ? WHERE rigId = ?",
+          [bondLocation, invoiceLocation, rigId]
+        );
     }
 
     return res.status(200).json({ message: "File uploaded successfully." });
@@ -4430,7 +4446,6 @@ exports.uploadBond = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 //fetch bond
 exports.fetchBond = async (req, res) => {
@@ -4676,7 +4691,7 @@ exports.fetchUpgradeDowngradeBmm = async (req, res) => {
 
 exports.createPartnerPayout = async (req, res) => {
   try {
-    const { rigId, payableAmount, payoutDate, liquidity,partnerId } = req.body;
+    const { rigId, payableAmount, payoutDate, liquidity, partnerId } = req.body;
 
     if (!payableAmount || !payoutDate) {
       return res
@@ -4726,16 +4741,25 @@ exports.createPartnerPayout = async (req, res) => {
         newPayableCount,
         liquidity,
       ]);
-      const formattedPayoutDate = new Date(payoutDate).toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      });
-      
-      const insertIntoTransactionHistory = "INSERT INTO transaction_history (partnerId,rigId,credited_date,amount) VALUES (?,?,?,?)";
-      await connection 
+    const formattedPayoutDate = new Date(payoutDate).toLocaleDateString(
+      "en-GB",
+      {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }
+    );
+
+    const insertIntoTransactionHistory =
+      "INSERT INTO transaction_history (partnerId,rigId,credited_date,amount) VALUES (?,?,?,?)";
+    await connection
       .promise()
-      .query(insertIntoTransactionHistory,[partnerId,rigId,formattedPayoutDate,payableAmount]);
+      .query(insertIntoTransactionHistory, [
+        partnerId,
+        rigId,
+        formattedPayoutDate,
+        payableAmount,
+      ]);
 
     return res
       .status(200)
@@ -4810,52 +4834,73 @@ exports.fetchPartnerByRigId = async (req, res) => {
   }
 };
 
-
 exports.fetchTotalReferralCountAndTodayReferralCount = async (req, res) => {
   try {
     // Fetch total member referral count
-    const totalMemberReferralQuery = "SELECT COUNT(*) AS totalReferralCount FROM create_member WHERE isVerify = 1";
-    const totalMemberReferralResult = await connection.promise().query(totalMemberReferralQuery);
-    const totalMemberReferralCount = totalMemberReferralResult[0][0].totalReferralCount;
+    const totalMemberReferralQuery =
+      "SELECT COUNT(*) AS totalReferralCount FROM create_member WHERE isVerify = 1";
+    const totalMemberReferralResult = await connection
+      .promise()
+      .query(totalMemberReferralQuery);
+    const totalMemberReferralCount =
+      totalMemberReferralResult[0][0].totalReferralCount;
 
     // Fetch today's member referral count
-    const todayMemberReferralQuery = "SELECT COUNT(*) AS todayReferralCount FROM create_member WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
-    const todayMemberReferralResult = await connection.promise().query(todayMemberReferralQuery);
-    const todayMemberReferralCount = todayMemberReferralResult[0][0].todayReferralCount;
+    const todayMemberReferralQuery =
+      "SELECT COUNT(*) AS todayReferralCount FROM create_member WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
+    const todayMemberReferralResult = await connection
+      .promise()
+      .query(todayMemberReferralQuery);
+    const todayMemberReferralCount =
+      todayMemberReferralResult[0][0].todayReferralCount;
 
     // Fetch total partner count
-    const totalPartnerQuery = "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1";
-    const totalPartnerResult = await connection.promise().query(totalPartnerQuery);
+    const totalPartnerQuery =
+      "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1";
+    const totalPartnerResult = await connection
+      .promise()
+      .query(totalPartnerQuery);
     const totalPartnerCount = totalPartnerResult[0][0].totalPartnerCount;
 
     // Fetch today's partner count
-    const todayPartnerQuery = "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
-    const todayPartnerResult = await connection.promise().query(todayPartnerQuery);
+    const todayPartnerQuery =
+      "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
+    const todayPartnerResult = await connection
+      .promise()
+      .query(todayPartnerQuery);
     const todayPartnerCount = todayPartnerResult[0][0].todayPartnerCount;
 
     // Fetch total franchise count
-    const totalFranchiseQuery = "SELECT COUNT(*) AS totalFranchiseCount FROM create_franchise WHERE isVerify = 1";
-    const totalFranchiseResult = await connection.promise().query(totalFranchiseQuery);
+    const totalFranchiseQuery =
+      "SELECT COUNT(*) AS totalFranchiseCount FROM create_franchise WHERE isVerify = 1";
+    const totalFranchiseResult = await connection
+      .promise()
+      .query(totalFranchiseQuery);
     const totalFranchiseCount = totalFranchiseResult[0][0].totalFranchiseCount;
 
     // Fetch today's franchise count
-    const todayFranchiseQuery = "SELECT COUNT(*) AS todayFranchiseCount FROM create_franchise WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
-    const todayFranchiseResult = await connection.promise().query(todayFranchiseQuery);
+    const todayFranchiseQuery =
+      "SELECT COUNT(*) AS todayFranchiseCount FROM create_franchise WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
+    const todayFranchiseResult = await connection
+      .promise()
+      .query(todayFranchiseQuery);
     const todayFranchiseCount = todayFranchiseResult[0][0].todayFranchiseCount;
 
     // Fetch total BMM count
-    const totalBMMQuery = "SELECT COUNT(*) AS totalBMMCount FROM create_sho WHERE isVerify = 1";
+    const totalBMMQuery =
+      "SELECT COUNT(*) AS totalBMMCount FROM create_sho WHERE isVerify = 1";
     const totalBMMResult = await connection.promise().query(totalBMMQuery);
     const totalBMMCount = totalBMMResult[0][0].totalBMMCount;
 
     // Fetch today's BMM count
-    const todayBMMQuery = "SELECT COUNT(*) AS todayBMMCount FROM create_sho WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
+    const todayBMMQuery =
+      "SELECT COUNT(*) AS todayBMMCount FROM create_sho WHERE isVerify = 1 AND DATE(verifyDate) = CURDATE()";
     const todayBMMResult = await connection.promise().query(todayBMMQuery);
     const todayBMMCount = todayBMMResult[0][0].todayBMMCount;
 
     return res.status(200).json({
-      totalReferralCount:totalMemberReferralCount,
-      todayReferralCount:todayMemberReferralCount,
+      totalReferralCount: totalMemberReferralCount,
+      todayReferralCount: todayMemberReferralCount,
       totalPartnerCount,
       todayPartnerCount,
       totalFranchiseCount,
@@ -4868,7 +4913,6 @@ exports.fetchTotalReferralCountAndTodayReferralCount = async (req, res) => {
     return res.status(500).json(error);
   }
 };
-
 
 exports.fetchTransactionHistory = async (req, res) => {
   try {
@@ -4884,11 +4928,14 @@ exports.fetchTransactionHistory = async (req, res) => {
     }
 
     if (currentMonth && currentYear) {
-      fetchTransactionQuery += " AND MONTH(credited_date) = ? AND YEAR(credited_date) = ?";
+      fetchTransactionQuery +=
+        " AND MONTH(credited_date) = ? AND YEAR(credited_date) = ?";
       queryParams.push(currentMonth, currentYear);
     }
-    
-    const [transactionHistory] = await connection.promise().query(fetchTransactionQuery, queryParams);
+
+    const [transactionHistory] = await connection
+      .promise()
+      .query(fetchTransactionQuery, queryParams);
 
     if (transactionHistory.length === 0) {
       return res.status(404).json({ message: "No Transaction History Found" });
@@ -4898,48 +4945,56 @@ exports.fetchTransactionHistory = async (req, res) => {
       message: "Transaction history fetched successfully",
       data: transactionHistory,
     });
-
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ message: "Internal server error." });
   }
 };
 
-
-
 exports.createPartnerPayoutForMonthly = async (req, res) => {
   try {
-    const { rigId, payableAmount, payoutDate, liquidity,partnerId, referralAmount, date, referPartnerId } = req.body;
+    const {
+      rigId,
+      payableAmount,
+      payoutDate,
+      liquidity,
+      partnerId,
+      referralAmount,
+      date,
+      referPartnerId,
+    } = req.body;
 
-    findPartnerReferralQuery = "select p_reffered_id from mining_partner where p_userid = ?"
+    findPartnerReferralQuery =
+      "select p_reffered_id from mining_partner where p_userid = ?";
 
-    const [partnerResult] = await connection.promise().query(findPartnerReferralQuery, [partnerId])
+    const [partnerResult] = await connection
+      .promise()
+      .query(findPartnerReferralQuery, [partnerId]);
 
-    const partnerReferredId = partnerResult[0].p_reffered_id
-    console.log(partnerReferredId, "partnerRefelll")
+    const partnerReferredId = partnerResult[0].p_reffered_id;
+    console.log(partnerReferredId, "partnerRefelll");
 
-    findMemberQuery = "select m_userid from create_member where reffer_id =?"
+    findMemberQuery = "select m_userid from create_member where reffer_id =?";
 
-    const [findMemberIdResult] = await connection.promise().query(findMemberQuery, [partnerReferredId])
+    const [findMemberIdResult] = await connection
+      .promise()
+      .query(findMemberQuery, [partnerReferredId]);
 
-    const memberId = findMemberIdResult[0].m_userid
+    const memberId = findMemberIdResult[0].m_userid;
 
-    console.log(memberId, "memberId")
+    console.log(memberId, "memberId");
 
-        // Insert a new rowin referral_payout table
-        const referralPayoutInsertQuery =
-        "INSERT INTO referral_payout (memberId, referralAmount, date, referPartnerId) VALUES (?, ?, ?, ?)";
-      await connection
-        .promise()
-        .query(referralPayoutInsertQuery, [
-          memberId,
-          referralAmount,
-          date,
-          partnerId,
-        ]);
-
-
-
+    // Insert a new rowin referral_payout table
+    const referralPayoutInsertQuery =
+      "INSERT INTO referral_payout (memberId, referralAmount, date, referPartnerId) VALUES (?, ?, ?, ?)";
+    await connection
+      .promise()
+      .query(referralPayoutInsertQuery, [
+        memberId,
+        referralAmount,
+        date,
+        partnerId,
+      ]);
 
     if (!payableAmount || !payoutDate) {
       return res
@@ -4990,12 +5045,17 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
         liquidity,
       ]);
 
-
-
-      const insertIntoTransactionHistory = "INSERT INTO transaction_history (partnerId,rigId,credited_date,amount,liquidity) VALUES (?,?,?,?,?)";
-      await connection 
+    const insertIntoTransactionHistory =
+      "INSERT INTO transaction_history (partnerId,rigId,credited_date,amount,liquidity) VALUES (?,?,?,?,?)";
+    await connection
       .promise()
-      .query(insertIntoTransactionHistory,[partnerId,rigId,payoutDate,payableAmount,liquidity]);
+      .query(insertIntoTransactionHistory, [
+        partnerId,
+        rigId,
+        payoutDate,
+        payableAmount,
+        liquidity,
+      ]);
 
     return res
       .status(200)
