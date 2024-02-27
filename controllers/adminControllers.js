@@ -5078,13 +5078,13 @@ exports.verifyMultipleRigPartner = async (req, res) => {
   try {
     const { rigId } = req.body;
 
-    const selectPartnerQuery = "SELECT rigId FROM mining_rig WHERE rigId = ?";
+    const selectPartnerQuery = "SELECT rigId FROM mining_partner WHERE rigId = ?";
     const [partnerInMiningResult] = await connection.promise().query(selectPartnerQuery, [rigId]);
 
     let updateQuery;
 
     if (partnerInMiningResult.length > 0) {
-      updateQuery = "UPDATE mining_rig SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
+      updateQuery = "UPDATE mining_partner  SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
     } else {
       updateQuery = "UPDATE multiple_rig_partner SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
     }
