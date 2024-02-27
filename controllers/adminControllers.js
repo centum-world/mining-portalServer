@@ -4743,11 +4743,6 @@ exports.createPartnerPayout = async (req, res) => {
         partnerId
       ]);
       
-      const insertIntoTransactionHistory = "INSERT INTO transaction_history (partnerId,rigId,credited_date,amount) VALUES (?,?,?,?)";
-      await connection 
-      .promise()
-      .query(insertIntoTransactionHistory,[partnerId,rigId,payoutDate,payableAmount]);
-
     return res
       .status(200)
       .json({ message: "New partner payout created successfully." });
@@ -4926,18 +4921,17 @@ exports.fetchTransactionHistory = async (req, res) => {
   try {
     const { currentDate, currentMonth, currentYear } = req.body; // currentDate, currentMonth, and currentYear should be sent from the client side
 
-    let fetchTransactionQuery = "SELECT * FROM transaction_history WHERE 1=1"; // Initial query with always true condition
+    let fetchTransactionQuery = "SELECT * FROM partner_payout WHERE 1=1"; // Initial query with always true condition
 
     const queryParams = [];
 
     if (currentDate) {
-      fetchTransactionQuery += " AND DATE(credited_date) = ?";
+      fetchTransactionQuery += " AND DATE(payoutDate) = ?";
       queryParams.push(currentDate);
     }
 
     if (currentMonth && currentYear) {
-      fetchTransactionQuery +=
-        " AND MONTH(credited_date) = ? AND YEAR(credited_date) = ?";
+      fetchTransactionQuery += " AND MONTH(payoutDate) = ? AND YEAR(payoutDate) = ?";
       queryParams.push(currentMonth, currentYear);
     }
 
@@ -4945,9 +4939,13 @@ exports.fetchTransactionHistory = async (req, res) => {
       .promise()
       .query(fetchTransactionQuery, queryParams);
 
-    if (transactionHistory.length === 0) {
-      return res.status(404).json({ message: "No Transaction History Found" });
-    }
+      if (!transactionHistory || transactionHistory.length === 0) {
+        return res.status(200).json({
+          message: "No Transaction History Found",
+          data: [],
+        });
+      }
+  
 
     return res.status(200).json({
       message: "Transaction history fetched successfully",
@@ -5053,17 +5051,6 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
         liquidity,
       ]);
 
-    const insertIntoTransactionHistory =
-      "INSERT INTO transaction_history (partnerId,rigId,credited_date,amount,liquidity) VALUES (?,?,?,?,?)";
-    await connection
-      .promise()
-      .query(insertIntoTransactionHistory, [
-        partnerId,
-        rigId,
-        payoutDate,
-        payableAmount,
-        liquidity,
-      ]);
 
     return res
       .status(200)
