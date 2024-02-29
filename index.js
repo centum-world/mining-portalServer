@@ -231,6 +231,7 @@ const fetchUpgradedMember = require('./routes/member/fetch-upgraded-member');
 const fetchMemberWallet = require('./routes/member/fetch-member-wallet')
 
 const totalCountPartner = require('./routes/member/total-count-partner')
+const fetchMemberTodaysAndTotolPayout = require ('./routes/member/fetch-member-todays-and-total-payout');
 
 
 // ----------------------- portfolio-------------------------//
@@ -453,6 +454,8 @@ app.use('/member',fetchUpgradedMember);
 app.use('/member', fetchMemberWallet)
 app.use('/franchise', totalCountMemberPartner)
 app.use('/member', totalCountPartner)
+app.use('/member',fetchMemberTodaysAndTotolPayout);
+
 
 // -----------------------portfolio-------------------//
 app.use('/portfolio',fetchAllBmmFromPortfolio);
