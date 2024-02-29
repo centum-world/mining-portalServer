@@ -2944,18 +2944,18 @@ exports.blockAndUnblockSho = async (req, res) => {
 exports.adminVerifyMember = async (req, res) => {
   let lastExecutionTimestamp = 0;
   try {
-    const { m_userid, isVerify } = req.body;
+    const { m_userid, isVerify,verifyDate } = req.body;
 
     if (typeof isVerify != "boolean") {
       return res.status(400).json({ message: "Invalid 'isVerify' value" });
     }
 
     const upadteMemberQuery =
-      "UPDATE create_member SET isVerify =? WHERE m_userid = ?";
+      "UPDATE create_member SET isVerify =?,verifyDate = ? WHERE m_userid = ?";
 
     connection.query(
       upadteMemberQuery,
-      [isVerify, m_userid],
+      [isVerify,verifyDate, m_userid],
       (error, result) => {
         if (error) {
           console.error("Error updating Member:", error);
