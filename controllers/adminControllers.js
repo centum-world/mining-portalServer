@@ -2944,18 +2944,18 @@ exports.blockAndUnblockSho = async (req, res) => {
 exports.adminVerifyMember = async (req, res) => {
   let lastExecutionTimestamp = 0;
   try {
-    const { m_userid, isVerify } = req.body;
+    const { m_userid, isVerify,verifyDate } = req.body;
 
     if (typeof isVerify != "boolean") {
       return res.status(400).json({ message: "Invalid 'isVerify' value" });
     }
 
     const upadteMemberQuery =
-      "UPDATE create_member SET isVerify =? WHERE m_userid = ?";
+      "UPDATE create_member SET isVerify =?,verifyDate = ? WHERE m_userid = ?";
 
     connection.query(
       upadteMemberQuery,
-      [isVerify, m_userid],
+      [isVerify,verifyDate, m_userid],
       (error, result) => {
         if (error) {
           console.error("Error updating Member:", error);
@@ -5113,3 +5113,38 @@ exports.verifyMultipleRigPartner = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.fetchReferralPayoutHistoryAdmin = async (req,res) => {
+  try {
+    const { currentDate, currentMonth, currentYear } = req.body; 
+
+    let fetchTransactionQueryTeam = "SELECT * FROM my_team WHERE 1=1";
+
+    const queryParamsTeam = [];
+
+
+    if (currentDate) {
+      fetchTransactionQueryTeam += " AND DATE(credit_date) = ?";
+      queryParamsTeam.push(currentDate);
+    }
+
+    if (currentMonth && currentYear) {
+      fetchTransactionQueryTeam +=
+        " AND MONTH(transactionDate) = ? AND YEAR(credit_date) = ?";
+      queryParamsTeam.push(currentMonth, currentYear);
+    }
+
+    const [transactionHistoryTeam] = await connection
+      .promise()
+      .query(fetchTransactionQueryTeam, queryParamsTeam);
+
+
+    return res.status(200).json({
+      message: "Referral Payout History fetched successfully",
+      data: transactionHistoryTeam,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+}

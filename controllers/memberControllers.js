@@ -840,3 +840,66 @@ exports.totalCountPartner = async (req, res) => {
   }
 };
 
+
+exports.fetchMemberTodaysAndTotalPayout = async (req, res) => {
+  try {
+    const { currentDate, currentMonth, currentYear, userid } = req.body;
+    const [year, month, day] = currentDate.split('-');
+
+    let fetchTransactionQuery = "SELECT ";
+    fetchTransactionQuery += "SUM(CASE WHEN DAY(credit_date) = ? THEN amount ELSE 0 END) AS totalAmountToday, ";
+    fetchTransactionQuery += "SUM(CASE WHEN MONTH(credit_date) = ? THEN amount ELSE 0 END) AS totalAmountCurrentMonth ";
+    fetchTransactionQuery += "FROM my_team WHERE userid = ? AND YEAR(credit_date) = ?";
+
+    const queryParams = [day, month, userid, year];
+
+    const [transactionHistory] = await connection
+      .promise()
+      .query(fetchTransactionQuery, queryParams);
+
+    if (!transactionHistory || transactionHistory.length === 0) {
+      return res.status(200).json({
+        message: "No Payout History Found",
+        data: {
+          totalAmountToday: 0,
+          totalAmountCurrentMonth: 0
+        },
+      });
+    }
+
+    let fetchTotalPayoutQuery = "SELECT ";
+    fetchTotalPayoutQuery += "SUM(amount) AS totalAmount ";
+    fetchTotalPayoutQuery += "FROM my_team WHERE userid = ?";
+
+    const totalPayoutParams = [userid];
+
+    const [totalPayoutResult] = await connection
+      .promise()
+      .query(fetchTotalPayoutQuery, totalPayoutParams);
+
+    if (!totalPayoutResult || totalPayoutResult.length === 0) {
+      return res.status(200).json({
+        message: "No Total Payout Found",
+        data: {
+          totalAmount: 0
+        },
+      });
+    }
+
+    return res.status(200).json({
+      message: "Payout with total found successfully",
+      data: {
+        totalAmountToday: transactionHistory[0].totalAmountToday || 0,
+        totalAmountCurrentMonth: transactionHistory[0].totalAmountCurrentMonth || 0,
+        totalPayout: totalPayoutResult[0].totalAmount || 0
+      },
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+
+
+

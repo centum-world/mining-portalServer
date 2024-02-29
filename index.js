@@ -184,6 +184,7 @@ const fetchPartnerPayouts = require('./routes/fetch-partner-payouts')
 const fetchTotalReferralCountAndTodayReferralCount  = require('./routes/fetch-total-referral-count-and-today-referral-count')
 const fetchTransactionHistory = require('./routes/fetch-transaction-history');
 const createPartnerPayoutForMonthly = require('./routes/create-partner-payout-for-monthly')
+const fetchReferralPayoutHistoryAdmin = require('./routes/fetch-referral-payout-history-admin');
 
 // -------------------State ----------------------------------///
 const totalcountFranchiseMemberPartner = require('./routes/state/total-count-franchise-member-partner')
@@ -232,6 +233,7 @@ const fetchUpgradedMember = require('./routes/member/fetch-upgraded-member');
 const fetchMemberWallet = require('./routes/member/fetch-member-wallet')
 
 const totalCountPartner = require('./routes/member/total-count-partner')
+const fetchMemberTodaysAndTotolPayout = require ('./routes/member/fetch-member-todays-and-total-payout');
 
 
 // ----------------------- portfolio-------------------------//
@@ -410,6 +412,7 @@ app.use('/admin', fetchPartnerPayouts)
 app.use('/admin', fetchTotalReferralCountAndTodayReferralCount)
 app.use('/admin',fetchTransactionHistory);
 app.use('/admin', createPartnerPayoutForMonthly)
+app.use('/admin',fetchReferralPayoutHistoryAdmin);
 
 
 // --------------------state------------------------///
@@ -455,6 +458,8 @@ app.use('/member',fetchUpgradedMember);
 app.use('/member', fetchMemberWallet)
 app.use('/franchise', totalCountMemberPartner)
 app.use('/member', totalCountPartner)
+app.use('/member',fetchMemberTodaysAndTotolPayout);
+
 
 // -----------------------portfolio-------------------//
 app.use('/portfolio',fetchAllBmmFromPortfolio);
