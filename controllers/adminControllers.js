@@ -1268,7 +1268,7 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
       if (rigId === rigid) {
         // Update multiple_rig_partner status
         const updateRigPaymentStatusQuery =
-          "UPDATE mining_partner SET partner_status = 1,WHERE rigId = ?";
+          "UPDATE mining_partner SET partner_status = 1 WHERE rigId = ?";
         await connection
           .promise()
           .query(updateRigPaymentStatusQuery, [ rigId]);
