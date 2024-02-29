@@ -59,50 +59,71 @@ exports.memberLogin = async (req, res) => {
   try {
     // Check if required fields are missing
     if (!m_userid || !m_password) {
-      return res.status(422).json({ message: "Please provide user ID and password." });
+      return res
+        .status(422)
+        .json({ message: "Please provide user ID and password." });
     }
 
     const findMemberQuery = "SELECT * FROM create_member WHERE m_userid =?";
 
-    const [member] = await connection.promise().query(findMemberQuery, [m_userid]);
+    const [member] = await connection
+      .promise()
+      .query(findMemberQuery, [m_userid]);
 
     if (!member || member.length === 0) {
       return res.status(400).json({ message: "Invalid User ID or password." });
     }
 
     if (member[0].priority === 0) {
-      const findFranchiseQuery = "SELECT * FROM create_franchise WHERE franchiseId =?";
+      const findFranchiseQuery =
+        "SELECT * FROM create_franchise WHERE franchiseId =?";
 
-      const [franchise] = await connection.promise().query(findFranchiseQuery, [m_userid]);
+      const [franchise] = await connection
+        .promise()
+        .query(findFranchiseQuery, [m_userid]);
 
       if (franchise && franchise.length > 0 && franchise[0].priority === 1) {
-        return res.status(400).json({ message: "Now, you have become a Franchise. Please login from Franchise dashboard." });
+        return res.status(400).json({
+          message:
+            "Now, you have become a Franchise. Please login from Franchise dashboard.",
+        });
       }
 
       const findBMMQuery = "SELECT * FROM create_sho WHERE stateHandlerId =?";
 
       const [bmm] = await connection.promise().query(findBMMQuery, [m_userid]);
 
-     if (bmm && bmm.length > 0 && bmm[0].priority === 1) {
-        return res.status(400).json({ message: "Now, you have become Business Marketing Manager. Please login from BMM dashboard." });
+      if (bmm && bmm.length > 0 && bmm[0].priority === 1) {
+        return res.status(400).json({
+          message:
+            "Now, you have become Business Marketing Manager. Please login from BMM dashboard.",
+        });
       }
 
-
-
-      return res.status(400).json({ message: "You are upgraded or downgraded." });
-
+      return res
+        .status(400)
+        .json({ message: "You are upgraded or downgraded." });
     }
 
-    const passwordMatch = await bcrypt.compare(m_password, member[0].m_password);
+    const passwordMatch = await bcrypt.compare(
+      m_password,
+      member[0].m_password
+    );
 
     if (!passwordMatch) {
       return res.status(400).json({ message: "Invalid User ID or password." });
     }
 
     // Generate jwt token
-    const token = jwt.sign({ m_userid: member[0].m_userid, role: "member" }, process.env.ACCESS_TOKEN,{expiresIn:28800});
+    const token = jwt.sign(
+      { m_userid: member[0].m_userid, role: "member" },
+      process.env.ACCESS_TOKEN,
+      { expiresIn: 28800 }
+    );
 
-    return res.status(200).json({ message: "Login successfully", data:member, token });
+    return res
+      .status(200)
+      .json({ message: "Login successfully", data: member, token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -696,8 +717,9 @@ exports.memberWithdrawalRequest = async (req, res) => {
 };
 
 // fetchUpgradedMember
-exports.fetchUpgradedMember = async(req,res) => {
-  let query = "select * FROM create_member WHERE isVerify = 0 AND priority = 0  ";
+exports.fetchUpgradedMember = async (req, res) => {
+  let query =
+    "select * FROM create_member WHERE isVerify = 0 AND priority = 0  ";
   connection.query(query, (err, results) => {
     if (!err) {
       return res.status(200).json({
@@ -708,15 +730,13 @@ exports.fetchUpgradedMember = async(req,res) => {
       return res.status(500).json(err);
     }
   });
-}
+};
 
-
-exports.fetchMemberWallet = async(req, res) => {
+exports.fetchMemberWallet = async (req, res) => {
   try {
-
-    const {m_userid} = req.body
+    const { m_userid } = req.body;
     let query = "select member_wallet FROM create_member WHERE m_userid = ? ";
-    connection.query(query,[m_userid], (err, results) => {
+    connection.query(query, [m_userid], (err, results) => {
       if (!err) {
         return res.status(200).json({
           message: "member wallet fetched successfully",
@@ -726,25 +746,34 @@ exports.fetchMemberWallet = async(req, res) => {
         return res.status(500).json(err);
       }
     });
-
-    
   } catch (error) {
-
-
     return res.status(500).json(error);
-
-    
   }
-}
+};
 
-exports.totalCountPartner = async(req, res) => {
+exports.totalCountPartner = async (req, res) => {
   try {
-    const {referralId} = req.body
-    
-    
+    const { referralId } = req.body;
+
+    // Fetch total Partner count
+    const totalPartnerQuery =
+      "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ?";
+    const totalPartnerResult = await connection
+      .promise()
+      .query(totalPartnerQuery, [referralId]);
+
+    // Fetch today's Partner count
+    const todayPartnerQuery =
+      "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ? AND DATE(verifyDate) = CURDATE()";
+    const todayPartnerResult = await connection
+      .promise()
+      .query(todayPartnerQuery, [referralId]);
+    return res.status(200).json({
+      totalPartnerCount: totalPartnerResult[0][0].totalPartnerCount,
+      todayPartnerCount: todayPartnerResult[0][0].todayPartnerCount,
+    });
   } catch (error) {
-    console.log(error.message)
-    return res.status(500).json({message: "Internal server error"})
-    
+    console.log(error.message);
+    return res.status(500).json({ message: "Internal server error" });
   }
-}
+};

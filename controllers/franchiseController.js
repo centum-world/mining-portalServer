@@ -796,16 +796,24 @@ exports.totalCountMemberPartner = async (req, res) => {
   try {
     const { referralId } = req.body;
 
+    // Validate referralId
+    if (!referralId) {
+      return res.status(400).json({ error: "Referral ID is required." });
+    }
+
     // Find referralId in create_member based on referredId
     const findReferralIdQuery =
       "SELECT reffer_id FROM create_member WHERE isVerify = 1 AND m_refferid = ?";
-
     const findReferralIdResult = await connection
       .promise()
       .query(findReferralIdQuery, [referralId]);
 
+    // Check if referralId is found
+    if (!findReferralIdResult[0][0]) {
+      return res.status(404).json({ error: "Referral ID not found in create_member." });
+    }
+
     const memberReferralId = findReferralIdResult[0][0].reffer_id;
-    console.log(memberReferralId, "member referalId");
 
     // Fetch total member referral count
     const totalMemberReferralQuery =
@@ -825,36 +833,50 @@ exports.totalCountMemberPartner = async (req, res) => {
     const todayMemberReferralCount =
       todayMemberReferralResult[0][0].todayReferralCount;
 
+    let totalPartnerCount = 0;
+    let todayPartnerCount = 0;
 
-    // Fetch total Partner count
-    const totalPartnerQuery =
-      "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ?";
-    const totalPartnerResult = await connection
-      .promise()
-      .query(totalPartnerQuery, [
-        memberReferralId || referralId,
-      ]);
+    // Check if memberReferralId is present
+    if (memberReferralId || referralId) {
+      // Fetch total Partner count
+      const totalPartnerQuery =
+        "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ?";
+      const totalPartnerResult = await connection
+        .promise()
+        .query(totalPartnerQuery, [
+          memberReferralId || referralId,
+        ]);
 
-    // Fetch today's Partner count
-    const todayPartnerQuery =
-      "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ? AND DATE(verifyDate) = CURDATE()";
-    const todayPartnerResult = await connection
-      .promise()
-      .query(todayPartnerQuery, [
-        memberReferralId|| referralId,
-      ]);
+      // Fetch today's Partner count
+      const todayPartnerQuery =
+        "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ? AND DATE(verifyDate) = CURDATE()";
+      const todayPartnerResult = await connection
+        .promise()
+        .query(todayPartnerQuery, [
+          memberReferralId || referralId,
+        ]);
+
+      totalPartnerCount = totalPartnerResult[0][0].totalPartnerCount;
+      todayPartnerCount = todayPartnerResult[0][0].todayPartnerCount;
+    }
 
     // Process results as needed
 
     return res.status(200).json({
-
       totalMemberReferralCount,
       todayMemberReferralCount,
-      totalPartnerCount: totalPartnerResult[0][0].totalPartnerCount,
-      todayPartnerCount: todayPartnerResult[0][0].todayPartnerCount,
+      totalPartnerCount,
+      todayPartnerCount,
     });
   } catch (error) {
     console.error(error);
+
+    // Handle specific database-related errors
+    if (error.code === 'ER_DBACCESS_DENIED_ERROR') {
+      return res.status(500).json({ error: "Database access denied." });
+    }
+
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
