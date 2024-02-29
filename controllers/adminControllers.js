@@ -4944,41 +4944,58 @@ exports.fetchTransactionHistory = async (req, res) => {
   try {
     const { currentDate, currentMonth, currentYear } = req.body; // currentDate, currentMonth, and currentYear should be sent from the client side
 
-    let fetchTransactionQuery = "SELECT * FROM partner_payout WHERE 1=1"; // Initial query with always true condition
+    let fetchTransactionQueryPayout = "SELECT * FROM partner_payout WHERE 1=1"; // Initial query with always true condition for partner_payout
+    let fetchTransactionQueryTeam = "SELECT * FROM my_team WHERE 1=1"; // Initial query with always true condition for my_team
 
-    const queryParams = [];
+    const queryParamsPayout = [];
+    const queryParamsTeam = [];
 
     if (currentDate) {
-      fetchTransactionQuery += " AND DATE(payoutDate) = ?";
-      queryParams.push(currentDate);
+      fetchTransactionQueryPayout += " AND DATE(payoutDate) = ?";
+      queryParamsPayout.push(currentDate);
     }
 
     if (currentMonth && currentYear) {
-      fetchTransactionQuery +=
+      fetchTransactionQueryPayout +=
         " AND MONTH(payoutDate) = ? AND YEAR(payoutDate) = ?";
-      queryParams.push(currentMonth, currentYear);
+      queryParamsPayout.push(currentMonth, currentYear);
     }
 
-    const [transactionHistory] = await connection
+    if (currentDate) {
+      fetchTransactionQueryTeam += " AND DATE(credit_date) = ?";
+      queryParamsTeam.push(currentDate);
+    }
+
+    if (currentMonth && currentYear) {
+      fetchTransactionQueryTeam +=
+        " AND MONTH(transactionDate) = ? AND YEAR(credit_date) = ?";
+      queryParamsTeam.push(currentMonth, currentYear);
+    }
+
+    const [transactionHistoryPayout] = await connection
       .promise()
-      .query(fetchTransactionQuery, queryParams);
+      .query(fetchTransactionQueryPayout, queryParamsPayout);
 
-    if (!transactionHistory || transactionHistory.length === 0) {
-      return res.status(200).json({
-        message: "No Transaction History Found",
-        data: [],
-      });
-    }
+    const [transactionHistoryTeam] = await connection
+      .promise()
+      .query(fetchTransactionQueryTeam, queryParamsTeam);
+
+    const combinedTransactionHistory = {
+      partner_payout: transactionHistoryPayout,
+      my_team: transactionHistoryTeam
+    };
 
     return res.status(200).json({
       message: "Transaction history fetched successfully",
-      data: transactionHistory,
+      data: combinedTransactionHistory,
     });
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
+
 
 exports.createPartnerPayoutForMonthly = async (req, res) => {
   try {
