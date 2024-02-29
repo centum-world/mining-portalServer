@@ -4989,8 +4989,7 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
       liquidity,
       partnerId,
       referralAmount,
-      date,
-      referPartnerId,
+
     } = req.body;
 
     findPartnerReferralQuery =
@@ -5063,7 +5062,7 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
 
     // Insert a new row
     const insertQuery =
-      "INSERT INTO partner_payout (rigId, payableAmount, payoutDate, payableCount, liquidity) VALUES (?, ?, ?, ?, ?)";
+      "INSERT INTO partner_payout (rigId, payableAmount, payoutDate, payableCount, liquidity, partnerId) VALUES (?, ?, ?, ?, ?, ?)";
     await connection
       .promise()
       .query(insertQuery, [
@@ -5072,6 +5071,7 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
         payoutDate,
         newPayableCount,
         liquidity,
+        partnerId
       ]);
 
     return res

@@ -147,32 +147,43 @@ exports.fetchMemberDetails = (req, res) => {
 };
 
 // Add member Bank Details
-exports.addMemberBankDetails = (req, res) => {
-  let bank = req.body;
-  let query =
-    "insert into bank_details(user_id,holder_name,account_no,ifsc_code,branch_name,bank_name)  values (?,?,?,?,?,?)";
-  connection.query(
-    query,
-    [
+exports.addMemberBankDetails = async (req, res) => {
+  try {
+    const bank = req.body;
+    
+    // Check if the user already has a bank account
+    const existingBankQuery = "SELECT COUNT(*) AS count FROM bank_details WHERE user_id = ?";
+    const existingBankResult = await connection.promise().query(existingBankQuery, [bank.user_id]);
+    const existingBankCount = existingBankResult[0][0].count;
+
+    if (existingBankCount > 0) {
+      return res.status(400).json({
+        message: "User already has a bank account. Only one bank account per user is allowed.",
+      });
+    }
+
+    const insertQuery =
+      "INSERT INTO bank_details(user_id, holder_name, account_no, ifsc_code, branch_name, bank_name) VALUES (?, ?, ?, ?, ?, ?)";
+    
+    const results = await connection.promise().query(insertQuery, [
       bank.user_id,
       bank.holder_name,
       bank.account_no,
       bank.ifsc_code,
       bank.branch_name,
       bank.bank_name,
-    ],
-    (err, results) => {
-      if (!err) {
-        return res.status(200).json({
-          message: "Bank Details Added successfully",
-          data: results,
-        });
-      } else {
-        return res.status(500).json(err);
-      }
-    }
-  );
+    ]);
+
+    return res.status(200).json({
+      message: "Bank Details Added successfully",
+      data: results[0],
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 };
+
 
 //Fetch Member Bank Details
 exports.fetchMemberBankDetails = (req, res) => {
