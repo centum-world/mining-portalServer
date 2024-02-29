@@ -451,7 +451,7 @@ app.use('/bd',businessDevFetchPartnerTeam);
 app.use('/member',memberWithdrawalRequest);
 app.use('/member',fetchUpgradedMember);
 app.use('/member', fetchMemberWallet)
-app.use('/member', totalCountMemberPartner)
+app.use('/franchise', totalCountMemberPartner)
 app.use('/member', totalCountPartner)
 
 // -----------------------portfolio-------------------//

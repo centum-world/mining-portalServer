@@ -755,6 +755,11 @@ exports.totalCountPartner = async (req, res) => {
   try {
     const { referralId } = req.body;
 
+    // Validate referralId
+    if (!referralId) {
+      return res.status(400).json({ message : "Referral ID is required." });
+    }
+
     // Fetch total Partner count
     const totalPartnerQuery =
       "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ?";
@@ -762,18 +767,26 @@ exports.totalCountPartner = async (req, res) => {
       .promise()
       .query(totalPartnerQuery, [referralId]);
 
+    // Check if referralId is found
+    if (totalPartnerResult[0][0].totalPartnerCount === 0) {
+      return res.status(404).json({ message: "Referral ID not found in mining_partner." });
+    }
+
     // Fetch today's Partner count
     const todayPartnerQuery =
       "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ? AND DATE(verifyDate) = CURDATE()";
     const todayPartnerResult = await connection
       .promise()
       .query(todayPartnerQuery, [referralId]);
+
+    // Process results and return
     return res.status(200).json({
       totalPartnerCount: totalPartnerResult[0][0].totalPartnerCount,
       todayPartnerCount: todayPartnerResult[0][0].todayPartnerCount,
     });
   } catch (error) {
-    console.log(error.message);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+

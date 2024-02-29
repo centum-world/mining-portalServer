@@ -8,7 +8,7 @@ const {
 const { totalCountPartner } = require("../../controllers/memberControllers");
 
 router.post(
-  "/member/member-withdrawal-request",
+  "/member/total-count-partner",
   isAuthenticated,
   authorizeRole(["member"]),
   totalCountPartner
