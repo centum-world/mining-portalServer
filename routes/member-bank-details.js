@@ -4,7 +4,7 @@ const router = express.Router();
 
 const memberControllers = require('../controllers/memberControllers');
 const checkAuthMiddleware = require('../middleware/checkAuth');
-router.post('/member-bank-details',checkAuthMiddleware.checkAuth,memberControllers.addMemberBankDetails);
+router.post('/member-bank-details',checkAuthMiddleware.isAuthenticated, checkAuthMiddleware.authorizeRole(["member", "franchise", "state", "partner", "admin"]),memberControllers.addMemberBankDetails);
 
 
 module.exports = router;

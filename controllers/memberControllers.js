@@ -158,7 +158,7 @@ exports.addMemberBankDetails = async (req, res) => {
 
     if (existingBankCount > 0) {
       return res.status(400).json({
-        message: "User already has a bank account. Only one bank account per user is allowed.",
+        message: "User already has a bank account.",
       });
     }
 
@@ -183,6 +183,45 @@ exports.addMemberBankDetails = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+exports.editMemberBankDetails = async (req, res) => {
+  try {
+    const { user_id, holder_name, account_no, ifsc_code, branch_name, bank_name } = req.body;
+    
+    // Check if the user already has a bank account
+    const existingBankQuery = "SELECT COUNT(*) AS count FROM bank_details WHERE user_id = ?";
+    const [existingBankResult] = await connection.promise().query(existingBankQuery, [user_id]);
+    const existingBankCount = existingBankResult[0].count;
+
+    if (existingBankCount === 0) {
+      return res.status(400).json({
+        message: "User does not have a bank account. Add bank details first.",
+      });
+    }
+
+    // Update bank details
+    const updateQuery =
+      "UPDATE bank_details SET holder_name = ?, account_no = ?, ifsc_code = ?, branch_name = ?, bank_name = ? WHERE user_id = ?";
+    
+    const [results] = await connection.promise().query(updateQuery, [
+      holder_name,
+      account_no,
+      ifsc_code,
+      branch_name,
+      bank_name,
+      user_id,
+    ]);
+
+    return res.status(200).json({
+      message: "Bank Details Updated successfully",
+      data: results,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 
 
 //Fetch Member Bank Details

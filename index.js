@@ -24,6 +24,7 @@ const addPartnerBankDetails = require("./routes/partner_bank_details");
 const fetchPartnerBankDetails = require("./routes/fetch-partner-bank-details");
 
 const memberBankDetailsRoute = require("./routes/member-bank-details");
+const editMemberBankDetails = require("./routes/member/edit-member-bank-details")
 const fetchMemberBankDetails = require("./routes/fetch-member-bank-details");
 
 const updateMemberData = require("./routes/member-data-update");
@@ -260,6 +261,7 @@ app.use("/mining", miningPortalProfileDetailsRoute);
 app.use("/mining", addPartnerBankDetails);
 app.use("/mining", fetchPartnerBankDetails);
 app.use("/member", memberBankDetailsRoute);
+app.use("/member", editMemberBankDetails)
 app.use("/member", fetchMemberBankDetails);
 app.use("/member", updateMemberData);
 app.use("/member", updateMemberBankData);
