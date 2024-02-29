@@ -909,7 +909,6 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
       .promise()
       .query(partnerDetailsQuery, [p_userid]);
     const rigid = result[0]?.rigId;
-    const dateOfJoining = result[0]?.doj;
 
     if (type === "onetime") {
       if (rigId === rigid) {
@@ -1269,17 +1268,17 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
       if (rigId === rigid) {
         // Update multiple_rig_partner status
         const updateRigPaymentStatusQuery =
-          "UPDATE mining_partner SET partner_status = 1, doj = ? WHERE rigId = ?";
+          "UPDATE mining_partner SET partner_status = 1,WHERE rigId = ?";
         await connection
           .promise()
           .query(updateRigPaymentStatusQuery, [dateOfJoining, rigId]);
       } else {
         // Update multiple_rig_partner status
         const updateRigPaymentStatusQuery =
-          "UPDATE multiple_rig_partner SET partner_status = 1, doj = ? WHERE rigId = ?";
+          "UPDATE multiple_rig_partner SET partner_status = 1 WHERE rigId = ?";
         await connection
           .promise()
-          .query(updateRigPaymentStatusQuery, [dateOfJoining, rigId]);
+          .query(updateRigPaymentStatusQuery, [ rigId]);
       }
     }
 
