@@ -899,7 +899,7 @@ exports.isPartnerActiveManualFromAdmin = (req, res) => {
 
 exports.doActivatePartnerManualFromAdmin = async (req, res) => {
   try {
-    const { p_userid, rigId } = req.body;
+    const { p_userid, rigId, type } = req.body;
     console.log(p_userid);
 
     // Query to get rigId from mining_partner
@@ -909,356 +909,380 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
       .promise()
       .query(partnerDetailsQuery, [p_userid]);
     const rigid = result[0]?.rigId;
+    const dateOfJoining = result[0]?.doj;
 
-    if (rigId === rigid) {
-      console.log("first");
-      // Update mining_partner status
-      const updateMiningPartnerQuery =
-        "UPDATE mining_partner SET partner_status = 1,  p_dop = CURRENT_DATE  WHERE p_userid = ?";
-      await connection.promise().query(updateMiningPartnerQuery, [p_userid]);
+    if (type === "onetime") {
+      if (rigId === rigid) {
+        console.log("first");
+        // Update mining_partner status
+        const updateMiningPartnerQuery =
+          "UPDATE mining_partner SET partner_status = 1,  p_dop = CURRENT_DATE  WHERE p_userid = ?";
+        await connection.promise().query(updateMiningPartnerQuery, [p_userid]);
 
-      const selectPartnerQuery =
-        "SELECT * FROM mining_partner WHERE p_userid = ?";
-      const [miningPartnerResult] = await connection
-        .promise()
-        .query(selectPartnerQuery, [p_userid]);
-      const miningPartner = miningPartnerResult[0];
-
-      console.log(miningPartner, "partner");
-
-      const liquidity = miningPartner.p_liquidity;
-      console.log(liquidity, "liquidity");
-
-      const referredIdOfPartner = miningPartner.p_reffered_id;
-      console.log(referredIdOfPartner, "referredidOfPartner");
-
-      const referralIdOfPartner = miningPartner.p_refferal_id;
-      console.log(referralIdOfPartner, "referralIdOfpartner");
-
-      let partnerWallet = miningPartner.partner_wallet;
-
-      const findReferredPartnerQuery =
-        "SELECT * FROM mining_partner WHERE p_refferal_id = ?";
-      const [partnerReferredByPartner] = await connection
-        .promise()
-        .query(findReferredPartnerQuery, [referredIdOfPartner]);
-      console.log(partnerReferredByPartner, 1413);
-
-      const referredPartnerUserId = partnerReferredByPartner[0]?.p_userid;
-
-      // Find member details if partner referred by member
-      const findMemberQuery = "SELECT * FROM create_member WHERE reffer_id = ?";
-      const [partnerReferredByMember] = await connection
-        .promise()
-        .query(findMemberQuery, [referredIdOfPartner]);
-      console.log(partnerReferredByMember, "memberResult");
-
-      //find frnachise details if partner referred By franchise
-      const findFranchiseQuery =
-        "SELECT * FROM create_franchise WHERE referralId = ?";
-
-      const [partnerReferredByFranchise] = await connection
-        .promise()
-        .query(findFranchiseQuery, [referredIdOfPartner]);
-      console.log(partnerReferredByFranchise, "franchise Result");
-
-      if (partnerReferredByPartner.length > 0) {
-        console.log("partner to partner");
-
-        console.log(partnerWallet, 1422);
-        partnerWallet += (liquidity * 82 * 10) / 10000;
-        console.log(partnerWallet, 1424);
-
-        // Update partner_wallet
-        const partnerUpdatedWalletQuery =
-          "UPDATE mining_partner SET partner_wallet = ? WHERE p_refferal_id = ?";
-        await connection
+        const selectPartnerQuery =
+          "SELECT * FROM mining_partner WHERE p_userid = ?";
+        const [miningPartnerResult] = await connection
           .promise()
-          .query(partnerUpdatedWalletQuery, [
-            partnerWallet,
-            referredIdOfPartner,
-          ]);
+          .query(selectPartnerQuery, [p_userid]);
+        const miningPartner = miningPartnerResult[0];
 
-        const date = new Date();
-        const userType = "PARTNER";
+        console.log(miningPartner, "partner");
 
-        // Insert into my_team table
-        const insertIntoMyTeamQuery =
-          "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-        await connection
+        const liquidity = miningPartner.p_liquidity;
+        console.log(liquidity, "liquidity");
+
+        const referredIdOfPartner = miningPartner.p_reffered_id;
+        console.log(referredIdOfPartner, "referredidOfPartner");
+
+        const referralIdOfPartner = miningPartner.p_refferal_id;
+        console.log(referralIdOfPartner, "referralIdOfpartner");
+
+        let partnerWallet = miningPartner.partner_wallet;
+
+        const findReferredPartnerQuery =
+          "SELECT * FROM mining_partner WHERE p_refferal_id = ?";
+        const [partnerReferredByPartner] = await connection
           .promise()
-          .query(insertIntoMyTeamQuery, [
-            referredPartnerUserId,
-            partnerWallet,
-            p_userid,
-            date,
-            userType,
-          ]);
-      } else if (
-        partnerReferredByMember.length > 0 &&
-        partnerReferredByMember[0].priority === 1
-      ) {
-        console.log("first condition chaining");
-        const member = partnerReferredByMember[0];
-        console.log(member, "member");
+          .query(findReferredPartnerQuery, [referredIdOfPartner]);
+        console.log(partnerReferredByPartner, 1413);
 
-        let memberWallet = member.member_wallet;
-        let referralIdOfMember = member.reffer_id;
-        let referredIdOfMember = member.m_refferid;
-        let memberid = member.m_userid;
-        let target = member.target;
-        let priority = member.priority;
-        let userType = member.userType;
-        const afterGstLiquidity = (liquidity * 18) / 100;
-        const afterGstAmount = liquidity - afterGstLiquidity;
-        const amount = (afterGstAmount * 10) / 100;
-        memberWallet += (afterGstAmount * 10) / 100;
-        target += liquidity;
+        const referredPartnerUserId = partnerReferredByPartner[0]?.p_userid;
 
-        // Update member_wallet and target in create_member table
-        const updateMemberWalletQuery =
-          "UPDATE create_member SET member_wallet = ?, target = ? WHERE reffer_id = ?";
-        await connection
+        // Find member details if partner referred by member
+        const findMemberQuery =
+          "SELECT * FROM create_member WHERE reffer_id = ?";
+        const [partnerReferredByMember] = await connection
           .promise()
-          .query(updateMemberWalletQuery, [
-            memberWallet,
-            target,
-            referralIdOfMember,
-          ]);
+          .query(findMemberQuery, [referredIdOfPartner]);
+        console.log(partnerReferredByMember, "memberResult");
 
-        const date = new Date();
-
-        // Insert into my_team table for member
-        const insertIntoMyTeamQuery =
-          "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-        await connection
-          .promise()
-          .query(insertIntoMyTeamQuery, [
-            memberid,
-            amount,
-            p_userid,
-            date,
-            userType,
-          ]);
-
-        // Find franchise details
+        //find frnachise details if partner referred By franchise
         const findFranchiseQuery =
           "SELECT * FROM create_franchise WHERE referralId = ?";
-        const [franchiseResult] = await connection
+
+        const [partnerReferredByFranchise] = await connection
           .promise()
-          .query(findFranchiseQuery, [referredIdOfMember]);
+          .query(findFranchiseQuery, [referredIdOfPartner]);
+        console.log(partnerReferredByFranchise, "franchise Result");
 
-        if (franchiseResult.length > 0) {
-          const franchise = franchiseResult[0];
-          const referredIdOfFranchise = franchise.referredId;
-          console.log(referredIdOfFranchise, "referredIdOfFranchise");
-          let franchiseWallet = franchise.franchiseWallet;
-          const franchiseid = franchise.franchiseId;
-          const userType = franchise.userType;
-          let netLiquidity = (liquidity * 82) / 100;
-          const amount = (netLiquidity * 5) / 100;
-          franchiseWallet += amount;
+        if (partnerReferredByPartner.length > 0) {
+          console.log("partner to partner");
 
-          // Update franchiseWallet in create_franchise table
-          const updateFranchiseWalletquery =
-            "UPDATE create_franchise SET franchiseWallet = ? WHERE referredId = ?";
+          console.log(partnerWallet, 1422);
+          partnerWallet += (liquidity * 82 * 10) / 10000;
+          console.log(partnerWallet, 1424);
+
+          // Update partner_wallet
+          const partnerUpdatedWalletQuery =
+            "UPDATE mining_partner SET partner_wallet = ? WHERE p_refferal_id = ?";
           await connection
             .promise()
-            .query(updateFranchiseWalletquery, [
-              franchiseWallet,
-              referredIdOfFranchise,
+            .query(partnerUpdatedWalletQuery, [
+              partnerWallet,
+              referredIdOfPartner,
             ]);
 
-          // Insert into my_team table for franchise
+          const date = new Date();
+          const userType = "PARTNER";
+
+          // Insert into my_team table
+          const insertIntoMyTeamQuery =
+            "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+          await connection
+            .promise()
+            .query(insertIntoMyTeamQuery, [
+              referredPartnerUserId,
+              partnerWallet,
+              p_userid,
+              date,
+              userType,
+            ]);
+        } else if (
+          partnerReferredByMember.length > 0 &&
+          partnerReferredByMember[0].priority === 1
+        ) {
+          console.log("first condition chaining");
+          const member = partnerReferredByMember[0];
+          console.log(member, "member");
+
+          let memberWallet = member.member_wallet;
+          let referralIdOfMember = member.reffer_id;
+          let referredIdOfMember = member.m_refferid;
+          let memberid = member.m_userid;
+          let target = member.target;
+          let priority = member.priority;
+          let userType = member.userType;
+          const afterGstLiquidity = (liquidity * 18) / 100;
+          const afterGstAmount = liquidity - afterGstLiquidity;
+          const amount = (afterGstAmount * 10) / 100;
+          memberWallet += (afterGstAmount * 10) / 100;
+          target += liquidity;
+
+          // Update member_wallet and target in create_member table
+          const updateMemberWalletQuery =
+            "UPDATE create_member SET member_wallet = ?, target = ? WHERE reffer_id = ?";
+          await connection
+            .promise()
+            .query(updateMemberWalletQuery, [
+              memberWallet,
+              target,
+              referralIdOfMember,
+            ]);
+
+          const date = new Date();
+
+          // Insert into my_team table for member
+          const insertIntoMyTeamQuery =
+            "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+          await connection
+            .promise()
+            .query(insertIntoMyTeamQuery, [
+              memberid,
+              amount,
+              p_userid,
+              date,
+              userType,
+            ]);
+
+          // Find franchise details
+          const findFranchiseQuery =
+            "SELECT * FROM create_franchise WHERE referralId = ?";
+          const [franchiseResult] = await connection
+            .promise()
+            .query(findFranchiseQuery, [referredIdOfMember]);
+
+          if (franchiseResult.length > 0) {
+            const franchise = franchiseResult[0];
+            const referredIdOfFranchise = franchise.referredId;
+            console.log(referredIdOfFranchise, "referredIdOfFranchise");
+            let franchiseWallet = franchise.franchiseWallet;
+            const franchiseid = franchise.franchiseId;
+            const userType = franchise.userType;
+            let netLiquidity = (liquidity * 82) / 100;
+            const amount = (netLiquidity * 5) / 100;
+            franchiseWallet += amount;
+
+            // Update franchiseWallet in create_franchise table
+            const updateFranchiseWalletquery =
+              "UPDATE create_franchise SET franchiseWallet = ? WHERE referredId = ?";
+            await connection
+              .promise()
+              .query(updateFranchiseWalletquery, [
+                franchiseWallet,
+                referredIdOfFranchise,
+              ]);
+
+            // Insert into my_team table for franchise
+            const insertFranchiseIntoMyTeam =
+              "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+            await connection
+              .promise()
+              .query(insertFranchiseIntoMyTeam, [
+                franchiseid,
+                amount,
+                p_userid,
+                date,
+                userType,
+              ]);
+          }
+
+          // Find BMM details
+          const findBMMQuery = "SELECT * FROM create_sho WHERE referralId = ?";
+          const [bmmResult] = await connection
+            .promise()
+            .query(findBMMQuery, [franchiseResult[0].referredId]);
+
+          console.log(bmmResult[0], 1552, "bmmresult");
+
+          if (bmmResult.length > 0) {
+            const bmm = bmmResult[0];
+            const referralIdOfBmm = bmm.referralId;
+            let stateHandlerWallet = bmm.stateHandlerWallet;
+            const bmmId = bmm.stateHandlerId;
+            const userType = bmm.userType;
+            let netLiquidity = (liquidity * 82) / 100;
+            const amount = (netLiquidity * 5) / 100;
+            stateHandlerWallet += amount;
+
+            // Update stateHandlerWallet in create_sho table
+            const updateBmmWalletQuery =
+              "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
+            await connection
+              .promise()
+              .query(updateBmmWalletQuery, [
+                stateHandlerWallet,
+                referralIdOfBmm,
+              ]);
+
+            // Insert into
+            const insertBmmIntoMyTeam =
+              "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+            await connection
+              .promise()
+              .query(insertBmmIntoMyTeam, [
+                bmmId,
+                amount,
+                p_userid,
+                date,
+                userType,
+              ]);
+          }
+        } else if (
+          partnerReferredByFranchise.length > 0 &&
+          partnerReferredByFranchise[0].priority === 1
+        ) {
+          console.log("2nd condition frnachise and bmm");
+
+          const franchise = partnerReferredByFranchise[0];
+          console.log(franchise, "franchise");
+          let franchiseReferralId = franchise.referralId;
+
+          let ReferredIdOfFranchise = franchise.referredId;
+
+          let franchiseWallet = franchise.franchiseWallet;
+          const franchiseid = franchise.franchiseId;
+          let target = franchise.target;
+          const userType = franchise.userType;
+          const afterGstLiquidity = (liquidity * 18) / 100;
+          const afterGstAmount = liquidity - afterGstLiquidity;
+          franchiseWallet += (afterGstAmount * 12) / 100;
+          target += liquidity;
+          const date = new Date();
+          const updateFranchiseWalletQuery =
+            "UPDATE create_franchise SET franchiseWallet = ?, target = ? WHERE franchiseId = ?";
+
+          await connection
+            .promise()
+            .query(updateFranchiseWalletQuery, [
+              franchiseWallet,
+              target,
+              franchiseid,
+            ]);
+
           const insertFranchiseIntoMyTeam =
             "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
           await connection
             .promise()
             .query(insertFranchiseIntoMyTeam, [
               franchiseid,
-              amount,
+              franchiseWallet,
               p_userid,
               date,
               userType,
             ]);
-        }
 
-        // Find BMM details
-        const findBMMQuery = "SELECT * FROM create_sho WHERE referralId = ?";
-        const [bmmResult] = await connection
-          .promise()
-          .query(findBMMQuery, [franchiseResult[0].referredId]);
+          const findBMMQuery = "SELECT * FROM create_sho WHERE referralId = ?";
 
-        console.log(bmmResult[0], 1552, "bmmresult");
-
-        if (bmmResult.length > 0) {
-          const bmm = bmmResult[0];
-          const referralIdOfBmm = bmm.referralId;
-          let stateHandlerWallet = bmm.stateHandlerWallet;
-          const bmmId = bmm.stateHandlerId;
-          const userType = bmm.userType;
-          let netLiquidity = (liquidity * 82) / 100;
-          const amount = (netLiquidity * 5) / 100;
-          stateHandlerWallet += amount;
-
-          // Update stateHandlerWallet in create_sho table
-          const updateBmmWalletQuery =
-            "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
-          await connection
+          const [bmmResult] = await connection
             .promise()
-            .query(updateBmmWalletQuery, [stateHandlerWallet, referralIdOfBmm]);
+            .query(findBMMQuery, [ReferredIdOfFranchise]);
 
-          // Insert into
-          const insertBmmIntoMyTeam =
-            "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-          await connection
+          if (bmmResult.length > 0) {
+            const bmm = bmmResult[0];
+            const referralIdOfBmm = bmm.referralId;
+
+            let bmmWallet = bmm.stateHandlerWallet;
+            const bmmId = bmm.stateHandlerId;
+            let netLiquidity = (liquidity * 82) / 100;
+            const amount = (netLiquidity * 5) / 100;
+            const date = new Date();
+            const userType = bmm.userType;
+            bmmWallet += amount;
+
+            const updateBmmWalletQuery =
+              "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
+
+            await connection
+              .promise()
+              .query(updateBmmWalletQuery, [bmmWallet, referralIdOfBmm]);
+
+            const insertBmmIntoMyTeam =
+              "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+            await connection
+              .promise()
+              .query(insertBmmIntoMyTeam, [
+                bmmId,
+                amount,
+                p_userid,
+                date,
+                userType,
+              ]);
+          }
+        } else {
+          //partner referred by bmm
+          console.log("3rd condition only bmm");
+
+          const findBmmQuery = "SELECT * FROM create_sho WHERE referralId = ?";
+
+          const [result] = await connection
             .promise()
-            .query(insertBmmIntoMyTeam, [
-              bmmId,
-              amount,
-              p_userid,
-              date,
-              userType,
-            ]);
-        }
-      } else if (
-        partnerReferredByFranchise.length > 0 &&
-        partnerReferredByFranchise[0].priority === 1
-      ) {
-        console.log("2nd condition frnachise and bmm");
+            .query(findBmmQuery, [referredIdOfPartner]);
 
-        const franchise = partnerReferredByFranchise[0];
-        console.log(franchise, "franchise");
-        let franchiseReferralId = franchise.referralId;
+          if (result.length > 0 && result[0].priority === 1) {
+            const bmm = result[0];
+            let bmmWallet = bmm.stateHandlerWallet;
+            const bmmId = bmm.stateHandlerId;
+            const afterGstLiquidity = (liquidity * 18) / 100;
+            const afterGstAmount = liquidity - afterGstLiquidity;
+            const amount = (afterGstAmount * 15) / 100;
+            const date = new Date();
+            bmmWallet += amount;
+            let target = bmm.target;
+            target = target + liquidity;
+            const userType = bmm.userType;
+            const referralIdOfBmm = bmm.referralId;
 
-        let ReferredIdOfFranchise = franchise.referredId;
+            const updateBmmWalletQuery =
+              "UPDATE create_sho SET stateHandlerWallet = ?, target = ? WHERE stateHandlerId = ?";
 
-        let franchiseWallet = franchise.franchiseWallet;
-        const franchiseid = franchise.franchiseId;
-        let target = franchise.target;
-        const userType = franchise.userType;
-        const afterGstLiquidity = (liquidity * 18) / 100;
-        const afterGstAmount = liquidity - afterGstLiquidity;
-        franchiseWallet += (afterGstAmount * 12) / 100;
-        target += liquidity;
-        const date = new Date();
-        const updateFranchiseWalletQuery =
-          "UPDATE create_franchise SET franchiseWallet = ?, target = ? WHERE franchiseId = ?";
+            await connection
+              .promise()
+              .query(updateBmmWalletQuery, [bmmWallet, target, bmmId]);
 
-        await connection
-          .promise()
-          .query(updateFranchiseWalletQuery, [
-            franchiseWallet,
-            target,
-            franchiseid,
-          ]);
+            const insertBmmIntoMyTeam =
+              "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
+            await connection
+              .promise()
+              .query(insertBmmIntoMyTeam, [
+                bmmId,
+                amount,
+                p_userid,
+                date,
+                userType,
+              ]);
+          }
 
-        const insertFranchiseIntoMyTeam =
-          "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-        await connection
-          .promise()
-          .query(insertFranchiseIntoMyTeam, [
-            franchiseid,
-            franchiseWallet,
-            p_userid,
-            date,
-            userType,
-          ]);
+          // Additional code for processing and updating other tables goes here...
 
-        const findBMMQuery = "SELECT * FROM create_sho WHERE referralId = ?";
-
-        const [bmmResult] = await connection
-          .promise()
-          .query(findBMMQuery, [ReferredIdOfFranchise]);
-
-        if (bmmResult.length > 0) {
-          const bmm = bmmResult[0];
-          const referralIdOfBmm = bmm.referralId;
-
-          let bmmWallet = bmm.stateHandlerWallet;
-          const bmmId = bmm.stateHandlerId;
-          let netLiquidity = (liquidity * 82) / 100;
-          const amount = (netLiquidity * 5) / 100;
-          const date = new Date();
-          const userType = bmm.userType;
-          bmmWallet += amount;
-
-          const updateBmmWalletQuery =
-            "UPDATE create_sho SET stateHandlerWallet = ? WHERE referralId = ?";
-
-          await connection
-            .promise()
-            .query(updateBmmWalletQuery, [bmmWallet, referralIdOfBmm]);
-
-          const insertBmmIntoMyTeam =
-            "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-          await connection
-            .promise()
-            .query(insertBmmIntoMyTeam, [
-              bmmId,
-              amount,
-              p_userid,
-              date,
-              userType,
-            ]);
+          return res.status(200).json({
+            message: "Mining Partner Liquidity Paid successfully",
+            // Include necessary information in the response
+          });
         }
       } else {
-        //partner referred by bmm
-        console.log("3rd condition only bmm");
-
-        const findBmmQuery = "SELECT * FROM create_sho WHERE referralId = ?";
-
-        const [result] = await connection
-          .promise()
-          .query(findBmmQuery, [referredIdOfPartner]);
-
-        if (result.length > 0 && result[0].priority === 1) {
-          const bmm = result[0];
-          let bmmWallet = bmm.stateHandlerWallet;
-          const bmmId = bmm.stateHandlerId;
-          const afterGstLiquidity = (liquidity * 18) / 100;
-          const afterGstAmount = liquidity - afterGstLiquidity;
-          const amount = (afterGstAmount * 15) / 100;
-          const date = new Date();
-          bmmWallet += amount;
-          let target = bmm.target;
-          target = target + liquidity;
-          const userType = bmm.userType;
-          const referralIdOfBmm = bmm.referralId;
-
-          const updateBmmWalletQuery =
-            "UPDATE create_sho SET stateHandlerWallet = ?, target = ? WHERE stateHandlerId = ?";
-
-          await connection
-            .promise()
-            .query(updateBmmWalletQuery, [bmmWallet, target, bmmId]);
-
-          const insertBmmIntoMyTeam =
-            "INSERT INTO my_team (userid, amount, partnerid, credit_date, userType) VALUES (?, ?, ?, ?, ?)";
-          await connection
-            .promise()
-            .query(insertBmmIntoMyTeam, [
-              bmmId,
-              amount,
-              p_userid,
-              date,
-              userType,
-            ]);
-        }
-
-        // Additional code for processing and updating other tables goes here...
-
-        return res.status(200).json({
-          message: "Mining Partner Liquidity Paid successfully",
-          // Include necessary information in the response
-        });
+        // Update multiple_rig_partner status
+        const updateRigPaymentStatusQuery =
+          "UPDATE multiple_rig_partner SET partner_status = 1, doj = CURRENT_DATE WHERE rigId = ?";
+        await connection.promise().query(updateRigPaymentStatusQuery, [rigId]);
       }
     } else {
-      // Update multiple_rig_partner status
-      const updateRigPaymentStatusQuery =
-        "UPDATE multiple_rig_partner SET partner_status = 1, doj = CURRENT_DATE WHERE rigId = ?";
-      await connection.promise().query(updateRigPaymentStatusQuery, [rigId]);
+      if (rigId === rigid) {
+        // Update multiple_rig_partner status
+        const updateRigPaymentStatusQuery =
+          "UPDATE mining_rig SET partner_status = 1, doj = ? WHERE rigId = ?";
+        await connection
+          .promise()
+          .query(updateRigPaymentStatusQuery, [dateOfJoining, rigId]);
+      } else {
+        // Update multiple_rig_partner status
+        const updateRigPaymentStatusQuery =
+          "UPDATE multiple_rig_partner SET partner_status = 1, doj = ? WHERE rigId = ?";
+        await connection
+          .promise()
+          .query(updateRigPaymentStatusQuery, [dateOfJoining, rigId]);
+      }
     }
+
     return res.json({
       message: "Mining Partner Liquidity Paid successfully",
     });
@@ -4740,9 +4764,9 @@ exports.createPartnerPayout = async (req, res) => {
         payoutDate,
         newPayableCount,
         liquidity,
-        partnerId
+        partnerId,
       ]);
-      
+
     return res
       .status(200)
       .json({ message: "New partner payout created successfully." });
@@ -4931,7 +4955,8 @@ exports.fetchTransactionHistory = async (req, res) => {
     }
 
     if (currentMonth && currentYear) {
-      fetchTransactionQuery += " AND MONTH(payoutDate) = ? AND YEAR(payoutDate) = ?";
+      fetchTransactionQuery +=
+        " AND MONTH(payoutDate) = ? AND YEAR(payoutDate) = ?";
       queryParams.push(currentMonth, currentYear);
     }
 
@@ -4939,13 +4964,12 @@ exports.fetchTransactionHistory = async (req, res) => {
       .promise()
       .query(fetchTransactionQuery, queryParams);
 
-      if (!transactionHistory || transactionHistory.length === 0) {
-        return res.status(200).json({
-          message: "No Transaction History Found",
-          data: [],
-        });
-      }
-  
+    if (!transactionHistory || transactionHistory.length === 0) {
+      return res.status(200).json({
+        message: "No Transaction History Found",
+        data: [],
+      });
+    }
 
     return res.status(200).json({
       message: "Transaction history fetched successfully",
@@ -4968,7 +4992,6 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
       referralAmount,
       date,
       referPartnerId,
-
     } = req.body;
 
     findPartnerReferralQuery =
@@ -4993,7 +5016,7 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
 
     // Insert a new rowin referral_payout table
     const referralPayoutInsertQuery =
-    "INSERT INTO my_team (userid, amount, credit_date, partnerid, userType) VALUES (?, ?, ?, ?, 'MEMBER')";
+      "INSERT INTO my_team (userid, amount, credit_date, partnerid, userType) VALUES (?, ?, ?, ?, 'MEMBER')";
     await connection
       .promise()
       .query(referralPayoutInsertQuery, [
@@ -5001,7 +5024,6 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
         referralAmount,
         payoutDate,
         partnerId,
-
       ]);
 
     if (!payableAmount || !payoutDate) {
@@ -5053,7 +5075,6 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
         liquidity,
       ]);
 
-
     return res
       .status(200)
       .json({ message: "New partner payout created successfully." });
@@ -5063,28 +5084,33 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
   }
 };
 
-
 exports.verifyMultipleRigPartner = async (req, res) => {
   try {
     const { rigId } = req.body;
 
-    const selectPartnerQuery = "SELECT rigId FROM mining_partner WHERE rigId = ?";
-    const [partnerInMiningResult] = await connection.promise().query(selectPartnerQuery, [rigId]);
+    const selectPartnerQuery =
+      "SELECT rigId FROM mining_partner WHERE rigId = ?";
+    const [partnerInMiningResult] = await connection
+      .promise()
+      .query(selectPartnerQuery, [rigId]);
 
     let updateQuery;
 
     if (partnerInMiningResult.length > 0) {
-      updateQuery = "UPDATE mining_partner  SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
+      updateQuery =
+        "UPDATE mining_partner  SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
     } else {
-      updateQuery = "UPDATE multiple_rig_partner SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
+      updateQuery =
+        "UPDATE multiple_rig_partner SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
     }
 
     await connection.promise().query(updateQuery, [rigId]);
 
-    return res.status(200).json({ message: "Successfully verified RIG partner." });
+    return res
+      .status(200)
+      .json({ message: "Successfully verified RIG partner." });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
