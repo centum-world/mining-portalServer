@@ -183,6 +183,7 @@ const fetchPartnerPayouts = require('./routes/fetch-partner-payouts')
 const fetchTotalReferralCountAndTodayReferralCount  = require('./routes/fetch-total-referral-count-and-today-referral-count')
 const fetchTransactionHistory = require('./routes/fetch-transaction-history');
 const createPartnerPayoutForMonthly = require('./routes/create-partner-payout-for-monthly')
+const fetchReferralPayoutHistoryAdmin = require('./routes/fetch-referral-payout-history-admin');
 
 // -------------------State ----------------------------------///
 const totalcountFranchiseMemberPartner = require('./routes/state/total-count-franchise-member-partner')
@@ -409,6 +410,7 @@ app.use('/admin', fetchPartnerPayouts)
 app.use('/admin', fetchTotalReferralCountAndTodayReferralCount)
 app.use('/admin',fetchTransactionHistory);
 app.use('/admin', createPartnerPayoutForMonthly)
+app.use('/admin',fetchReferralPayoutHistoryAdmin);
 
 
 // --------------------state------------------------///
