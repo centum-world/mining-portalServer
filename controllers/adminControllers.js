@@ -5062,7 +5062,7 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
 
     // Insert a new row
     const insertQuery =
-      "INSERT INTO partner_payout (rigId, payableAmount, payoutDate, payableCount, liquidity, partnerid) VALUES (?, ?, ?, ?, ?, ?)";
+      "INSERT INTO partner_payout (rigId, payableAmount, payoutDate, payableCount, liquidity, partnerId) VALUES (?, ?, ?, ?, ?, ?)";
     await connection
       .promise()
       .query(insertQuery, [
