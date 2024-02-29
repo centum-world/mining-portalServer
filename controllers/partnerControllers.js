@@ -1358,23 +1358,26 @@ exports.fetchPartnerAndMultipleRig = async (req, res) => {
   }
 };
 
-exports.partnerFetchTransactionHistory = async(req,res)=>{
-    try {
-    const { partnerId, currentDate } = req.body; 
+exports.partnerFetchTransactionHistory = async (req, res) => {
+  try {
+    const { partnerId, currentDate } = req.body;
 
     if (!partnerId) {
       return res.status(400).json({ message: "Partner ID is required." });
     }
 
-    let fetchTransactionQuery = "SELECT * FROM partner_payout WHERE partnerId = ?";
+    let fetchTransactionQuery =
+      "SELECT * FROM partner_payout WHERE partnerId = ?";
 
     if (currentDate) {
       fetchTransactionQuery += " AND DATE(payoutDate) = ?";
     }
 
     const queryParams = currentDate ? [partnerId, currentDate] : [partnerId];
-    
-    const [transactionHistory] = await connection.promise().query(fetchTransactionQuery, queryParams);
+
+    const [transactionHistory] = await connection
+      .promise()
+      .query(fetchTransactionQuery, queryParams);
 
     if (transactionHistory.length === 0) {
       return res.status(404).json({ message: "No Transaction History Found" });
@@ -1384,9 +1387,36 @@ exports.partnerFetchTransactionHistory = async(req,res)=>{
       message: "Partner Payout fetched successfully",
       data: transactionHistory,
     });
-
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ message: "Internal server error." });
   }
-}
+};
+
+exports.fetchReferralPayoutForPartner = async (req, res) => {
+  try {
+    const { partnerId } = req.body;
+    
+    if (!partnerId ) {
+      return res.status(400).json({ message: "partnerId and userType are required" });
+    }
+
+    const [result] = await connection
+      .promise()
+      .query("SELECT * FROM my_team WHERE userid = ? ", [
+        partnerId,
+      ]);
+
+    // Check if data is found
+    if (result.length === 0) {
+      return res.status(404).json({ message: "Data not found" });
+    }
+
+    // Data found, return it
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+};
+
