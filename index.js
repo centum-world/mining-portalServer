@@ -8,6 +8,7 @@ const connection = require("./config/database");
 
 const adminRoute = require("./routes/admin");
 const memberRoute = require("./routes/create-member");
+const fliterPayoutTotalAndMonthlyWise =  require("./routes/fliter-payout-total-and-monthlywise")
 const miningpartnerRoute = require("./routes/create-mining-partner");
 
 const createMultipleRig = require("./routes/create-multiple-rig")
@@ -365,6 +366,7 @@ app.use('/admin', fetchPartnerReferWithdrawlHistory)
 app.use("/mining", fetchPartnerAndMultipleRig)
 
 // --------------------------admin-------------------//
+app.use('/admin', fliterPayoutTotalAndMonthlyWise)
 app.use('/admin', verifyMultipleRigPartner)
 app.use("/admin", fetchQuery)
 app.use('/admin', queryResolve)

@@ -16,6 +16,7 @@ const { query, response } = require("express");
 const bcrypt = require("bcrypt");
 const { queryAsync } = require("../utils/utility");
 const { log } = require("console");
+const moment = require("moment");
 
 // admin Login
 
@@ -5064,12 +5065,10 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
 
       const lastMonth = new Date(lastPayoutDate).getMonth();
       if (providedMonth === lastMonth) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Payout for this month has already happened for RIG partner.",
-          });
+        return res.status(400).json({
+          message:
+            "Payout for this month has already happened for RIG partner.",
+        });
       }
     }
 
@@ -5157,5 +5156,324 @@ exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+// exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
+//   try {
+//     // Partner payout table
+//     const fetchPartnerPayout = "SELECT * FROM partner_payout";
+//     const [partnerPayOutResult] = await connection.promise().query(fetchPartnerPayout);
+
+//     const totalPartnerAmount = partnerPayOutResult.reduce((total, partner) => {
+//       const payableAmount = partner.payableAmount;
+//       return total + payableAmount;
+//     }, 0);
+
+//     // My team table (bmm, franchise, member)
+//     const fetchMyTeam = "SELECT * FROM my_team";
+//     const [myTeamResult] = await connection.promise().query(fetchMyTeam);
+
+//     // Initialize variables for userType-wise total amounts
+//     let totalBMMAmount = 0;
+//     let totalFranchiseAmount = 0;
+//     let totalMemberAmount = 0;
+//     let totalReferPartnerAmount = 0;
+
+//     const totalMyTeamAmount = myTeamResult.reduce((total, myTeam) => {
+//       const payableAmount = myTeam.amount;
+
+//       // Update userType-wise totals based on the user type
+//       switch (myTeam.userType) {
+//         case "BMM":
+//           totalBMMAmount += payableAmount;
+//           break;
+//         case "FRANCHISE":
+//           totalFranchiseAmount += payableAmount;
+//           break;
+//         case "MEMBER":
+//           totalMemberAmount += payableAmount;
+//           break;
+//         case "PARTNER":
+//           totalReferPartnerAmount += payableAmount;
+//           break;
+//         // Handle other user types if needed
+//       }
+
+//       return total + payableAmount;
+//     }, 0);
+
+//     // Calculate monthly wise amounts in the partner table
+//     const monthlyWisePartnerAmount = partnerPayOutResult.reduce(
+//       (monthlyAmounts, partner) => {
+//         const payoutDate = moment(partner.payoutDate).format("YYYY-MM");
+//         monthlyAmounts[payoutDate] =
+//           (monthlyAmounts[payoutDate] || 0) + partner.payableAmount;
+//         return monthlyAmounts;
+//       },
+//       {}
+//     );
+
+//     // Calculate monthly wise amounts in my_team (bmm, franchise, and member)
+//     const monthlyWiseMyTeamAmount = myTeamResult.reduce(
+//       (monthlyAmounts, myTeam) => {
+//         const payoutDate = moment(myTeam.credit_date).format("YYYY-MM");
+//         monthlyAmounts[payoutDate] =
+//           (monthlyAmounts[payoutDate] || 0) + myTeam.amount;
+//         return monthlyAmounts;
+//       },
+//       {}
+//     );
+
+//     // Combine monthly amounts from both tables for the same month and year
+//     const combinedMonthlyAmounts = {};
+
+//     // Get all unique keys from both monthlyWisePartnerAmount and monthlyWiseMyTeamAmount
+//     const allKeys = new Set([
+//       ...Object.keys(monthlyWisePartnerAmount),
+//       ...Object.keys(monthlyWiseMyTeamAmount),
+//     ]);
+
+//     // Combine data for each unique key
+//     allKeys.forEach((monthYear) => {
+//       combinedMonthlyAmounts[monthYear] = {
+//         partnerAmount: monthlyWisePartnerAmount[monthYear] || 0,
+//         myTeamAmount: monthlyWiseMyTeamAmount[monthYear] || 0,
+//       };
+//     });
+
+//     console.log(combinedMonthlyAmounts, "5224");
+
+//     return res.status(200).json({
+//       mesaage: "fetched filter payout",
+//       totalPartnerPayoutAmount:totalPartnerAmount,
+//       totalAmount: totalPartnerAmount + totalMyTeamAmount,
+//       totalAmountByUserType: {
+//         BMM: totalBMMAmount,
+//         FRANCHISE: totalFranchiseAmount,
+//         MEMBER: totalMemberAmount,
+//         PARTNER: totalReferPartnerAmount,
+//       },
+//       combinedMonthlyAmounts,
+//     });
+//   } catch (error) {
+//     console.log(error.message);
+//     res.status(500).json({ mesaage: "Internal server error" });
+//   }
+// };
+
+// exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
+//   try {
+//     // Partner payout table
+//     const fetchPartnerPayout = "SELECT * FROM partner_payout";
+//     const [partnerPayOutResult] = await connection.promise().query(fetchPartnerPayout);
+
+//     const totalPartnerAmount = partnerPayOutResult.reduce((total, partner) => {
+//       const payableAmount = partner.payableAmount;
+//       return total + payableAmount;
+//     }, 0);
+
+//     // My team table (bmm, franchise, member)
+//     const fetchMyTeam = "SELECT * FROM my_team";
+//     const [myTeamResult] = await connection.promise().query(fetchMyTeam);
+
+//     // Initialize variables for userType-wise total amounts
+//     let totalBMMAmount = 0;
+//     let totalFranchiseAmount = 0;
+//     let totalMemberAmount = 0;
+//     let totalReferPartnerAmount = 0;
+
+//     const totalMyTeamAmount = myTeamResult.reduce((total, myTeam) => {
+//       const payableAmount = myTeam.amount;
+
+//       // Update userType-wise totals based on the user type
+//       switch (myTeam.userType) {
+//         case "BMM":
+//           totalBMMAmount += payableAmount;
+//           break;
+//         case "FRANCHISE":
+//           totalFranchiseAmount += payableAmount;
+//           break;
+//         case "MEMBER":
+//           totalMemberAmount += payableAmount;
+//           break;
+//         case "PARTNER":
+//           totalReferPartnerAmount += payableAmount;
+//           break;
+//         // Handle other user types if needed
+//       }
+
+//       return total + payableAmount;
+//     }, 0);
+
+//     // Calculate monthly wise amounts in the partner table
+//     const monthlyWisePartnerAmount = partnerPayOutResult.reduce(
+//       (monthlyAmounts, partner) => {
+//         const payoutDate = moment(partner.payoutDate).format("YYYY-MM");
+//         monthlyAmounts[payoutDate] =
+//           (monthlyAmounts[payoutDate] || 0) + partner.payableAmount;
+//         return monthlyAmounts;
+//       },
+//       {}
+//     );
+
+//     // Calculate monthly wise amounts in my_team (bmm, franchise, and member)
+//     const monthlyWiseMyTeamAmount = myTeamResult.reduce(
+//       (monthlyAmounts, myTeam) => {
+//         const payoutDate = moment(myTeam.credit_date).format("YYYY-MM");
+//         monthlyAmounts[payoutDate] =
+//           (monthlyAmounts[payoutDate] || 0) + myTeam.amount;
+
+//         // Update userType-wise monthly totals based on the user type
+//         if (!monthlyAmounts[myTeam.userType]) {
+//           monthlyAmounts[myTeam.userType] = {};
+//         }
+//         monthlyAmounts[myTeam.userType][payoutDate] =
+//           (monthlyAmounts[myTeam.userType][payoutDate] || 0) + myTeam.amount;
+
+//         return monthlyAmounts;
+//       },
+//       {}
+//     );
+
+//     // Combine monthly amounts from both tables for the same month and year
+//     const combinedMonthlyAmounts = {};
+
+//     // Get all unique keys from both monthlyWisePartnerAmount and monthlyWiseMyTeamAmount
+//     const allKeys = new Set([
+//       ...Object.keys(monthlyWisePartnerAmount),
+//       ...Object.keys(monthlyWiseMyTeamAmount),
+//     ]);
+
+//     // Combine data for each unique key
+//     allKeys.forEach((monthYear) => {
+//       combinedMonthlyAmounts[monthYear] = {
+//         totalAmount: (monthlyWisePartnerAmount[monthYear] || 0) + (monthlyWiseMyTeamAmount[monthYear] || 0),
+//         partnerAmount: monthlyWisePartnerAmount[monthYear] || 0,
+//         myTeamAmount: monthlyWiseMyTeamAmount[monthYear] || 0,
+//         userTypeAmounts: {
+//           BMM: monthlyWiseMyTeamAmount['BMM']?.[monthYear] || 0,
+//           FRANCHISE: monthlyWiseMyTeamAmount['FRANCHISE']?.[monthYear] || 0,
+//           MEMBER: monthlyWiseMyTeamAmount['MEMBER']?.[monthYear] || 0,
+//           PARTNER: monthlyWiseMyTeamAmount['PARTNER']?.[monthYear] || 0,
+//         },
+//       };
+//     });
+
+//     console.log(combinedMonthlyAmounts, "5224");
+
+//     return res.status(200).json({
+//       mesaage: "fetched filter payout",
+//       totalPartnerAmount,
+//       totalAmount: totalPartnerAmount + totalMyTeamAmount,
+//       totalAmountByUserType: {
+//         BMM: totalBMMAmount,
+//         FRANCHISE: totalFranchiseAmount,
+//         MEMBER: totalMemberAmount,
+//         PARTNER: totalReferPartnerAmount,
+//       },
+//       combinedMonthlyAmounts,
+//     });
+//   } catch (error) {
+//     console.log(error.message);
+//     res.status(500).json({ mesaage: "Internal server error" });
+//   }
+// };
+
+exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
+  try {
+    // partner payout table
+    const fetchPartnerPayout = "SELECT * FROM partner_payout";
+    const [partnerPayOutResult] = await connection.promise().query(fetchPartnerPayout);
+
+    // Calculate total partner amount
+    const totalPartnerAmount = partnerPayOutResult.reduce((total, partner) => {
+      const payableAmount = partner.payableAmount;
+      return total + payableAmount;
+    }, 0);
+
+    // my team table (bmm, franchise, member)
+    const fetchMyTeam = "SELECT * FROM my_team";
+    const [myTeamResult] = await connection.promise().query(fetchMyTeam);
+
+    // Calculate total amounts by user type
+    const totalAmountByUserType = myTeamResult.reduce((totals, myTeam) => {
+      const userType = myTeam.userType.toUpperCase();
+      totals[userType] = (totals[userType] || 0) + myTeam.amount;
+      return totals;
+    }, {});
+
+    // Calculate monthly wise amounts in partner table
+    const monthlyWisePartnerAmount = partnerPayOutResult.reduce(
+      (monthlyAmounts, partner) => {
+        const payoutDate = moment(partner.payoutDate).format("YYYY-MM");
+        monthlyAmounts[payoutDate] =
+          (monthlyAmounts[payoutDate] || 0) + partner.payableAmount;
+        return monthlyAmounts;
+      },
+      {}
+    );
+
+    // Calculate monthly wise amounts in my_team (bmm, franchise, and member)
+    const monthlyWiseMyTeamAmount = myTeamResult.reduce(
+      (monthlyAmounts, myTeam) => {
+        const payoutDate = moment(myTeam.credit_date).format("YYYY-MM");
+        monthlyAmounts[payoutDate] =
+          (monthlyAmounts[payoutDate] || 0) + myTeam.amount;
+        return monthlyAmounts;
+      },
+      {}
+    );
+
+    // Combine monthly amounts from both tables for the same month and year
+    const combinedMonthlyAmounts = {};
+
+    // Get all unique keys from both monthlyWisePartnerAmount and monthlyWiseMyTeamAmount
+    const allKeys = new Set([
+      ...Object.keys(monthlyWisePartnerAmount),
+      ...Object.keys(monthlyWiseMyTeamAmount),
+    ]);
+
+    // Combine data for each unique key
+    allKeys.forEach((monthYear) => {
+      combinedMonthlyAmounts[monthYear] = {
+        totalAmount:
+          (monthlyWisePartnerAmount[monthYear] || 0) +
+          (monthlyWiseMyTeamAmount[monthYear] || 0),
+        partnerAmount: monthlyWisePartnerAmount[monthYear] || 0,
+        myTeamAmount: monthlyWiseMyTeamAmount[monthYear] || 0,
+        userTypeAmounts: {
+          BMM:
+            myTeamResult
+              .filter((item) => item.userType.toUpperCase() === "BMM")
+              .reduce((total, item) => total + item.amount, 0) || 0,
+          FRANCHISE:
+            myTeamResult
+              .filter((item) => item.userType.toUpperCase() === "FRANCHISE")
+              .reduce((total, item) => total + item.amount, 0) || 0,
+          MEMBER:
+            myTeamResult
+              .filter((item) => item.userType.toUpperCase() === "MEMBER")
+              .reduce((total, item) => total + item.amount, 0) || 0,
+          PARTNER:
+            myTeamResult
+              .filter((item) => item.userType.toUpperCase() === "PARTNER")
+              .reduce((total, item) => total + item.amount, 0) || 0,
+        },
+      };
+    });
+
+    const totalAmount = totalPartnerAmount + totalAmountByUserType.PARTNER + totalAmountByUserType.MEMBER+ totalAmountByUserType.FRANCHISE+ totalAmountByUserType.BMM
+
+    return res.status(200).json({
+      message: "fetched filter payout",
+      totalAmount,
+      totalPartnerAmount,
+      totalAmountByUserType,
+      combinedMonthlyAmounts,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
