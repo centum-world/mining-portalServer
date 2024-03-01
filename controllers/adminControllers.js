@@ -5413,7 +5413,7 @@ exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
     // Calculate monthly wise amounts in partner table
     const monthlyWisePartnerAmount = partnerPayOutResult.reduce(
       (monthlyAmounts, partner) => {
-        const payoutDate = moment(partner.payoutDate).format("YYYY-MM");
+        const payoutDate = moment(partner.payoutDate).format("YYYY-M");
         monthlyAmounts[payoutDate] =
           (monthlyAmounts[payoutDate] || 0) + partner.payableAmount;
         return monthlyAmounts;
@@ -5424,7 +5424,7 @@ exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
     // Calculate monthly wise amounts in my_team (bmm, franchise, and member)
     const monthlyWiseMyTeamAmount = myTeamResult.reduce(
       (monthlyAmounts, myTeam) => {
-        const payoutDate = moment(myTeam.credit_date).format("YYYY-MM");
+        const payoutDate = moment(myTeam.credit_date).format("YYYY-M");
         monthlyAmounts[payoutDate] =
           (monthlyAmounts[payoutDate] || 0) + myTeam.amount;
         return monthlyAmounts;
