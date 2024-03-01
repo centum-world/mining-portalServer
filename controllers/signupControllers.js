@@ -5,6 +5,7 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 const connection = require("../config/database");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken")
 
 const { queryAsync } = require("../utils/utility");
 
@@ -447,7 +448,19 @@ exports.partnerSignup = async (req, res) => {
     }
 
     const rigId = firstCharf + firstCharl + lastRigId;
+
+
+//creating token
+
+const token = jwt.sign(
+  { p_userid: franchiseId, role: "franchise" },
+  process.env.ACCESS_TOKEN,
+  { expiresIn: 28800 }
+);
+
     // Insert partner data into the database
+
+
     const insertQuery = `
       INSERT INTO mining_partner 
       (p_refferal_id,p_reffered_id, p_name, p_lname, p_aadhar, p_phone, p_email, p_address, p_state, 
@@ -630,6 +643,16 @@ exports.createSHO = async (req, res) => {
         });
       }
     }
+    
+    //token create
+
+    const token = jwt.sign(
+      { s_userid: stateHandlerId, role: "state" },
+      process.env.ACCESS_TOKEN,
+      {
+        expiresIn: 28800,
+      }
+    );
 
     // Insert data into the database
     const insertStateHandlerQuery = `
@@ -657,6 +680,7 @@ exports.createSHO = async (req, res) => {
     return res.status(200).json({
       message: "BMM registered successfully",
       data: {
+        token,
         fname,
         lname,
         phone,
@@ -832,6 +856,13 @@ exports.createFranchise = async (req, res) => {
       }
     }
 
+    const token = jwt.sign(
+      { f_userid: franchiseId, role: "franchise" },
+      process.env.ACCESS_TOKEN,
+      { expiresIn: 28800 }
+    );
+
+
     // Insert data into the database
     const insertStateHandlerQuery = `
         INSERT INTO create_franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adhar_front_side,adhar_back_side, panCard, referralId)
@@ -857,6 +888,7 @@ exports.createFranchise = async (req, res) => {
     return res.status(200).json({
       message: "Franchise created successfully",
       data: {
+        token,
         fname,
         lname,
         phone,
