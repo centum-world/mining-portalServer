@@ -196,6 +196,7 @@ const fetchPrimaryBank = require('./routes/state/fetch-primary-bank')
 const transferPartnerWithdrawlToWithdrawlHistory = require('./routes/transfer-Partner-Withdrawl-To-Withdrawl-History')
 const statePartnerMyTeam = require('./routes/state/my-partner-team');  
 const fetchPartnerByReferralId = require('./routes/state/fetchPartnerByReferralId')
+const fetchReferralMyTeam = require('./routes/state/fetch-referral-my-team');
 
 // ------------------------------------------------------------//
 
@@ -425,6 +426,7 @@ app.use('/state', fetchPrimaryBank)
 app.use('/state',statePartnerMyTeam);
 app.use('/state', fetchPartnerByReferralId)
 app.use('/state', totalcountFranchiseMemberPartner)
+app.use('/state',fetchReferralMyTeam);
 
 // ---------------------------------------------------//
 
