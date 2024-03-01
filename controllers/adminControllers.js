@@ -5396,12 +5396,19 @@ exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
     const fetchMyTeam = "SELECT * FROM my_team";
     const [myTeamResult] = await connection.promise().query(fetchMyTeam);
 
-    // Calculate total amounts by user type
-    const totalAmountByUserType = myTeamResult.reduce((totals, myTeam) => {
+        // Initialize totals for each user type with 0
+        let totalAmountByUserType = {
+          PARTNER: 0,
+          FRANCHISE: 0,
+          BMM: 0,
+          MEMBER: 0,
+        };
+
+    // Update totals based on entries in my_team table
+    myTeamResult.forEach((myTeam) => {
       const userType = myTeam.userType.toUpperCase();
-      totals[userType] = (totals[userType] || 0) + myTeam.amount;
-      return totals;
-    }, {});
+      totalAmountByUserType[userType] += myTeam.amount;
+    });
 
     // Calculate monthly wise amounts in partner table
     const monthlyWisePartnerAmount = partnerPayOutResult.reduce(
