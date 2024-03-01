@@ -903,13 +903,12 @@ exports.franchiseFetchPartnerMyTeam = async (req,res) => {
     }
 
     if (memberReferredIds.length > 0) {
-      console.log("third condition");
+      console.log("second condition");
       const partnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
       const [result] = await connection.promise().query(partnerQuery, [memberReferredIds]);
       partnerRows = partnerRows.concat(result);
     }
 
-    console.log(partnerRows, "partner list");
 
     if (partnerRows.length === 0) {
       return res.status(200).json({ message: "No partners found for the given referralId" });
