@@ -1269,16 +1269,12 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
         // Update multiple_rig_partner status
         const updateRigPaymentStatusQuery =
           "UPDATE mining_partner SET partner_status = 1 WHERE rigId = ?";
-        await connection
-          .promise()
-          .query(updateRigPaymentStatusQuery, [ rigId]);
+        await connection.promise().query(updateRigPaymentStatusQuery, [rigId]);
       } else {
         // Update multiple_rig_partner status
         const updateRigPaymentStatusQuery =
           "UPDATE multiple_rig_partner SET partner_status = 1 WHERE rigId = ?";
-        await connection
-          .promise()
-          .query(updateRigPaymentStatusQuery, [ rigId]);
+        await connection.promise().query(updateRigPaymentStatusQuery, [rigId]);
       }
     }
 
@@ -2944,7 +2940,7 @@ exports.blockAndUnblockSho = async (req, res) => {
 exports.adminVerifyMember = async (req, res) => {
   let lastExecutionTimestamp = 0;
   try {
-    const { m_userid, isVerify,verifyDate } = req.body;
+    const { m_userid, isVerify, verifyDate } = req.body;
 
     if (typeof isVerify != "boolean") {
       return res.status(400).json({ message: "Invalid 'isVerify' value" });
@@ -2955,7 +2951,7 @@ exports.adminVerifyMember = async (req, res) => {
 
     connection.query(
       upadteMemberQuery,
-      [isVerify,verifyDate, m_userid],
+      [isVerify, verifyDate, m_userid],
       (error, result) => {
         if (error) {
           console.error("Error updating Member:", error);
@@ -3212,7 +3208,9 @@ exports.adminVerifyMember = async (req, res) => {
           // Your task logic goes here
         });
 
-        return res.status(200).json({ message: "Member verified" });
+        return res
+          .status(200)
+          .json({ message: "Member successfully verified" });
       }
     );
   } catch (error) {
@@ -4989,7 +4987,6 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
       liquidity,
       partnerId,
       referralAmount,
-
     } = req.body;
 
     findPartnerReferralQuery =
@@ -5011,6 +5008,19 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
     const memberId = findMemberIdResult[0].m_userid;
 
     console.log(memberId, "memberId");
+
+    // Check if a record already exists for the user and month in my_team table
+    const checkDuplicateQuery =
+      "SELECT userid FROM my_team WHERE userid = ? AND MONTH(credit_date) = MONTH(?) AND YEAR(credit_date) = YEAR(?)";
+    const [existingTeamResult] = await connection
+      .promise()
+      .query(checkDuplicateQuery, [memberId, payoutDate, payoutDate]);
+
+    if (existingTeamResult.length > 0) {
+      return res.status(400).json({
+        message: "Payout for this month has already happened for referral.",
+      });
+    }
 
     // Insert a new rowin referral_payout table
     const referralPayoutInsertQuery =
@@ -5056,7 +5066,10 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
       if (providedMonth === lastMonth) {
         return res
           .status(400)
-          .json({ message: "Payout for this month has already happened." });
+          .json({
+            message:
+              "Payout for this month has already happened for RIG partner.",
+          });
       }
     }
 
@@ -5071,7 +5084,7 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
         payoutDate,
         newPayableCount,
         liquidity,
-        partnerId
+        partnerId,
       ]);
 
     return res
@@ -5107,21 +5120,20 @@ exports.verifyMultipleRigPartner = async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: "Successfully verified RIG partner." });
+      .json({ message: "RIG partner successfully  verified." });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-exports.fetchReferralPayoutHistoryAdmin = async (req,res) => {
+exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
   try {
-    const { currentDate, currentMonth, currentYear } = req.body; 
+    const { currentDate, currentMonth, currentYear } = req.body;
 
     let fetchTransactionQueryTeam = "SELECT * FROM my_team WHERE 1=1";
 
     const queryParamsTeam = [];
-
 
     if (currentDate) {
       fetchTransactionQueryTeam += " AND DATE(credit_date) = ?";
@@ -5138,7 +5150,6 @@ exports.fetchReferralPayoutHistoryAdmin = async (req,res) => {
       .promise()
       .query(fetchTransactionQueryTeam, queryParamsTeam);
 
-
     return res.status(200).json({
       message: "Referral Payout History fetched successfully",
       data: transactionHistoryTeam,
@@ -5147,4 +5158,4 @@ exports.fetchReferralPayoutHistoryAdmin = async (req,res) => {
     console.error("Error:", error);
     return res.status(500).json({ message: "Internal server error." });
   }
-}
+};

@@ -364,7 +364,7 @@ exports.verifyFranchise = async (req, res) => {
 
           // Your task logic goes here
         });
-        return res.status(200).json({ message: "Franchise verified" });
+        return res.status(200).json({ message: "Franchise successfully verified" });
       }
     );
   } catch (error) {

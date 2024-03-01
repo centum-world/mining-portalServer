@@ -573,7 +573,7 @@ exports.verifySho = async (req, res) => {
           }
         });
 
-        return res.status(200).json({ message: "S.H.O verified" });
+        return res.status(200).json({ message: "BMM successfully verified" });
       }
     );
   } catch (error) {
