@@ -164,6 +164,13 @@ exports.memberSignup = (req, res, next) => {
             // const insertQuery =
             //   "INSERT INTO create_member (m_name, m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_designation, m_quali, m_gender, m_exp, m_salary, m_dob, m_doj, m_userid, m_password, reffer_id, adhar_front_side, adhar_back_side, panCard) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
+
+            const token = jwt.sign(
+              { m_userid: m_userid, role: "member" },
+              process.env.ACCESS_TOKEN,
+              { expiresIn: 28800 }
+            );
+
             const insertQuery =
               "INSERT INTO create_member (m_name, m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_designation, m_quali, m_gender, m_exp, m_salary, m_dob, m_doj, m_userid, m_password, adhar_front_side, adhar_back_side, panCard,reffer_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
@@ -210,6 +217,7 @@ exports.memberSignup = (req, res, next) => {
 
                 return res.status(200).json({
                   message: "Member added successfully",
+                  token
                 });
               }
             );
@@ -453,7 +461,7 @@ exports.partnerSignup = async (req, res) => {
 //creating token
 
 const token = jwt.sign(
-  { p_userid: franchiseId, role: "franchise" },
+  { p_userid: p_userid, role: "partner" },
   process.env.ACCESS_TOKEN,
   { expiresIn: 28800 }
 );
@@ -496,7 +504,7 @@ const token = jwt.sign(
         rigId,
       ]);
 
-    res.status(200).json({ message: "Partner data inserted successfully." });
+    res.status(200).json({ message: "Partner data inserted successfully.", token });
   } catch (error) {
     console.error("Internal server error:", error);
     res.status(500).json({ message: "Internal server error" });
