@@ -1021,4 +1021,41 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
   }
 };
 
+exports.fetchReferralMyTeam = async (req,res) => {
+  try {
+    const { referralId } = req.body;
 
+    if (!referralId) {
+      return res.status(404).json({ message: "Referral Id is required" });
+    }
+
+    const findReferralQuery =
+      "SELECT * from create_member WHERE m_refferid = ?";
+
+    // Use connection.query directly
+    connection.query(
+      findReferralQuery,
+      [referralId],
+      (error, result) => {
+        if (error) {
+          console.error("Error fetching Member:", error);
+          return res.status(500).json({ message: "Internal Server Error" });
+        }
+
+        if (result.length === 0) {
+          return res
+            .status(404)
+            .json({ message: "Member not found for the given Referral ID" });
+        }
+
+        return res.status(200).json({
+          message: "All Own Referral fetched successfully",
+          Referral: result,
+        });
+      }
+    );
+  } catch (error) {
+    console.error("Error in try-catch block:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
