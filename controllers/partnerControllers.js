@@ -1368,24 +1368,53 @@ exports.partnerFetchTransactionHistory = async (req, res) => {
 
     let fetchTransactionQuery =
       "SELECT * FROM partner_payout WHERE partnerId = ?";
+    let fetchSumQuery =
+      "SELECT SUM(payableAmount) AS totalAmount FROM partner_payout WHERE partnerId = ?";
+    let currentDateSumQuery =
+      "SELECT SUM(payableAmount) AS currentDateSum FROM partner_payout WHERE partnerId = ? AND DATE(payoutDate) = ?";
+    let currentMonthSumQuery =
+      "SELECT SUM(payableAmount) AS currentMonthSum FROM partner_payout WHERE partnerId = ? AND MONTH(payoutDate) = MONTH(?)";
+
+    const queryParams = [partnerId];
 
     if (currentDate) {
       fetchTransactionQuery += " AND DATE(payoutDate) = ?";
+      queryParams.push(currentDate);
     }
-
-    const queryParams = currentDate ? [partnerId, currentDate] : [partnerId];
 
     const [transactionHistory] = await connection
       .promise()
       .query(fetchTransactionQuery, queryParams);
 
-    if (transactionHistory.length === 0) {
-      return res.status(404).json({ message: "No Transaction History Found" });
+    let currentDateSum = 0;
+    let currentMonthSum = 0;
+    let allTransactionSum = 0;
+
+    if (currentDate) {
+      const [currentDateSumResult] = await connection
+        .promise()
+        .query(currentDateSumQuery, [partnerId, currentDate]);
+      currentDateSum = currentDateSumResult[0].currentDateSum || 0;
     }
+
+    const [currentMonthSumResult] = await connection
+      .promise()
+      .query(currentMonthSumQuery, [partnerId, currentDate]);
+
+    currentMonthSum = currentMonthSumResult[0].currentMonthSum || 0;
+
+    const [allTransactionSumResult] = await connection
+      .promise()
+      .query(fetchSumQuery, [partnerId]);
+
+    allTransactionSum = allTransactionSumResult[0].totalAmount || 0;
 
     return res.status(200).json({
       message: "Partner Payout fetched successfully",
-      data: transactionHistory,
+      data:transactionHistory,
+      TodaysPayout:  currentDateSum,
+      MonthPayout:currentMonthSum,
+      TotalPayout: allTransactionSum,
     });
   } catch (error) {
     console.error("Error:", error);
@@ -1419,4 +1448,67 @@ exports.fetchReferralPayoutForPartner = async (req, res) => {
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 };
+
+exports.fetchReferralPayoutTransactionTotal = async (req,res) => {
+   try {
+    const { userid, currentDate } = req.body;
+
+    if (!userid) {
+      return res.status(400).json({ message: "User ID is required." });
+    }
+
+    let fetchTransactionQuery =
+      "SELECT * FROM my_team WHERE userid = ?";
+    let fetchSumQuery =
+      "SELECT SUM(amount) AS totalAmount FROM my_team WHERE userid = ?";
+    let currentDateSumQuery =
+      "SELECT SUM(amount) AS currentDateSum FROM my_team WHERE userid = ? AND DATE(credit_date) = ?";
+    let currentMonthSumQuery =
+      "SELECT SUM(amount) AS currentMonthSum FROM my_team WHERE userid = ? AND MONTH(credit_date) = MONTH(?)";
+
+    const queryParams = [userid];
+
+    if (currentDate) {
+      fetchTransactionQuery += " AND DATE(credit_date) = ?";
+      queryParams.push(currentDate);
+    }
+
+    const [transactionHistory] = await connection
+      .promise()
+      .query(fetchTransactionQuery, queryParams);
+
+    let currentDateSum = 0;
+    let currentMonthSum = 0;
+    let allTransactionSum = 0;
+
+    if (currentDate) {
+      const [currentDateSumResult] = await connection
+        .promise()
+        .query(currentDateSumQuery, [userid, currentDate]);
+      currentDateSum = currentDateSumResult[0].currentDateSum || 0;
+    }
+
+    const [currentMonthSumResult] = await connection
+      .promise()
+      .query(currentMonthSumQuery, [userid, currentDate]);
+
+    currentMonthSum = currentMonthSumResult[0].currentMonthSum || 0;
+
+    const [allTransactionSumResult] = await connection
+      .promise()
+      .query(fetchSumQuery, [userid]);
+
+    allTransactionSum = allTransactionSumResult[0].totalAmount || 0;
+
+    return res.status(200).json({
+      message: "Partner Payout fetched successfully",
+      TodaysPayout:  currentDateSum,
+      MonthPayout:currentMonthSum,
+      TotalPayout: allTransactionSum,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+}
 

@@ -247,6 +247,7 @@ const filterFranchiseByState = require('./routes/portfolio/filter-franchise-by-s
 // --------------------------Partner-----------------------------------------//
 const partnerFetchTransactionHistory = require('./routes/partner/fetch-transaction-history')
 const fetchReferralPayoutForPartner = require ('./routes/partner/fetch-referral-payout-for-partner');
+const fetchReferralPayoutTransactionTotal = require ('./routes/partner/fetch-referral-payout-transaction-total');
 
 const app = express();
 
@@ -475,6 +476,7 @@ app.use('/portfolio',filterFranchiseByState);
 // ------------------------Partner-------------------------//
 app.use('/mining',partnerFetchTransactionHistory);
 app.use('/mining',fetchReferralPayoutForPartner);
+app.use('/mining',fetchReferralPayoutTransactionTotal);
 
 
 module.exports = app;
