@@ -905,12 +905,17 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
   try {
     const { referralId } = req.body;
 
-    // Validate referralId
     if (!referralId) {
       return res.status(400).json({ error: "Referral ID is required." });
     }
 
-    // Find referralId in create_franchise based on referredId
+    let totalFranchiseCount = 0;
+    let todayFranchiseCount = 0;
+    let totalMemberReferralCount = 0;
+    let todayMemberReferralCount = 0;
+    let totalPartnerCount = 0;
+    let todayPartnerCount = 0;
+
     const findReferralIdQuery =
       "SELECT referralId FROM create_franchise WHERE isVerify = 1 AND referredId = ?";
     const findReferralIdResult = await connection
@@ -918,7 +923,14 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
       .query(findReferralIdQuery, [referralId]);
 
     if (!findReferralIdResult[0][0]) {
-      return res.status(404).json({ error: "Referral ID not found in create_franchise." });
+      return res.status(200).json({
+        totalFranchiseCount,
+        todayFranchiseCount,
+        totalMemberReferralCount,
+        todayMemberReferralCount,
+        totalPartnerCount,
+        todayPartnerCount,
+      });
     }
 
     const franchiseReferralId = findReferralIdResult[0][0].referralId;
@@ -929,7 +941,7 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
     const totalFranchiseResult = await connection
       .promise()
       .query(totalFranchiseQuery, [referralId]);
-    const totalFranchiseCount = totalFranchiseResult[0][0].totalFranchiseCount;
+    totalFranchiseCount = totalFranchiseResult[0][0].totalFranchiseCount;
 
     // Fetch today's franchise count
     const todayFranchiseQuery =
@@ -937,12 +949,7 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
     const todayFranchiseResult = await connection
       .promise()
       .query(todayFranchiseQuery, [referralId]);
-    const todayFranchiseCount = todayFranchiseResult[0][0].todayFranchiseCount;
-
-    let totalMemberReferralCount = 0;
-    let todayMemberReferralCount = 0;
-    let totalPartnerCount = 0;
-    let todayPartnerCount = 0;
+    todayFranchiseCount = todayFranchiseResult[0][0].todayFranchiseCount;
 
     // Check if franchiseReferralId is present
     if (franchiseReferralId) {
@@ -1000,8 +1007,6 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
       }
     }
 
-    // Process results as needed
-
     return res.status(200).json({
       totalFranchiseCount,
       todayFranchiseCount,
@@ -1015,3 +1020,5 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+
