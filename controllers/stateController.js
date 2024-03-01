@@ -11,6 +11,7 @@ const {
   isValidPassword,
   isValidUserId,
 } = require("../utils/validation");
+const { connect } = require("..");
 
 exports.loginSHO = async (req, res) => {
   try {
@@ -878,16 +879,49 @@ exports.fetchPartnerByReferralId = async (req, res) => {
   try {
     const { referralId } = req.body;
 
-    const partnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id = ?";
+    console.log(referralId, "referral id");
 
-    const [partnerRows] = await connection
-      .promise()
-      .query(partnerQuery, [referralId]);
+    const franchiseQuery = "SELECT * FROM create_franchise WHERE referredId = ?";
+    const [franchiseRows] = await connection.promise().query(franchiseQuery, [referralId]);
+
+    const franchiseReferredIds = franchiseRows.map((entry) => entry.referralId);
+
+    console.log(franchiseReferredIds, "franchise referralIds");
+
+    const memberQuery = "SELECT * FROM create_member WHERE m_refferid IN (?)";
+    const [memberRows] = await connection.promise().query(memberQuery, [franchiseReferredIds]);
+
+    const memberReferredIds = memberRows.map((member) => member.reffer_id);
+
+    console.log(memberReferredIds, "member referralids");
+
+    let partnerRows = [];
+
+    if (referralId && referralId.length > 0) {
+      console.log("first condition");
+      const partnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      const [result] = await connection.promise().query(partnerQuery, [referralId]);
+      partnerRows = partnerRows.concat(result);
+    }
+
+    if (franchiseReferredIds.length > 0) {
+      console.log("2nd condition");
+      const partnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      const [result] = await connection.promise().query(partnerQuery, [franchiseReferredIds]);
+      partnerRows = partnerRows.concat(result);
+    }
+
+    if (memberReferredIds.length > 0) {
+      console.log("third condition");
+      const partnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      const [result] = await connection.promise().query(partnerQuery, [memberReferredIds]);
+      partnerRows = partnerRows.concat(result);
+    }
+
+    console.log(partnerRows, "partner list");
 
     if (partnerRows.length === 0) {
-      return res
-        .status(200)
-        .json({ message: "No partners found for the given referralId" });
+      return res.status(200).json({ message: "No partners found for the given referralId" });
     }
 
     return res.status(200).json({
@@ -899,6 +933,10 @@ exports.fetchPartnerByReferralId = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+
+
+
 
 
 exports.totalcountFranchiseMemberPartner = async (req, res) => {
