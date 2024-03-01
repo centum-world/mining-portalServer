@@ -5,7 +5,7 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 const connection = require("../config/database");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 
 const { queryAsync } = require("../utils/utility");
 
@@ -159,12 +159,6 @@ exports.memberSignup = (req, res, next) => {
               return res.status(500).json({ message: "Internal server error" });
             }
             const hash = result;
-
-            // Insert member data into the database
-            // const insertQuery =
-            //   "INSERT INTO create_member (m_name, m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_designation, m_quali, m_gender, m_exp, m_salary, m_dob, m_doj, m_userid, m_password, reffer_id, adhar_front_side, adhar_back_side, panCard) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-
-
             const token = jwt.sign(
               { m_userid: m_userid, role: "member" },
               process.env.ACCESS_TOKEN,
@@ -207,18 +201,41 @@ exports.memberSignup = (req, res, next) => {
                     .json({ message: "Internal server error" });
                 }
 
-                // Send an SMS with user details
-                let password = m_password;
-                sms(m_phone, {
-                  type: "Member",
-                  userid: m_userid,
-                  password: password,
-                });
+                // Fetch the inserted member data
+                const fetchMemberQuery =
+                  "SELECT * FROM create_member WHERE m_userid = ?";
 
-                return res.status(200).json({
-                  message: "Member added successfully",
-                  token
-                });
+                connection.query(
+                  fetchMemberQuery,
+                  [m_userid],
+                  (error, memberResult) => {
+                    if (error) {
+                      console.log(error.message);
+                      return res
+                        .status(500)
+                        .json({ message: "Internal server error" });
+                    }
+                    if (memberResult.length === 0) {
+                      return res
+                        .status(500)
+                        .json({ message: "Internal server error" });
+                    }
+
+                    // Send an SMS with user details
+                    let password = m_password;
+                    sms(m_phone, {
+                      type: "Member",
+                      userid: m_userid,
+                      password: password,
+                    });
+
+                    return res.status(200).json({
+                      message: "Member added successfully",
+                      token,
+                      data: memberResult[0],
+                    });
+                  }
+                );
               }
             );
           });
@@ -404,7 +421,6 @@ exports.partnerSignup = async (req, res) => {
       }
     }
 
-
     if (role === "PARTNER") {
       const validPartnerReferralId =
         "select p_refferal_id from mining_partner where p_refferal_id = ?";
@@ -457,17 +473,18 @@ exports.partnerSignup = async (req, res) => {
 
     const rigId = firstCharf + firstCharl + lastRigId;
 
+ 
 
-//creating token
 
-const token = jwt.sign(
-  { p_userid: p_userid, role: "partner" },
-  process.env.ACCESS_TOKEN,
-  { expiresIn: 28800 }
-);
+    //creating token
+
+    const token = jwt.sign(
+      { p_userid: p_userid, role: "partner" },
+      process.env.ACCESS_TOKEN,
+      { expiresIn: 28800 }
+    );
 
     // Insert partner data into the database
-
 
     const insertQuery = `
       INSERT INTO mining_partner 
@@ -503,8 +520,15 @@ const token = jwt.sign(
         panCardLocation,
         rigId,
       ]);
+   //fetched inserted document
 
-    res.status(200).json({ message: "Partner data inserted successfully.", token });
+   const fetchPartnerQuery =
+   "SELECT * FROM mining_partner WHERE p_userid = ?";
+ 
+   const [partnerResult] = await connection.promise().query(fetchPartnerQuery, [p_userid])
+    res
+      .status(200)
+      .json({ message: "Partner data inserted successfully.", token , data: partnerResult[0]});
   } catch (error) {
     console.error("Internal server error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -651,7 +675,7 @@ exports.createSHO = async (req, res) => {
         });
       }
     }
-    
+
     //token create
 
     const token = jwt.sign(
@@ -869,7 +893,6 @@ exports.createFranchise = async (req, res) => {
       process.env.ACCESS_TOKEN,
       { expiresIn: 28800 }
     );
-
 
     // Insert data into the database
     const insertStateHandlerQuery = `
@@ -1128,7 +1151,7 @@ exports.createMultipleRig = async (req, res) => {
       });
     }
 
-    if(fname && lname && dob && userId && liquidity && adharNumber && phone ) {
+    if (fname && lname && dob && userId && liquidity && adharNumber && phone) {
       console.log("2nd cndition");
       const { adhar_front_side, adhar_back_side, panCard } = req.files;
 
@@ -1141,11 +1164,11 @@ exports.createMultipleRig = async (req, res) => {
       const existingPhone = existingPartner[0].p_phone;
       console.log(existingPhone, 1053);
 
-      console.log(phone, 1186)
+      console.log(phone, 1186);
 
       const withoutCountryCodePhone = phone.slice(-10);
 
-      console.log(withoutCountryCodePhone, 1188)
+      console.log(withoutCountryCodePhone, 1188);
 
       if (existingPhone != withoutCountryCodePhone) {
         return res.status(400).json({
@@ -1250,9 +1273,7 @@ exports.createMultipleRig = async (req, res) => {
         liquidity,
         adharNumber,
       ]);
-    }
-
-    else if (userId && liquidity) {
+    } else if (userId && liquidity) {
       console.log(" first condition");
       const [partnerResult] = await connection
         .promise()
@@ -1352,9 +1373,7 @@ exports.createMultipleRig = async (req, res) => {
         ]);
     }
 
-    res
-      .status(200)
-      .json({ message: "New RIG Account created successfully." });
+    res.status(200).json({ message: "New RIG Account created successfully." });
   } catch (error) {
     console.error("Internal server error:", error);
     res.status(500).json({ message: "Internal server error" });
