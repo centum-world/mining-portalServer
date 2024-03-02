@@ -226,7 +226,7 @@ exports.fetchPartnerRefferalId = (req, res) => {
 exports.fetchPartnerMyteamDetails = (req, res) => {
   const partnerId = req.body;
   query =
-    "select p_name,p_lname,p_userid,p_dop from mining_partner where p_reffered_id = ?";
+    "select p_name,p_lname,p_userid,p_dop,p_phone,p_email from mining_partner where p_reffered_id = ?";
   connection.query(query, [partnerId.p_reffered_id], (err, results) => {
     try {
       if (!err) {
