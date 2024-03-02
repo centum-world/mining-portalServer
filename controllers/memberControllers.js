@@ -806,21 +806,19 @@ exports.totalCountPartner = async (req, res) => {
   try {
     const { referralId } = req.body;
 
-    // Validate referralId
     if (!referralId) {
       return res.status(400).json({ message : "Referral ID is required." });
     }
 
-    // Fetch total Partner count
     const totalPartnerQuery =
       "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ?";
     const totalPartnerResult = await connection
       .promise()
       .query(totalPartnerQuery, [referralId]);
 
-    // Check if referralId is found
-    if (totalPartnerResult[0][0].totalPartnerCount === 0) {
-      return res.status(404).json({ message: "Referral ID not found in mining_partner." });
+    let totalPartnerCount = 0;
+    if (totalPartnerResult && totalPartnerResult[0].length > 0) {
+      totalPartnerCount = totalPartnerResult[0][0].totalPartnerCount;
     }
 
     // Fetch today's Partner count
@@ -830,16 +828,22 @@ exports.totalCountPartner = async (req, res) => {
       .promise()
       .query(todayPartnerQuery, [referralId]);
 
+    let todayPartnerCount = 0;
+    if (todayPartnerResult && todayPartnerResult[0].length > 0) {
+      todayPartnerCount = todayPartnerResult[0][0].todayPartnerCount;
+    }
+
     // Process results and return
     return res.status(200).json({
-      totalPartnerCount: totalPartnerResult[0][0].totalPartnerCount,
-      todayPartnerCount: todayPartnerResult[0][0].todayPartnerCount,
+      totalPartnerCount: totalPartnerCount,
+      todayPartnerCount: todayPartnerCount,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 
 exports.fetchMemberTodaysAndTotalPayout = async (req, res) => {
