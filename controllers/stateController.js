@@ -881,15 +881,20 @@ exports.fetchPartnerByReferralId = async (req, res) => {
 
     console.log(referralId, "referral id");
 
-    const franchiseQuery = "SELECT * FROM create_franchise WHERE referredId = ?";
-    const [franchiseRows] = await connection.promise().query(franchiseQuery, [referralId]);
+    const franchiseQuery =
+      "SELECT * FROM create_franchise WHERE referredId = ?";
+    const [franchiseRows] = await connection
+      .promise()
+      .query(franchiseQuery, [referralId]);
 
     const franchiseReferredIds = franchiseRows.map((entry) => entry.referralId);
 
     console.log(franchiseReferredIds, "franchise referralIds");
 
     const memberQuery = "SELECT * FROM create_member WHERE m_refferid IN (?)";
-    const [memberRows] = await connection.promise().query(memberQuery, [franchiseReferredIds]);
+    const [memberRows] = await connection
+      .promise()
+      .query(memberQuery, [franchiseReferredIds]);
 
     const memberReferredIds = memberRows.map((member) => member.reffer_id);
 
@@ -899,29 +904,40 @@ exports.fetchPartnerByReferralId = async (req, res) => {
 
     if (referralId && referralId.length > 0) {
       console.log("first condition");
-      const partnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
-      const [result] = await connection.promise().query(partnerQuery, [referralId]);
+      const partnerQuery =
+        "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      const [result] = await connection
+        .promise()
+        .query(partnerQuery, [referralId]);
       partnerRows = partnerRows.concat(result);
     }
 
     if (franchiseReferredIds.length > 0) {
       console.log("2nd condition");
-      const partnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
-      const [result] = await connection.promise().query(partnerQuery, [franchiseReferredIds]);
+      const partnerQuery =
+        "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      const [result] = await connection
+        .promise()
+        .query(partnerQuery, [franchiseReferredIds]);
       partnerRows = partnerRows.concat(result);
     }
 
     if (memberReferredIds.length > 0) {
       console.log("third condition");
-      const partnerQuery = "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
-      const [result] = await connection.promise().query(partnerQuery, [memberReferredIds]);
+      const partnerQuery =
+        "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      const [result] = await connection
+        .promise()
+        .query(partnerQuery, [memberReferredIds]);
       partnerRows = partnerRows.concat(result);
     }
 
     console.log(partnerRows, "partner list");
 
     if (partnerRows.length === 0) {
-      return res.status(200).json({ message: "No partners found for the given referralId" });
+      return res
+        .status(200)
+        .json({ message: "No partners found for the given referralId" });
     }
 
     return res.status(200).json({
@@ -933,11 +949,6 @@ exports.fetchPartnerByReferralId = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
-
-
-
-
 
 exports.totalcountFranchiseMemberPartner = async (req, res) => {
   try {
@@ -956,11 +967,11 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
 
     const findReferralIdQuery =
       "SELECT referralId FROM create_franchise WHERE isVerify = 1 AND referredId = ?";
-    const findReferralIdResult = await connection
+    const [franchiseRows] = await connection
       .promise()
       .query(findReferralIdQuery, [referralId]);
 
-    if (!findReferralIdResult[0][0]) {
+    if (!franchiseRows[0]) {
       return res.status(200).json({
         totalFranchiseCount,
         todayFranchiseCount,
@@ -971,76 +982,143 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
       });
     }
 
-    const franchiseReferralId = findReferralIdResult[0][0].referralId;
+    const franchiseReferralIds = franchiseRows.map((entry) => entry.referralId);
+
+    console.log(franchiseReferralIds, "973");
 
     // Fetch total franchise count
     const totalFranchiseQuery =
-      "SELECT COUNT(*) AS totalFranchiseCount FROM create_franchise WHERE isVerify = 1 AND referredId = ?";
-    const totalFranchiseResult = await connection
+      "SELECT * FROM create_franchise WHERE isVerify = 1 AND referredId IN (?)";
+
+    const [totalFranchiseResult] = await connection
       .promise()
       .query(totalFranchiseQuery, [referralId]);
-    totalFranchiseCount = totalFranchiseResult[0][0].totalFranchiseCount;
+
+    totalFranchiseCount = totalFranchiseResult.length;
+
+    console.log(totalFranchiseCount, "count");
 
     // Fetch today's franchise count
     const todayFranchiseQuery =
-      "SELECT COUNT(*) AS todayFranchiseCount FROM create_franchise WHERE isVerify = 1 AND referredId = ? AND DATE(verifyDate) = CURDATE()";
-    const todayFranchiseResult = await connection
+      "SELECT COUNT(*) AS todayFranchiseCount FROM create_franchise WHERE isVerify = 1 AND referredId IN (?) AND DATE(verifyDate) = CURDATE()";
+    const [todayFranchiseResult] = await connection
       .promise()
       .query(todayFranchiseQuery, [referralId]);
-    todayFranchiseCount = todayFranchiseResult[0][0].todayFranchiseCount;
+    todayFranchiseCount = todayFranchiseResult[0].todayFranchiseCount;
 
-    // Check if franchiseReferralId is present
-    if (franchiseReferralId) {
+    console.log(todayFranchiseCount, "tday franchise count");
+
+    // Check if franchiseReferralIds are present
+    if (franchiseReferralIds.length > 0) {
+      console.log("2nddddd conditon", franchiseReferralIds);
       // Find referralId in create_member based on m_refferid
       const findReferralIdMemberQuery =
-        "SELECT reffer_id FROM create_member WHERE isVerify = 1 AND m_refferid = ?";
-      const findReferralIdMemberResult = await connection
-        .promise()
-        .query(findReferralIdMemberQuery, [franchiseReferralId]);
+        "SELECT reffer_id FROM create_member WHERE isVerify = 1 AND m_refferid IN (?)";
 
-      if (findReferralIdMemberResult[0][0]) {
-        const memberReferralId = findReferralIdMemberResult[0][0].reffer_id;
+      const [findReferralIdMemberResult] = await connection
+        .promise()
+        .query(findReferralIdMemberQuery, [franchiseReferralIds]);
+
+      console.log(findReferralIdMemberResult, "member result");
+
+      if (findReferralIdMemberResult.length > 0) {
+        console.log("2nd condition");
+
+        const memberReferralIds = findReferralIdMemberResult.map(
+          (member) => member.reffer_id
+        );
+
+        console.log(memberReferralIds, "member referralIds");
 
         // Fetch total member referral count
         const totalMemberReferralQuery =
-          "SELECT COUNT(*) AS totalReferralCount FROM create_member WHERE isVerify = 1 AND m_refferid = ?";
-        const totalMemberReferralResult = await connection
+          "SELECT COUNT(*) AS totalReferralCount FROM create_member WHERE isVerify = 1 AND m_refferid IN (?)";
+
+        const [totalMemberReferralResult] = await connection
           .promise()
-          .query(totalMemberReferralQuery, [franchiseReferralId]);
+          .query(totalMemberReferralQuery, [franchiseReferralIds]);
+
         totalMemberReferralCount =
-          totalMemberReferralResult[0][0].totalReferralCount;
+          totalMemberReferralResult[0].totalReferralCount;
 
         // Fetch today's member referral count
         const todayMemberReferralQuery =
-          "SELECT COUNT(*) AS todayReferralCount FROM create_member WHERE isVerify = 1 AND m_refferid = ? AND DATE(verifyDate) = CURDATE()";
-        const todayMemberReferralResult = await connection
-          .promise()
-          .query(todayMemberReferralQuery, [franchiseReferralId]);
-        todayMemberReferralCount =
-          todayMemberReferralResult[0][0].todayReferralCount;
+          "SELECT COUNT(*) AS todayReferralCount FROM create_member WHERE isVerify = 1 AND m_refferid IN (?) AND DATE(verifyDate) = CURDATE()";
 
-        // Check if memberReferralId is present
-        if (memberReferralId || franchiseReferralId || referralId) {
+        const [todayMemberReferralResult] = await connection
+          .promise()
+          .query(todayMemberReferralQuery, [franchiseReferralIds]);
+        todayMemberReferralCount =
+          todayMemberReferralResult[0].todayReferralCount;
+
+        console.log(
+          referralId,
+          franchiseReferralIds,
+          memberReferralIds,
+          "1043"
+        );
+        // Check if memberReferralIds are present
+        if (referralId) {
+          console.log("3rd 1 condition");
           // Fetch total Partner count
           const totalPartnerQuery =
-            "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ?";
-          const totalPartnerResult = await connection
+            "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id IN (?)";
+          const [totalPartnerResult] = await connection
             .promise()
-            .query(totalPartnerQuery, [
-              memberReferralId || franchiseReferralId || referralId,
-            ]);
+            .query(totalPartnerQuery, [referralId]);
 
           // Fetch today's Partner count
           const todayPartnerQuery =
-            "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id = ? AND DATE(verifyDate) = CURDATE()";
-          const todayPartnerResult = await connection
+            "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id IN (?) AND DATE(verifyDate) = CURDATE()";
+          const [todayPartnerResult] = await connection
             .promise()
-            .query(todayPartnerQuery, [
-              memberReferralId || franchiseReferralId || referralId,
-            ]);
+            .query(todayPartnerQuery, [referralId]);
 
-          totalPartnerCount = totalPartnerResult[0][0].totalPartnerCount;
-          todayPartnerCount = todayPartnerResult[0][0].todayPartnerCount;
+          totalPartnerCount += totalPartnerResult[0].totalPartnerCount;
+          todayPartnerCount += todayPartnerResult[0].todayPartnerCount;
+        }
+
+        if (franchiseReferralIds.length > 0) {
+          console.log("3rd 2 condition");
+
+          console.log(franchiseReferralIds, "franchise referralId");
+          // Fetch total Partner count
+          const totalPartnerQuery =
+            "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id IN (?)";
+          const [totalPartnerResult] = await connection
+            .promise()
+            .query(totalPartnerQuery, [franchiseReferralIds]);
+
+          // Fetch today's Partner count
+          const todayPartnerQuery =
+            "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id IN (?) AND DATE(verifyDate) = CURDATE()";
+          const [todayPartnerResult] = await connection
+            .promise()
+            .query(todayPartnerQuery, [franchiseReferralIds]);
+
+          totalPartnerCount += totalPartnerResult[0].totalPartnerCount;
+          todayPartnerCount += todayPartnerResult[0].todayPartnerCount;
+        }
+
+        if (memberReferralIds.length > 0) {
+          console.log("3rd  3 condition");
+
+          // Fetch total Partner count
+          const totalPartnerQuery =
+            "SELECT COUNT(*) AS totalPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id IN (?)";
+          const [totalPartnerResult] = await connection
+            .promise()
+            .query(totalPartnerQuery, [memberReferralIds]);
+
+          // Fetch today's Partner count
+          const todayPartnerQuery =
+            "SELECT COUNT(*) AS todayPartnerCount FROM mining_partner WHERE isVerify = 1 AND p_reffered_id IN (?) AND DATE(verifyDate) = CURDATE()";
+          const [todayPartnerResult] = await connection
+            .promise()
+            .query(todayPartnerQuery, [memberReferralIds]);
+
+          totalPartnerCount += totalPartnerResult[0].totalPartnerCount;
+          todayPartnerCount += todayPartnerResult[0].todayPartnerCount;
         }
       }
     }
@@ -1059,7 +1137,7 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
   }
 };
 
-exports.fetchReferralMyTeam = async (req,res) => {
+exports.fetchReferralMyTeam = async (req, res) => {
   try {
     const { referralId } = req.body;
 
@@ -1071,29 +1149,25 @@ exports.fetchReferralMyTeam = async (req,res) => {
       "SELECT * from create_member WHERE m_refferid = ?";
 
     // Use connection.query directly
-    connection.query(
-      findReferralQuery,
-      [referralId],
-      (error, result) => {
-        if (error) {
-          console.error("Error fetching Member:", error);
-          return res.status(500).json({ message: "Internal Server Error" });
-        }
-
-        if (result.length === 0) {
-          return res
-            .status(404)
-            .json({ message: "Member not found for the given Referral ID" });
-        }
-
-        return res.status(200).json({
-          message: "All Own Referral fetched successfully",
-          Referral: result,
-        });
+    connection.query(findReferralQuery, [referralId], (error, result) => {
+      if (error) {
+        console.error("Error fetching Member:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
       }
-    );
+
+      if (result.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "Member not found for the given Referral ID" });
+      }
+
+      return res.status(200).json({
+        message: "All Own Referral fetched successfully",
+        Referral: result,
+      });
+    });
   } catch (error) {
     console.error("Error in try-catch block:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
-}
+};
