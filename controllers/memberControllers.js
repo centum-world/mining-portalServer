@@ -187,7 +187,7 @@ exports.addMemberBankDetails = async (req, res) => {
 exports.editMemberBankDetails = async (req, res) => {
   try {
     const { user_id, holder_name, account_no, ifsc_code, branch_name, bank_name } = req.body;
-    
+
     // Check if the user already has a bank account
     const existingBankQuery = "SELECT COUNT(*) AS count FROM bank_details WHERE user_id = ?";
     const [existingBankResult] = await connection.promise().query(existingBankQuery, [user_id]);
@@ -199,10 +199,10 @@ exports.editMemberBankDetails = async (req, res) => {
       });
     }
 
-    // Update bank details
+    // Update bank details and set isVerify to 0
     const updateQuery =
-      "UPDATE bank_details SET holder_name = ?, account_no = ?, ifsc_code = ?, branch_name = ?, bank_name = ? WHERE user_id = ?";
-    
+      "UPDATE bank_details SET holder_name = ?, account_no = ?, ifsc_code = ?, branch_name = ?, bank_name = ?, isVerify = 0 WHERE user_id = ?";
+
     const [results] = await connection.promise().query(updateQuery, [
       holder_name,
       account_no,
@@ -221,6 +221,7 @@ exports.editMemberBankDetails = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 
 

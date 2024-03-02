@@ -5384,7 +5384,9 @@ exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
   try {
     // partner payout table
     const fetchPartnerPayout = "SELECT * FROM partner_payout";
-    const [partnerPayOutResult] = await connection.promise().query(fetchPartnerPayout);
+    const [partnerPayOutResult] = await connection
+      .promise()
+      .query(fetchPartnerPayout);
 
     // Calculate total partner amount
     const totalPartnerAmount = partnerPayOutResult.reduce((total, partner) => {
@@ -5396,13 +5398,13 @@ exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
     const fetchMyTeam = "SELECT * FROM my_team";
     const [myTeamResult] = await connection.promise().query(fetchMyTeam);
 
-        // Initialize totals for each user type with 0
-        let totalAmountByUserType = {
-          PARTNER: 0,
-          FRANCHISE: 0,
-          BMM: 0,
-          MEMBER: 0,
-        };
+    // Initialize totals for each user type with 0
+    let totalAmountByUserType = {
+      PARTNER: 0,
+      FRANCHISE: 0,
+      BMM: 0,
+      MEMBER: 0,
+    };
 
     // Update totals based on entries in my_team table
     myTeamResult.forEach((myTeam) => {
@@ -5470,7 +5472,12 @@ exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
       };
     });
 
-    const totalAmount = totalPartnerAmount + totalAmountByUserType.PARTNER + totalAmountByUserType.MEMBER+ totalAmountByUserType.FRANCHISE+ totalAmountByUserType.BMM
+    const totalAmount =
+      totalPartnerAmount +
+      totalAmountByUserType.PARTNER +
+      totalAmountByUserType.MEMBER +
+      totalAmountByUserType.FRANCHISE +
+      totalAmountByUserType.BMM;
 
     return res.status(200).json({
       message: "fetched filter payout",
@@ -5484,3 +5491,46 @@ exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.verifyBank = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const updateBankVerifyStatus = await connection
+      .promise()
+      .query("UPDATE bank_details SET isVerify = true WHERE id = ?", [id]);
+
+    // Check if any rows were affected
+    if (updateBankVerifyStatus[0].affectedRows > 0) {
+      res
+        .status(200)
+        .json({ message: "Bank verification updated successfully" });
+    } else {
+      res.status(404).json({ error: "Record not found" });
+    }
+  } catch (error) {
+    // Handle errors
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.fetchAllVerifedAndUnverifiedBank = async (req, res) => {
+  try {
+    const [bankList] = await connection
+      .promise()
+      .query("SELECT * FROM bank_details");
+
+    const verifiedBankList = bankList.filter((bank) => bank.isVerify === 1);
+    const unverifiedBankList = bankList.filter((bank) => bank.isVerify === 0);
+
+    const combinedBankList = { verified: verifiedBankList, unverified: unverifiedBankList };
+
+    return res.status(200).json({ message: "fetched verified and unverified bank list",data: combinedBankList});
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).json({ message: "Internal server error", data: [] });
+  }
+};
+
+
+

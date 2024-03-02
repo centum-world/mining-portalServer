@@ -8,9 +8,11 @@ const connection = require("./config/database");
 
 const adminRoute = require("./routes/admin");
 const memberRoute = require("./routes/create-member");
+
+const fetchAllVerifedAndUnverifiedBank = require("./routes/fetch-all-verified-and-unverified-bank")
 const fliterPayoutTotalAndMonthlyWise =  require("./routes/fliter-payout-total-and-monthlywise")
 const miningpartnerRoute = require("./routes/create-mining-partner");
-
+const verifyBank = require("./routes/verify-bank")
 const createMultipleRig = require("./routes/create-multiple-rig")
 const fetchPartnerAndMultipleRig = require("./routes/fetch-partner-and-multiple-rig")
 
@@ -256,6 +258,7 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use("/admin", fetchAllVerifedAndUnverifiedBank)
 app.use("/admin", fetchBond)
 app.use("/admin", uploadBond)
 app.use("/admin", adminRoute);
@@ -369,6 +372,7 @@ app.use('/admin', fetchPartnerReferWithdrawlHistory)
 app.use("/mining", fetchPartnerAndMultipleRig)
 
 // --------------------------admin-------------------//
+app.use('/admin', verifyBank)
 app.use('/admin', fliterPayoutTotalAndMonthlyWise)
 app.use('/admin', verifyMultipleRigPartner)
 app.use("/admin", fetchQuery)
