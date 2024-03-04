@@ -117,7 +117,7 @@ exports.memberSignup = (req, res, next) => {
         }
 
         // Email validation
-        if (!isValidEmail(m_email)) {
+        if (m_email && !isValidEmail(m_email)) {
           return res.status(422).json({
             message: "Invalid email format.",
           });
@@ -291,7 +291,6 @@ exports.partnerSignup = async (req, res) => {
       "p_lname",
       "p_aadhar",
       "p_phone",
-      "p_email",
       "p_address",
       "p_state",
       "p_dob",
@@ -360,7 +359,7 @@ exports.partnerSignup = async (req, res) => {
     }
 
     // Email validation
-    if (!isValidEmail(p_email)) {
+    if (p_email &&!isValidEmail(p_email)) {
       return res.status(422).json({
         message: "Invalid email format.",
       });
@@ -579,7 +578,6 @@ exports.createSHO = async (req, res) => {
   const requiredFields = [
     "fname",
     "lname",
-    "email",
     "phone",
     "password",
     "gender",
@@ -621,7 +619,7 @@ exports.createSHO = async (req, res) => {
     }
 
     // Email validation
-    if (!isValidEmail(email)) {
+    if (email && !isValidEmail(email)) {
       return res.status(422).json({
         message: "Invalid email format.",
       });
@@ -778,7 +776,6 @@ exports.createFranchise = async (req, res) => {
   const requiredFields = [
     "fname",
     "lname",
-    "email",
     "phone",
     "password",
     "gender",
@@ -823,7 +820,7 @@ exports.createFranchise = async (req, res) => {
       });
     }
     //email validation
-    if (!isValidEmail(email)) {
+    if (email && !isValidEmail(email)) {
       return res.status(422).json({
         message: "Invalid email format.",
       });
