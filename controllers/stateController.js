@@ -1136,7 +1136,6 @@ exports.totalcountFranchiseMemberPartner = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 exports.fetchReferralMyTeam = async (req, res) => {
   try {
     const { referralId } = req.body;
@@ -1145,26 +1144,43 @@ exports.fetchReferralMyTeam = async (req, res) => {
       return res.status(404).json({ message: "Referral Id is required" });
     }
 
-    const findReferralQuery =
-      "SELECT * from create_member WHERE m_refferid = ?";
+    const findFranchiseQuery =
+      "SELECT * FROM create_franchise WHERE referredId = ?";
 
-    // Use connection.query directly
-    connection.query(findReferralQuery, [referralId], (error, result) => {
-      if (error) {
-        console.error("Error fetching Member:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
-      }
+    const [franchiseResult] = await connection
+      .promise()
+      .query(findFranchiseQuery, [referralId]);
 
-      if (result.length === 0) {
-        return res
-          .status(404)
-          .json({ message: "Member not found for the given Referral ID" });
-      }
+    if (franchiseResult.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Franchise not found for the given Referral ID" });
+    }
 
-      return res.status(200).json({
-        message: "All Own Referral fetched successfully",
-        Referral: result,
-      });
+    const franchiseReferralId = franchiseResult.map(
+      (franchise) => franchise.referralId
+    );
+
+    console.log(franchiseReferralId, "franchise referral Id");
+
+    const findMemberQuery =
+      "SELECT * FROM create_member WHERE m_refferid  IN (?)";
+
+    const [memberResult] = await connection
+      .promise()
+      .query(findMemberQuery, [franchiseReferralId]);
+
+    console.log(memberResult, "member result");
+
+    if (memberResult.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Member not found for the given Referral ID" });
+    }
+
+    return res.status(200).json({
+      message: "All Own Referral fetched successfully",
+      Referral: memberResult,
     });
   } catch (error) {
     console.error("Error in try-catch block:", error);
