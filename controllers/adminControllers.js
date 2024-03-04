@@ -5423,17 +5423,22 @@ exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
       {}
     );
 
-    // Calculate monthly wise amounts in my_team (bmm, franchise, and member)
-    const monthlyWiseMyTeamAmount = myTeamResult.reduce(
-      (monthlyAmounts, myTeam) => {
-        const payoutDate = moment(myTeam.credit_date).format("YYYY-M");
-        monthlyAmounts[payoutDate] =
-          (monthlyAmounts[payoutDate] || 0) + myTeam.amount;
-        return monthlyAmounts;
-      },
-      {}
-    );
+    console.log(monthlyWisePartnerAmount, 5426)
 
+    // Calculate monthly wise amounts in my_team (bmm, franchise, and member)
+  // Calculate monthly wise amounts in my_team (bmm, franchise, and member)
+const monthlyWiseMyTeamAmount = myTeamResult.reduce(
+  (monthlyAmounts, myTeam) => {
+    const payoutDate = moment(myTeam.credit_date).format("YYYY-M");
+    monthlyAmounts[payoutDate] =
+      (monthlyAmounts[payoutDate] || 0) + myTeam.amount;
+    return monthlyAmounts;
+  },
+  {}
+);
+
+console.log(monthlyWiseMyTeamAmount, 5438)
+    
     // Combine monthly amounts from both tables for the same month and year
     const combinedMonthlyAmounts = {};
 
@@ -5443,34 +5448,40 @@ exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
       ...Object.keys(monthlyWiseMyTeamAmount),
     ]);
 
+    console.log(allKeys, 5451)
+
     // Combine data for each unique key
     allKeys.forEach((monthYear) => {
+      console.log('Processing monthYear:', monthYear);
+    
+      const partnerAmount = monthlyWisePartnerAmount[monthYear] || 0;
+      const myTeamAmount = monthlyWiseMyTeamAmount[monthYear] || 0;
+    
       combinedMonthlyAmounts[monthYear] = {
-        totalAmount:
-          (monthlyWisePartnerAmount[monthYear] || 0) +
-          (monthlyWiseMyTeamAmount[monthYear] || 0),
-        partnerAmount: monthlyWisePartnerAmount[monthYear] || 0,
-        myTeamAmount: monthlyWiseMyTeamAmount[monthYear] || 0,
+        totalAmount: partnerAmount + myTeamAmount,
+        partnerAmount,
+        myTeamAmount,
         userTypeAmounts: {
-          BMM:
-            myTeamResult
-              .filter((item) => item.userType.toUpperCase() === "BMM")
-              .reduce((total, item) => total + item.amount, 0) || 0,
-          FRANCHISE:
-            myTeamResult
-              .filter((item) => item.userType.toUpperCase() === "FRANCHISE")
-              .reduce((total, item) => total + item.amount, 0) || 0,
-          MEMBER:
-            myTeamResult
-              .filter((item) => item.userType.toUpperCase() === "MEMBER")
-              .reduce((total, item) => total + item.amount, 0) || 0,
-          PARTNER:
-            myTeamResult
-              .filter((item) => item.userType.toUpperCase() === "PARTNER")
-              .reduce((total, item) => total + item.amount, 0) || 0,
+          BMM: myTeamResult
+            .filter((item) => item.userType.toUpperCase() === 'BMM' && moment(item.credit_date).format("YYYY-M") === monthYear)
+            .reduce((total, item) => total + item.amount, 0) || 0,
+          FRANCHISE: myTeamResult
+            .filter((item) => item.userType.toUpperCase() === 'FRANCHISE' && moment(item.credit_date).format("YYYY-M") === monthYear)
+            .reduce((total, item) => total + item.amount, 0) || 0,
+          MEMBER: myTeamResult
+            .filter((item) => item.userType.toUpperCase() === 'MEMBER' && moment(item.credit_date).format("YYYY-M") === monthYear)
+            .reduce((total, item) => total + item.amount, 0) || 0,
+          PARTNER: myTeamResult
+            .filter((item) => item.userType.toUpperCase() === 'PARTNER' && moment(item.credit_date).format("YYYY-M") === monthYear)
+            .reduce((total, item) => total + item.amount, 0) || 0,
         },
       };
+    
+      console.log('combinedMonthlyAmounts[monthYear]:', combinedMonthlyAmounts[monthYear]);
     });
+    
+    
+    
 
     const totalAmount =
       totalPartnerAmount +
