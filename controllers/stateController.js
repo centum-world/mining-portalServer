@@ -1170,8 +1170,6 @@ exports.fetchReferralMyTeam = async (req, res) => {
       .promise()
       .query(findMemberQuery, [franchiseReferralId]);
 
-    console.log(memberResult, "member result");
-
     if (memberResult.length === 0) {
       return res
         .status(404)
