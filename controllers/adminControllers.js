@@ -1143,8 +1143,12 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
           const franchiseid = franchise.franchiseId;
           let target = franchise.target;
           const userType = franchise.userType;
+          console.log(liquidity, "liquidity test")
           const afterGstLiquidity = (liquidity * 18) / 100;
           const afterGstAmount = liquidity - afterGstLiquidity;
+
+          const referAmount =(afterGstAmount * 12) / 100
+
           franchiseWallet += (afterGstAmount * 12) / 100;
           target += liquidity;
           const date = new Date();
@@ -1165,7 +1169,7 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
             .promise()
             .query(insertFranchiseIntoMyTeam, [
               franchiseid,
-              franchiseWallet,
+              referAmount,
               p_userid,
               date,
               userType,
