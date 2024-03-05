@@ -5671,4 +5671,265 @@ exports.fetchBmmLastThreeMonthsTarget = async (req, res) => {
   }
 };
 
+//downgrade bmm to member
+exports.downgradeBmm = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    const fetchBMMQuery = "SELECT * FROM create_sho WHERE stateHandlerId = ?";
+    const [result] = await connection.promise().query(fetchBMMQuery, [userId]);
+
+    if (result.length > 0) {
+      const {
+        fname,
+        lname,
+        phone,
+        referredId,
+        selectedState,
+        email,
+        gender,
+        stateHandlerId: userid,
+        password,
+        stateHandlerWallet: wallet,
+        isVerify,
+        verifyDate,
+        isBlocked,
+        adhar_front_side,
+        adhar_back_side,
+        panCard,
+        priority,
+      } = result[0];
+
+      if (priority === 1) {
+
+        console.log("first")
+        const checkIfBmmIsMemberBefore = "SELECT * FROM create_member WHERE m_userid = ?";
+        const [memberResult] = await connection.promise().query(checkIfBmmIsMemberBefore, [userid]);
+
+        if (memberResult.length === 0) {
+          console.log("first first")
+          const downgradeBmmToMember =
+            "INSERT INTO create_member(m_name, m_lname, m_phone, m_refferid, m_state, m_email, m_gender, m_userid, m_password, reffer_id, member_wallet, isVerify, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType, verifyDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          await connection.promise().query(downgradeBmmToMember, [
+            fname,
+            lname,
+            phone,
+            referredId,
+            selectedState,
+            email,
+            gender,
+            userid,
+            password,
+            referredId,
+            wallet,
+            isVerify,
+            isBlocked,
+            adhar_front_side,
+            adhar_back_side,
+            panCard,
+            1, // priority for member
+            0, // target for member
+            'BMM', // userType for member
+            verifyDate
+          ]);
+
+          const updateBmmTable =
+            "UPDATE create_sho SET priority = 0, stateHandlerWallet = 0, target = 0, isVerify = 0 WHERE stateHandlerId = ?";
+          await connection.promise().query(updateBmmTable, [userid]);
+
+          return res.status(200).json({ message: "BMM manually downgraded to member successfully" });
+        } else {
+
+          console.log("cehck")
+          return res.status(400).json({ message: "BMM is already a member" });
+        }
+      } else {
+        console.log("secomd")
+        return res.status(400).json({ message: "User is not a BMM" });
+      }
+    } else {
+      return res.status(400).json({ message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error in try-catch block:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.fetchFranchiseLastThreeMonthsTarget = async (req, res) => {
+  try {
+    const { referralId } = req.body;
+
+    console.log(referralId, "referral id");
+
+    const memberQuery = "SELECT * FROM create_member WHERE m_refferid IN (?)";
+    const [memberRows] = await connection
+      .promise()
+      .query(memberQuery, [referralId]);
+
+    const memberReferredIds = memberRows.map((member) => member.reffer_id);
+
+    console.log(memberReferredIds, "member referralids");
+
+    let partnerRows = [];
+
+    if (referralId && referralId.length > 0) {
+      console.log("first condition");
+      const partnerQuery =
+        "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      const [result] = await connection
+        .promise()
+        .query(partnerQuery, [referralId]);
+      partnerRows = partnerRows.concat(result);
+    }
+
+    if (memberReferredIds.length > 0) {
+      console.log("second condition");
+      const partnerQuery =
+        "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      const [result] = await connection
+        .promise()
+        .query(partnerQuery, [memberReferredIds]);
+      partnerRows = partnerRows.concat(result);
+    }
+
+    if (partnerRows.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No partners found for the given referralId" });
+    }
+    // console.log(partnerRows, "partner list");
+
+    const currentDate = new Date();
+
+    const lastThreeMonthsLiquidity = {
+      lastMonth: 0,
+      secondLastMonth: 0,
+      thirdLastMonth: 0,
+    };
+    let oneMonthBeforeDate = new Date(currentDate);
+    oneMonthBeforeDate.setMonth(currentDate.getMonth() - 1);
+
+    console.log(oneMonthBeforeDate)
+
+    let secondMonthBeforeDate = new Date(currentDate);
+    secondMonthBeforeDate.setMonth(currentDate.getMonth() - 2);
+
+    let thirdMonthBeforeDate = new Date(currentDate);
+    thirdMonthBeforeDate.setMonth(currentDate.getMonth() - 3);
+
+    partnerRows.forEach((partner) => {
+      // Check if verifyDate is a valid date
+      if (partner.verifyDate instanceof Date && !isNaN(partner.verifyDate)) {
+        const verifyDate = partner.verifyDate;
+        
+        if (verifyDate >= thirdMonthBeforeDate && verifyDate < secondMonthBeforeDate) {
+          lastThreeMonthsLiquidity.thirdLastMonth += partner.p_liquidity;
+        } else if (verifyDate >= secondMonthBeforeDate && verifyDate < oneMonthBeforeDate) {
+          lastThreeMonthsLiquidity.secondLastMonth += partner.p_liquidity;
+        } else if (verifyDate >= oneMonthBeforeDate && verifyDate <= currentDate) {
+          lastThreeMonthsLiquidity.lastMonth += partner.p_liquidity;
+        }
+      }
+    });
+
+    if (partnerRows.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No partners found for the given referralId" });
+    }
+
+    return res.status(200).json({
+      message: "Last three month achieved target fetched successfully",
+      lastThreeMonthsLiquidity,
+    });
+  } catch (error) {
+    console.error("Error fetching partners:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+//downgrade to member
+// downgrade franchise to member
+
+exports.downgradeFranchise = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    const fetchFranchiseQuery = "SELECT * FROM create_franchise WHERE franchiseId = ?";
+    const [result] = await connection.promise().query(fetchFranchiseQuery, [userId]);
+
+    if (result.length > 0) {
+      const {
+        fname,
+        flname,
+        fphone,
+        f_referred_id,
+        f_state,
+        f_email,
+        f_gender,
+        f_userid: userId,
+        f_password: password,
+        f_refferal_id: referralId,
+        franchise_wallet: wallet,
+        isVerify,
+        verifyDate,
+        isBlocked,
+        adhar_front_side,
+        adhar_back_side,
+        panCard,
+        priority,
+      } = result[0];
+
+      if (priority === 1) {
+        const checkIfFranchiseIsMemberBefore = "SELECT * FROM create_member WHERE m_userid = ?";
+        const [memberResult] = await connection.promise().query(checkIfFranchiseIsMemberBefore, [userId]);
+
+        if (memberResult.length === 0) {
+          const downgradeFranchiseToMember =
+            "INSERT INTO create_member(m_name, m_lname, m_phone, m_refferid, m_state, m_email, m_gender, m_userid, m_password, reffer_id, member_wallet, isVerify, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType, verifyDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          await connection.promise().query(downgradeFranchiseToMember, [
+            f_name,
+            f_lname,
+            f_phone,
+            f_referred_id,
+            f_state,
+            f_email,
+            f_gender,
+            userId,
+            password,
+            referralId,
+            wallet,
+            isVerify,
+            isBlocked,
+            adhar_front_side,
+            adhar_back_side,
+            panCard,
+            1, // priority for member
+            0, // target for member
+            'FRANCHISE', // userType for member
+            verifyDate
+          ]);
+
+          const updateFranchiseTable =
+            "UPDATE create_franchise SET priority = 0, franchise_wallet = 0, target = 0, isVerify = 0 WHERE id = ?";
+          await connection.promise().query(updateFranchiseTable, [userId]);
+
+          return res.status(200).json({ message: "Franchise manually downgraded to member successfully" });
+        } else {
+          return res.status(400).json({ message: "Franchise is already a member" });
+        }
+      } else {
+        return res.status(400).json({ message: "User is not a Franchise" });
+      }
+    } else {
+      return res.status(400).json({ message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error in try-catch block:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
 

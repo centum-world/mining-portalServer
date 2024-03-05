@@ -9,6 +9,9 @@ const connection = require("./config/database");
 const adminRoute = require("./routes/admin");
 const memberRoute = require("./routes/create-member");
 
+const fetchFranchiseLastThreeMonthsTarget = require("./routes/fetch-franchise-last-three-months-target")
+const downgradeBmm = require("./routes/downgrade-bmm.js")
+
 const fetchAllVerifedAndUnverifiedBank = require("./routes/fetch-all-verified-and-unverified-bank")
 const fliterPayoutTotalAndMonthlyWise =  require("./routes/fliter-payout-total-and-monthlywise")
 const miningpartnerRoute = require("./routes/create-mining-partner");
@@ -259,6 +262,7 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use("/admin", downgradeBmm)
 app.use("/admin", fetchAllVerifedAndUnverifiedBank)
 app.use("/admin", fetchBond)
 app.use("/admin", uploadBond)
@@ -401,6 +405,7 @@ app.use('/admin', uploadPanCardBd)
 app.use('/admin',fetchVerifiedBmm)
 
 app.use('/admin', fetchBmmLastThreeMonthsTarget)
+app.use('/admin', fetchFranchiseLastThreeMonthsTarget)
 
 app.use('/admin', uplaodAdharCardFrontSideFranchise)
 app.use('/admin', uploadAdharCardBackSideFranchise)

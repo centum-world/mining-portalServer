@@ -117,7 +117,6 @@ exports.fetchParticularFranchise = async (req, res) => {
 //verify franchise
 
 exports.verifyFranchise = async (req, res) => {
-  let lastExecutionTimestamp = 0;
   try {
     const { franchiseId, isVerify } = req.body;
 
@@ -126,7 +125,6 @@ exports.verifyFranchise = async (req, res) => {
     }
 
     let verifyDate = new Date();
-    console.log(verifyDate, "127");
     const upadteFranchiseQuery =
       "UPDATE create_franchise SET isVerify =?, verifyDate = ? WHERE franchiseId = ?";
 
