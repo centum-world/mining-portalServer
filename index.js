@@ -52,6 +52,7 @@ const fetchPartnerWallet = require("./routes/partner-wallet");
 const fetchMemebrMyteamFromPartner = require("./routes/fetch-member-myteam-details-from-partner");
 
 //const updatePartnerWallet = require('./routes/update-partner-wallet');
+const upgradeMemberToBMM = require("./routes/upgrade-member-to-bmmm")
 const fetchMiningPartnerWallet = require("./routes/fetch-mining-partner-wallet");
 
 const fetchPartnerWalletDailyHistory = require("./routes/fetch-partner-wallet-daily-history");
@@ -379,7 +380,8 @@ app.use('/admin', fetchPartnerReferWithdrawlHistory)
 
 app.use("/mining", fetchPartnerAndMultipleRig)
 
-// --------------------------admin-------------------//
+// --------------------------admin-------------------//4
+app.use("/admin", upgradeMemberToBMM)
 app.use("/admin", fetchMemberLastThreeMonthsTarget)
 app.use("/admin", upgradeFranchiseToBMM)
 app.use("/admin", downgradeFranchise)

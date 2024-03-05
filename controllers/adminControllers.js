@@ -6090,5 +6090,80 @@ exports.fetchMemberLastThreeMonthsTarget = async (req, res) => {
   }
 };
 
+// Upgrade member to BMM
+exports.upgradeMemberToBMM = async (req, res) => {
+  try {
+    const { userId } = req.body;
 
+    // Fetch member data
+    const fetchMemberQuery = "SELECT * FROM create_member WHERE m_userid = ?";
+    const [memberResult] = await connection.promise().query(fetchMemberQuery, [userId]);
 
+    if (memberResult.length > 0) {
+      const {
+        m_name: fname,
+        m_lname: lname,
+        m_phone: phone,
+        m_refferid: referralId,
+        m_state: selectedState,
+        m_email: email,
+        m_gender: gender,
+        m_userid: userid,
+        m_password: password,
+        member_wallet: wallet,
+        isVerify,
+        isBlocked,
+        adhar_front_side,
+        adhar_back_side,
+        panCard,
+        priority,
+        target,
+        userType,
+        verifyDate
+      } = memberResult[0];
+
+      // Check if the member is not already a BMM
+      if (userType !== 'BMM') {
+        // Insert data into create_sho table
+        const upgradeMemberToBMM =
+          "INSERT INTO create_sho(fname, lname, phone, referralId, referredId, selectedState, email, gender, stateHandlerId, password, stateHandlerWallet, isVerify, verifyDate, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        await connection.promise().query(upgradeMemberToBMM, [
+          fname,
+          lname,
+          phone,
+          referralId,
+          userid,
+          selectedState,
+          email,
+          gender,
+          userid,
+          password,
+          wallet,
+          isVerify,
+          verifyDate,
+          isBlocked,
+          adhar_front_side,
+          adhar_back_side,
+          panCard,
+          priority,
+          target,
+          'BMM' // Set userType as BMM
+        ]);
+
+        // Update member table after upgrade
+        const updateMemberTable =
+          "UPDATE create_member SET userType = 'BMM' WHERE m_userid = ?";
+        await connection.promise().query(updateMemberTable, [userid]);
+
+        return res.status(200).json({ message: "Member upgraded to BMM successfully" });
+      } else {
+        return res.status(400).json({ message: "Member is already a BMM" });
+      }
+    } else {
+      return res.status(400).json({ message: "Member not found" });
+    }
+  } catch (error) {
+    console.error("Error in try-catch block:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
