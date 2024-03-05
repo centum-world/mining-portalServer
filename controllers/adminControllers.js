@@ -5722,7 +5722,7 @@ exports.downgradeBmm = async (req, res) => {
             password,
             referredId,
             wallet,
-            isVerify,
+            0, //unverified
             isBlocked,
             adhar_front_side,
             adhar_back_side,
@@ -5849,9 +5849,7 @@ exports.fetchFranchiseLastThreeMonthsTarget = async (req, res) => {
   }
 };
 
-//downgrade to member
 // downgrade franchise to member
-
 exports.downgradeFranchise = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -5862,23 +5860,25 @@ exports.downgradeFranchise = async (req, res) => {
     if (result.length > 0) {
       const {
         fname,
-        flname,
-        fphone,
-        f_referred_id,
-        f_state,
-        f_email,
-        f_gender,
-        f_userid: userId,
-        f_password: password,
-        f_refferal_id: referralId,
-        franchise_wallet: wallet,
+        lname,
+        phone,
+        referralId,
+        referredId,
+        franchiseState: state,
+        email,
+        gender,
+        franchiseId: userid,
+        password,
+        franchiseWallet: wallet,
         isVerify,
-        verifyDate,
         isBlocked,
-        adhar_front_side,
-        adhar_back_side,
+        adhar_front_side: aadharFront,
+        adhar_back_side: aadharBack,
         panCard,
+        m_dob: dob,
         priority,
+        userType,
+        target,
       } = result[0];
 
       if (priority === 1) {
@@ -5889,21 +5889,21 @@ exports.downgradeFranchise = async (req, res) => {
           const downgradeFranchiseToMember =
             "INSERT INTO create_member(m_name, m_lname, m_phone, m_refferid, m_state, m_email, m_gender, m_userid, m_password, reffer_id, member_wallet, isVerify, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType, verifyDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
           await connection.promise().query(downgradeFranchiseToMember, [
-            f_name,
-            f_lname,
-            f_phone,
-            f_referred_id,
-            f_state,
-            f_email,
-            f_gender,
-            userId,
+            fname,
+            lname,
+            phone,
+            referredId,
+            state,
+            email,
+            gender,
+            userid,
             password,
             referralId,
             wallet,
             isVerify,
             isBlocked,
-            adhar_front_side,
-            adhar_back_side,
+            aadharFront,
+            aadharBack,
             panCard,
             1, // priority for member
             0, // target for member
@@ -5912,7 +5912,7 @@ exports.downgradeFranchise = async (req, res) => {
           ]);
 
           const updateFranchiseTable =
-            "UPDATE create_franchise SET priority = 0, franchise_wallet = 0, target = 0, isVerify = 0 WHERE id = ?";
+            "UPDATE create_franchise SET priority = 0, franchise_wallet = 0, target = 0, isVerify = 0 WHERE franchiseId = ?";
           await connection.promise().query(updateFranchiseTable, [userId]);
 
           return res.status(200).json({ message: "Franchise manually downgraded to member successfully" });
@@ -5930,6 +5930,7 @@ exports.downgradeFranchise = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 
 

@@ -11,6 +11,7 @@ const memberRoute = require("./routes/create-member");
 
 const fetchFranchiseLastThreeMonthsTarget = require("./routes/fetch-franchise-last-three-months-target")
 const downgradeBmm = require("./routes/downgrade-bmm.js")
+const downgradeFranchise = require("./routes/downgrade-franchise.js")
 
 const fetchAllVerifedAndUnverifiedBank = require("./routes/fetch-all-verified-and-unverified-bank")
 const fliterPayoutTotalAndMonthlyWise =  require("./routes/fliter-payout-total-and-monthlywise")
@@ -377,6 +378,7 @@ app.use('/admin', fetchPartnerReferWithdrawlHistory)
 app.use("/mining", fetchPartnerAndMultipleRig)
 
 // --------------------------admin-------------------//
+app.use("/admin", downgradeFranchise)
 app.use('/admin', verifyBank)
 app.use('/admin', fliterPayoutTotalAndMonthlyWise)
 app.use('/admin', verifyMultipleRigPartner)
