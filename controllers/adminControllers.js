@@ -5720,7 +5720,7 @@ exports.downgradeBmm = async (req, res) => {
             gender,
             userid,
             password,
-            referredId,
+            referralId,
             wallet,
             0, //unverified
             isBlocked,
@@ -5879,6 +5879,7 @@ exports.downgradeFranchise = async (req, res) => {
         priority,
         userType,
         target,
+        verifyDate
       } = result[0];
 
       if (priority === 1) {
@@ -5887,7 +5888,7 @@ exports.downgradeFranchise = async (req, res) => {
 
         if (memberResult.length === 0) {
           const downgradeFranchiseToMember =
-            "INSERT INTO create_member(m_name, m_lname, m_phone, m_refferid, m_state, m_email, m_gender, m_userid, m_password, reffer_id, member_wallet, isVerify, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType, verifyDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "INSERT INTO create_member(m_name, m_lname, m_phone, m_refferid, m_state, m_email, m_gender, m_userid, m_password, reffer_id, member_wallet, isVerify, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType, verifyDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
           await connection.promise().query(downgradeFranchiseToMember, [
             fname,
             lname,
@@ -5912,7 +5913,7 @@ exports.downgradeFranchise = async (req, res) => {
           ]);
 
           const updateFranchiseTable =
-            "UPDATE create_franchise SET priority = 0, franchise_wallet = 0, target = 0, isVerify = 0 WHERE franchiseId = ?";
+            "UPDATE create_franchise SET priority = 0, franchiseWallet = 0, target = 0, isVerify = 0 WHERE franchiseId = ?";
           await connection.promise().query(updateFranchiseTable, [userId]);
 
           return res.status(200).json({ message: "Franchise manually downgraded to member successfully" });
@@ -5931,6 +5932,84 @@ exports.downgradeFranchise = async (req, res) => {
   }
 };
 
+//upgrade franchise to bmm (inserrt franchise data in create_sho table)
+// Upgrade franchise to BMM
+exports.upgradeFranchiseToBMM = async (req, res) => {
+  try {
+    const { userId } = req.body;
 
+    // Fetch franchise data
+    const fetchFranchiseQuery = "SELECT * FROM create_franchise WHERE franchiseId = ?";
+    const [franchiseResult] = await connection.promise().query(fetchFranchiseQuery, [userId]);
 
+    if (franchiseResult.length > 0) {
+      const {
+        fname,
+        lname,
+        phone,
+        referralId,
+        referredId,
+        franchiseState: state,
+        email,
+        gender,
+        franchiseId: userid,
+        password,
+        franchiseWallet: wallet,
+        isVerify,
+        isBlocked,
+        adhar_front_side: aadharFront,
+        adhar_back_side: aadharBack,
+        panCard,
+        m_dob: dob,
+        priority,
+        userType,
+        target,
+        verifyDate
+      } = franchiseResult[0];
 
+      // Check if the franchise is not already a BMM
+      if (userType !== 'BMM') {
+        // Insert data into create_sho table
+        const upgradeFranchiseToBMM =
+          "INSERT INTO create_sho(fname, lname, phone, referralId, referredId, selectedState, email, gender, stateHandlerId, password, stateHandlerWallet, isVerify, verifyDate, isBlocked, adhar_front_side, adhar_back_side, panCard, m_dob, priority, target, userType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        await connection.promise().query(upgradeFranchiseToBMM, [
+          fname,
+          lname,
+          phone,
+          referralId,
+          referredId,
+          state,
+          email,
+          gender,
+          userid,
+          password,
+          wallet,
+          isVerify,
+          verifyDate,
+          isBlocked,
+          aadharFront,
+          aadharBack,
+          panCard,
+          dob,
+          priority,
+          target,
+          'FRANCHISE' // Set userType as BMM
+        ]);
+
+        // Update franchise table after upgrade
+        const updateFranchiseTable =
+          "UPDATE create_franchise SET userType = 'BMM' WHERE franchiseId = ?";
+        await connection.promise().query(updateFranchiseTable, [userid]);
+
+        return res.status(200).json({ message: "Franchise upgraded to BMM successfully" });
+      } else {
+        return res.status(400).json({ message: "Franchise is already a BMM" });
+      }
+    } else {
+      return res.status(400).json({ message: "Franchise not found" });
+    }
+  } catch (error) {
+    console.error("Error in try-catch block:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
