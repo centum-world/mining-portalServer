@@ -5932,7 +5932,6 @@ exports.downgradeFranchise = async (req, res) => {
   }
 };
 
-//upgrade franchise to bmm (inserrt franchise data in create_sho table)
 // Upgrade franchise to BMM
 exports.upgradeFranchiseToBMM = async (req, res) => {
   try {
@@ -5971,7 +5970,7 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
       if (userType !== 'BMM') {
         // Insert data into create_sho table
         const upgradeFranchiseToBMM =
-          "INSERT INTO create_sho(fname, lname, phone, referralId, referredId, selectedState, email, gender, stateHandlerId, password, stateHandlerWallet, isVerify, verifyDate, isBlocked, adhar_front_side, adhar_back_side, panCard, m_dob, priority, target, userType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          "INSERT INTO create_sho(fname, lname, phone, referralId, referredId, selectedState, email, gender, stateHandlerId, password, stateHandlerWallet, isVerify, verifyDate, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         await connection.promise().query(upgradeFranchiseToBMM, [
           fname,
           lname,
@@ -5990,7 +5989,6 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
           aadharFront,
           aadharBack,
           panCard,
-          dob,
           priority,
           target,
           'FRANCHISE' // Set userType as BMM
@@ -6013,3 +6011,84 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+//fetch last 3 month for member target
+
+exports.fetchMemberLastThreeMonthsTarget = async (req, res) => {
+  try {
+    const { referralId } = req.body;
+
+    console.log(referralId, "referral id");
+
+
+    let partnerRows = [];
+
+    if (referralId ) {
+      console.log("first condition");
+      const partnerQuery =
+        "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      const [result] = await connection
+        .promise()
+        .query(partnerQuery, [referralId]);
+      partnerRows = partnerRows.concat(result);
+    }
+
+
+    if (partnerRows.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No partners found for the given referralId" });
+    }
+    // console.log(partnerRows, "partner list");
+
+    const currentDate = new Date();
+
+    const lastThreeMonthsLiquidity = {
+      lastMonth: 0,
+      secondLastMonth: 0,
+      thirdLastMonth: 0,
+    };
+    let oneMonthBeforeDate = new Date(currentDate);
+    oneMonthBeforeDate.setMonth(currentDate.getMonth() - 1);
+
+    console.log(oneMonthBeforeDate)
+
+    let secondMonthBeforeDate = new Date(currentDate);
+    secondMonthBeforeDate.setMonth(currentDate.getMonth() - 2);
+
+    let thirdMonthBeforeDate = new Date(currentDate);
+    thirdMonthBeforeDate.setMonth(currentDate.getMonth() - 3);
+
+    partnerRows.forEach((partner) => {
+      // Check if verifyDate is a valid date
+      if (partner.verifyDate instanceof Date && !isNaN(partner.verifyDate)) {
+        const verifyDate = partner.verifyDate;
+        
+        if (verifyDate >= thirdMonthBeforeDate && verifyDate < secondMonthBeforeDate) {
+          lastThreeMonthsLiquidity.thirdLastMonth += partner.p_liquidity;
+        } else if (verifyDate >= secondMonthBeforeDate && verifyDate < oneMonthBeforeDate) {
+          lastThreeMonthsLiquidity.secondLastMonth += partner.p_liquidity;
+        } else if (verifyDate >= oneMonthBeforeDate && verifyDate <= currentDate) {
+          lastThreeMonthsLiquidity.lastMonth += partner.p_liquidity;
+        }
+      }
+    });
+
+    if (partnerRows.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No partners found for the given referralId" });
+    }
+
+    return res.status(200).json({
+      message: "Last three month achieved target fetched successfully",
+      lastThreeMonthsLiquidity,
+    });
+  } catch (error) {
+    console.error("Error fetching partners:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+

@@ -10,6 +10,7 @@ const adminRoute = require("./routes/admin");
 const memberRoute = require("./routes/create-member");
 
 const fetchFranchiseLastThreeMonthsTarget = require("./routes/fetch-franchise-last-three-months-target")
+const fetchMemberLastThreeMonthsTarget = require("./routes/fetch-member-last-three-months-target")
 const upgradeFranchiseToBMM = require("./routes/upgrde-franchise-to-bmm")
 const downgradeBmm = require("./routes/downgrade-bmm.js")
 const downgradeFranchise = require("./routes/downgrade-franchise.js")
@@ -379,6 +380,7 @@ app.use('/admin', fetchPartnerReferWithdrawlHistory)
 app.use("/mining", fetchPartnerAndMultipleRig)
 
 // --------------------------admin-------------------//
+app.use("/admin", fetchMemberLastThreeMonthsTarget)
 app.use("/admin", upgradeFranchiseToBMM)
 app.use("/admin", downgradeFranchise)
 app.use('/admin', verifyBank)
