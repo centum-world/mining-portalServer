@@ -23,6 +23,7 @@ const memberPortalProfileDetailsRoute = require("./routes/fetch-member");
 const miningPartnerLoginRoute = require("./routes/mining-partner-login");
 const miningPortalProfileDetailsRoute = require("./routes/fetch-mining-partner-details");
 
+const fetchBmmLastThreeMonthsTarget = require('./routes/fetch-bmm-last-three-months-target')
 const addPartnerBankDetails = require("./routes/partner_bank_details");
 const fetchPartnerBankDetails = require("./routes/fetch-partner-bank-details");
 
@@ -398,6 +399,8 @@ app.use('/admin', uploadAdharCardFrontSideBd)
 app.use('/admin', uploadAdharCardBackSideBd)
 app.use('/admin', uploadPanCardBd)
 app.use('/admin',fetchVerifiedBmm)
+
+app.use('/admin', fetchBmmLastThreeMonthsTarget)
 
 app.use('/admin', uplaodAdharCardFrontSideFranchise)
 app.use('/admin', uploadAdharCardBackSideFranchise)

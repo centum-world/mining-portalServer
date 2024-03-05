@@ -5561,3 +5561,114 @@ exports.fetchAllVerifedAndUnverifiedBank = async (req, res) => {
     return res.status(500).json({ message: "Internal server error", data: [] });
   }
 };
+
+//fetch last 3 each month target if target is available
+exports.fetchBmmLastThreeMonthsTarget = async (req, res) => {
+  try {
+    const { referralId } = req.body;
+
+    console.log(referralId, "referral id");
+
+    const franchiseQuery =
+      "SELECT * FROM create_franchise WHERE referredId = ?";
+    const [franchiseRows] = await connection
+      .promise()
+      .query(franchiseQuery, [referralId]);
+
+    const franchiseReferredIds = franchiseRows.map((entry) => entry.referralId);
+
+    console.log(franchiseReferredIds, "franchise referralIds");
+
+    const memberQuery = "SELECT * FROM create_member WHERE m_refferid IN (?)";
+    const [memberRows] = await connection
+      .promise()
+      .query(memberQuery, [franchiseReferredIds]);
+
+    const memberReferredIds = memberRows.map((member) => member.reffer_id);
+
+    console.log(memberReferredIds, "member referralids");
+
+    let partnerRows = [];
+
+    if (referralId && referralId.length > 0) {
+      console.log("first condition");
+      const partnerQuery =
+        "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      const [result] = await connection
+        .promise()
+        .query(partnerQuery, [referralId]);
+      partnerRows = partnerRows.concat(result);
+    }
+
+    if (franchiseReferredIds.length > 0) {
+      console.log("2nd condition");
+      const partnerQuery =
+        "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      const [result] = await connection
+        .promise()
+        .query(partnerQuery, [franchiseReferredIds]);
+      partnerRows = partnerRows.concat(result);
+    }
+
+    if (memberReferredIds.length > 0) {
+      console.log("third condition");
+      const partnerQuery =
+        "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
+      const [result] = await connection
+        .promise()
+        .query(partnerQuery, [memberReferredIds]);
+      partnerRows = partnerRows.concat(result);
+    }
+
+    // console.log(partnerRows, "partner list");
+
+    const currentDate = new Date();
+
+    const lastThreeMonthsLiquidity = {
+      lastMonth: 0,
+      secondLastMonth: 0,
+      thirdLastMonth: 0,
+    };
+    let oneMonthBeforeDate = new Date(currentDate);
+    oneMonthBeforeDate.setMonth(currentDate.getMonth() - 1);
+
+    console.log(oneMonthBeforeDate)
+
+    let secondMonthBeforeDate = new Date(currentDate);
+    secondMonthBeforeDate.setMonth(currentDate.getMonth() - 2);
+
+    let thirdMonthBeforeDate = new Date(currentDate);
+    thirdMonthBeforeDate.setMonth(currentDate.getMonth() - 3);
+
+    partnerRows.forEach((partner) => {
+      // Check if verifyDate is a valid date
+      if (partner.verifyDate instanceof Date && !isNaN(partner.verifyDate)) {
+        const verifyDate = partner.verifyDate;
+        
+        if (verifyDate >= thirdMonthBeforeDate && verifyDate < secondMonthBeforeDate) {
+          lastThreeMonthsLiquidity.thirdLastMonth += partner.p_liquidity;
+        } else if (verifyDate >= secondMonthBeforeDate && verifyDate < oneMonthBeforeDate) {
+          lastThreeMonthsLiquidity.secondLastMonth += partner.p_liquidity;
+        } else if (verifyDate >= oneMonthBeforeDate && verifyDate <= currentDate) {
+          lastThreeMonthsLiquidity.lastMonth += partner.p_liquidity;
+        }
+      }
+    });
+
+    if (partnerRows.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No partners found for the given referralId" });
+    }
+
+    return res.status(200).json({
+      message: "Partners fetched successfully",
+      lastThreeMonthsLiquidity,
+    });
+  } catch (error) {
+    console.error("Error fetching partners:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
