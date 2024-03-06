@@ -5764,20 +5764,20 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
           userid,
           password,
           wallet,
-          isVerify,
+          0,
           verifyDate,
           isBlocked,
           aadharFront,
           aadharBack,
           panCard,
-          priority,
+          1,
           target,
           "FRANCHISE", // Set userType as BMM
         ]);
 
         // Update franchise table after upgrade
         const updateFranchiseTable =
-          "UPDATE create_franchise SET userType = 'BMM' WHERE franchiseId = ?";
+          "UPDATE create_franchise SET isVerify =0,priority=0,userType = 'BMM' WHERE franchiseId = ?";
         await connection.promise().query(updateFranchiseTable, [userid]);
 
         return res
