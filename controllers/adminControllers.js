@@ -6090,8 +6090,9 @@ exports.fetchMemberLastThreeMonthsTarget = async (req, res) => {
   }
 };
 
-// Upgrade member to BMM
-exports.upgradeMemberToBMM = async (req, res) => {
+// Upgrade member to franchise
+// Upgrade member to franchise
+exports.upgradeMemberToFranchise = async (req, res) => {
   try {
     const { userId } = req.body;
 
@@ -6124,10 +6125,10 @@ exports.upgradeMemberToBMM = async (req, res) => {
 
       // Check if the member is not already a BMM
       if (userType !== 'BMM') {
-        // Insert data into create_sho table
-        const upgradeMemberToBMM =
-          "INSERT INTO create_sho(fname, lname, phone, referralId, referredId, selectedState, email, gender, stateHandlerId, password, stateHandlerWallet, isVerify, verifyDate, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        await connection.promise().query(upgradeMemberToBMM, [
+        // Insert data into create_franchise table
+        const insertFranchiseQuery =
+          "INSERT INTO create_franchise(fname, lname, phone, referralId, referredId, franchiseState, email, gender, franchiseId, password, franchiseWallet, isVerify, verifyDate, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        await connection.promise().query(insertFranchiseQuery, [
           fname,
           lname,
           phone,
@@ -6147,7 +6148,7 @@ exports.upgradeMemberToBMM = async (req, res) => {
           panCard,
           priority,
           target,
-          'BMM' // Set userType as BMM
+          'MEMBER' // Set userType as MEMBER
         ]);
 
         // Update member table after upgrade
@@ -6155,7 +6156,7 @@ exports.upgradeMemberToBMM = async (req, res) => {
           "UPDATE create_member SET userType = 'BMM' WHERE m_userid = ?";
         await connection.promise().query(updateMemberTable, [userid]);
 
-        return res.status(200).json({ message: "Member upgraded to BMM successfully" });
+        return res.status(200).json({ message: "Member upgraded to franchise successfully" });
       } else {
         return res.status(400).json({ message: "Member is already a BMM" });
       }

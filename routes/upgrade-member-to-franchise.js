@@ -3,9 +3,9 @@ const express = require('express');
 const router = express.Router();
 
 const { isAuthenticated, authorizeRole } = require('../middleware/checkAuth');
-const {  upgradeMemberToBMM } = require('../controllers/adminControllers');
+const {   upgradeMemberToFranchise } = require('../controllers/adminControllers');
 
-router.post('/ugrade-member-to-bmm',isAuthenticated, authorizeRole(["admin"]), upgradeMemberToBMM);
+router.post('/ugrade-member-to-franchise',isAuthenticated, authorizeRole(["admin"]), upgradeMemberToFranchise);
 
 
 
