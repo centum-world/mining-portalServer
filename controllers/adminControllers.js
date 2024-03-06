@@ -5949,7 +5949,6 @@ exports.upgradeMemberToFranchise = async (req, res) => {
           email,
           gender,
           userid,
-          userid,
           password,
           wallet,
            0,
