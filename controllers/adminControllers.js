@@ -5926,6 +5926,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
         target,
         userType,
         verifyDate,
+        m_add
       } = memberResult[0];
 
       if (!verifyDate) {
@@ -5936,7 +5937,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
       if (userType !== "BMM") {
         // Insert data into create_franchise table
         const insertFranchiseQuery =
-          "INSERT INTO create_franchise(fname, lname, phone, referralId, referredId, franchiseState, email, gender, franchiseId, password, franchiseWallet, isVerify, verifyDate, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          "INSERT INTO create_franchise(fname, lname, phone, referralId, referredId, franchiseState, email, gender, franchiseId, password, franchiseWallet, isVerify, verifyDate, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType,franchiseCity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         await connection.promise().query(insertFranchiseQuery, [
           fname,
           lname,
@@ -5958,6 +5959,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
           priority,
           target,
           "MEMBER", // Set userType as MEMBER
+          m_add,
         ]);
 
         // Update member table after upgrade
