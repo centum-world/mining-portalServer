@@ -5675,7 +5675,7 @@ exports.downgradeFranchise = async (req, res) => {
             password,
             referralId,
             wallet,
-            isVerify,
+            0,//verify
             isBlocked,
             aadharFront,
             aadharBack,
