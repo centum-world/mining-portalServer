@@ -5659,7 +5659,9 @@ exports.downgradeFranchise = async (req, res) => {
       } = result[0];
 
       if (!verifyDate) {
-        return res.status(400).json({ message: "This franchise is not verified" });
+        return res
+          .status(400)
+          .json({ message: "This franchise is not verified" });
       }
 
       if (priority === 1) {
@@ -5684,7 +5686,7 @@ exports.downgradeFranchise = async (req, res) => {
             password,
             referralId,
             wallet,
-            0,//verify
+            0, //verify
             isBlocked,
             aadharFront,
             aadharBack,
@@ -5757,7 +5759,9 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
       } = franchiseResult[0];
 
       if (!verifyDate) {
-        return res.status(400).json({ message: "This franchise is not verified" });
+        return res
+          .status(400)
+          .json({ message: "This franchise is not verified" });
       }
 
       // Check if the franchise is not already a BMM
@@ -5927,15 +5931,31 @@ exports.upgradeMemberToFranchise = async (req, res) => {
         userType,
         verifyDate,
         m_add,
-        reffer_id
+        reffer_id,
       } = memberResult[0];
 
       if (!verifyDate) {
-        return res.status(400).json({ message: "This referral is not verified" });
+        return res
+          .status(400)
+          .json({ message: "This referral is not verified" });
       }
 
       // Check if the member is not already a BMM
       if (userType !== "BMM") {
+        const [existingFranchiseResult] = await connection
+          .promise()
+          .query("select * from create_franchise where franchiseId =?", userId);
+
+        if (existingFranchiseResult.length > 0) {
+          //delete fanchise
+          await connection
+            .promise()
+            .query(
+              "DELETE FROM create_franchise WHERE franchiseId = ?",
+              userId
+            );
+        }
+
         // Insert data into create_franchise table
         const insertFranchiseQuery =
           "INSERT INTO create_franchise(fname, lname, phone, referralId, referredId, franchiseState, email, gender, franchiseId, password, franchiseWallet, isVerify, verifyDate, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType,franchiseCity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -5951,7 +5971,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
           userid,
           password,
           wallet,
-           0,
+          0,
           verifyDate,
           0,
           adhar_front_side,
