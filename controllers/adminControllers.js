@@ -5441,6 +5441,7 @@ exports.downgradeBmm = async (req, res) => {
         lname,
         phone,
         referredId,
+        referralId,
         selectedState,
         email,
         gender,
