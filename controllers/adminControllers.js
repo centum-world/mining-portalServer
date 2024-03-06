@@ -5473,10 +5473,8 @@ exports.downgradeBmm = async (req, res) => {
           .promise()
           .query(checkIfBmmIsMemberBefore, [userid]);
 
-
         if (memberResult.length === 0) {
           console.log("first first");
-
 
           const downgradeBmmToMember =
             "INSERT INTO create_member(m_name, m_lname, m_phone, m_refferid, m_state, m_email, m_gender, m_userid, m_password, reffer_id, member_wallet, isVerify, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType, verifyDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -5511,17 +5509,18 @@ exports.downgradeBmm = async (req, res) => {
             message: "BMM manually downgraded to member successfully",
           });
         } else {
-
-
-          updateMember = await connection.promise().query("update create_member set priority=1 where m_userid = ?", [userId])
+          updateMember = await connection
+            .promise()
+            .query("update create_member set priority=1 where m_userid = ?", [
+              userId,
+            ]);
           const updateBmmTable =
-          "UPDATE create_sho SET priority = 0, stateHandlerWallet = 0, target = 0, isVerify = 0 WHERE stateHandlerId = ?";
-        await connection.promise().query(updateBmmTable, [userid]);
-          
+            "UPDATE create_sho SET priority = 0, stateHandlerWallet = 0, target = 0, isVerify = 0 WHERE stateHandlerId = ?";
+          await connection.promise().query(updateBmmTable, [userid]);
+
           return res.status(200).json({
             message: "BMM manually downgraded to member successfully",
           });
-
         }
       } else {
         console.log("secomd");
@@ -5687,7 +5686,7 @@ exports.downgradeFranchise = async (req, res) => {
           .promise()
           .query(checkIfFranchiseIsMemberBefore, [userId]);
 
-        if (memberResult[0].priority === 0 || memberResult.length === 0) {
+        if (memberResult.length === 0) {
           const downgradeFranchiseToMember =
             "INSERT INTO create_member(m_name, m_lname, m_phone, m_refferid, m_state, m_email, m_gender, m_userid, m_password, reffer_id, member_wallet, isVerify, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType, verifyDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
           await connection.promise().query(downgradeFranchiseToMember, [
@@ -5721,9 +5720,19 @@ exports.downgradeFranchise = async (req, res) => {
             message: "Franchise manually downgraded to member successfully",
           });
         } else {
-          return res
-            .status(400)
-            .json({ message: "Franchise is already a member" });
+          await connection
+            .promise()
+            .query("update create_member set priority = 1 where m_userid = ?", [
+              userId,
+            ]);
+
+          const updateFranchiseTable =
+            "UPDATE create_franchise SET priority = 0, franchiseWallet = 0, target = 0, isVerify = 0 WHERE franchiseId = ?";
+          await connection.promise().query(updateFranchiseTable, [userId]);
+
+          return res.status(200).json({
+            message: "Franchise manually downgraded to member successfully",
+          });
         }
       } else {
         return res.status(400).json({ message: "User is not a Franchise" });
@@ -5780,10 +5789,9 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
           .json({ message: "This franchise is not verified" });
       }
 
+      // Check if the member is not already a BMM
 
-        // Check if the member is not already a BMM
-
-        const [existingBMMResult] = await connection
+      const [existingBMMResult] = await connection
         .promise()
         .query("select * from create_sho where stateHandlerId =?", userId);
 
@@ -5793,8 +5801,6 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
           .promise()
           .query("DELETE FROM create_sho WHERE stateHandlerId = ?", userId);
       }
-
-
 
       // Check if the franchise is not already a BMM
       // Insert data into create_sho table
