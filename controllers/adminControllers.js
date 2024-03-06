@@ -5959,7 +5959,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
           adhar_back_side,
           panCard,
           1,
-          target,
+          0,
           "MEMBER", // Set userType as MEMBER
           m_add,
         ]);
