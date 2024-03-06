@@ -5512,9 +5512,10 @@ exports.downgradeBmm = async (req, res) => {
         } else {
 
 
-
           updateMember = await connection.promise().query("update create_member set priority=1 where m_userid = ?", [userId])
-
+          const updateBmmTable =
+          "UPDATE create_sho SET priority = 0, stateHandlerWallet = 0, target = 0, isVerify = 0 WHERE stateHandlerId = ?";
+        await connection.promise().query(updateBmmTable, [userid]);
           
           return res.status(200).json({
             message: "BMM manually downgraded to member successfully",
