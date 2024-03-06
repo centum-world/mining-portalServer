@@ -5669,7 +5669,7 @@ exports.downgradeFranchise = async (req, res) => {
           .promise()
           .query(checkIfFranchiseIsMemberBefore, [userId]);
 
-        if (memberResult.length === 0) {
+        if (memberResult[0].priority =0 || memberResult.length ===0) {
           const downgradeFranchiseToMember =
             "INSERT INTO create_member(m_name, m_lname, m_phone, m_refferid, m_state, m_email, m_gender, m_userid, m_password, reffer_id, member_wallet, isVerify, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType, verifyDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
           await connection.promise().query(downgradeFranchiseToMember, [
