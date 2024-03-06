@@ -5475,6 +5475,8 @@ exports.downgradeBmm = async (req, res) => {
 
         if (memberResult.length === 0) {
           console.log("first first");
+
+
           const downgradeBmmToMember =
             "INSERT INTO create_member(m_name, m_lname, m_phone, m_refferid, m_state, m_email, m_gender, m_userid, m_password, reffer_id, member_wallet, isVerify, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType, verifyDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
           await connection.promise().query(downgradeBmmToMember, [
@@ -5508,7 +5510,16 @@ exports.downgradeBmm = async (req, res) => {
             message: "BMM manually downgraded to member successfully",
           });
         } else {
-          return res.status(400).json({ message: "BMM is already a member" });
+
+
+
+          updateMember = await connection.promise().query("update create_member set priority=1 where m_userid = ?", [userId])
+
+          
+          return res.status(200).json({
+            message: "BMM manually downgraded to member successfully",
+          });
+
         }
       } else {
         console.log("secomd");
