@@ -5926,7 +5926,8 @@ exports.upgradeMemberToFranchise = async (req, res) => {
         target,
         userType,
         verifyDate,
-        m_add
+        m_add,
+        reffer_id
       } = memberResult[0];
 
       if (!verifyDate) {
@@ -5942,7 +5943,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
           fname,
           lname,
           phone,
-          referralId,
+          reffer_id,
           userid,
           selectedState,
           email,
