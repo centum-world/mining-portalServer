@@ -5775,7 +5775,7 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
         .query("select * from create_sho where stateHandlerId =?", userId);
 
       if (existingBMMResult.length > 0) {
-        //delete fanchise
+        //delete bmm
         await connection
           .promise()
           .query("DELETE FROM create_sho WHERE stateHandlerId = ?", userId);
@@ -5792,7 +5792,7 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
         lname,
         phone,
         referralId,
-        referredId,
+        "admin123",
         state,
         email,
         gender,
