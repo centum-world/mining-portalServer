@@ -5936,7 +5936,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
           userid,
           password,
           wallet,
-          isVerify = 0,
+           0,
           verifyDate,
           isBlocked,
           adhar_front_side,
