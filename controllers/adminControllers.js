@@ -5456,6 +5456,10 @@ exports.downgradeBmm = async (req, res) => {
         priority,
       } = result[0];
 
+      if (!verifyDate) {
+        return res.status(400).json({ message: "This BMM is not verified" });
+      }
+
       if (priority === 1) {
         console.log("first");
         const checkIfBmmIsMemberBefore =
@@ -5653,6 +5657,10 @@ exports.downgradeFranchise = async (req, res) => {
         verifyDate,
       } = result[0];
 
+      if (!verifyDate) {
+        return res.status(400).json({ message: "This franchise is not verified" });
+      }
+
       if (priority === 1) {
         const checkIfFranchiseIsMemberBefore =
           "SELECT * FROM create_member WHERE m_userid = ?";
@@ -5746,6 +5754,10 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
         target,
         verifyDate,
       } = franchiseResult[0];
+
+      if (!verifyDate) {
+        return res.status(400).json({ message: "This franchise is not verified" });
+      }
 
       // Check if the franchise is not already a BMM
       if (userType !== "BMM") {
@@ -5916,7 +5928,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
       } = memberResult[0];
 
       if (!verifyDate) {
-        return res.status(400).json({ message: "This member is not verified" });
+        return res.status(400).json({ message: "This referral is not verified" });
       }
 
       // Check if the member is not already a BMM
