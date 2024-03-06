@@ -5958,7 +5958,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
           adhar_front_side,
           adhar_back_side,
           panCard,
-          priority,
+          1,
           target,
           "MEMBER", // Set userType as MEMBER
           m_add,
