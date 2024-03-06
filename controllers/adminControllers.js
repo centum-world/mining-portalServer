@@ -5326,14 +5326,20 @@ exports.fetchBmmLastThreeMonthsTarget = async (req, res) => {
 
     console.log(franchiseReferredIds, "franchise referralIds");
 
-    const memberQuery = "SELECT * FROM create_member WHERE m_refferid IN (?)";
-    const [memberRows] = await connection
-      .promise()
-      .query(memberQuery, [franchiseReferredIds]);
+    if(franchiseReferredIds.length> 0){
+      const memberQuery = "SELECT * FROM create_member WHERE m_refferid IN (?)";
+      const [memberRows] = await connection
+        .promise()
+        .query(memberQuery, [franchiseReferredIds]);
+  
+      const memberReferredIds = memberRows.map((member) => member.reffer_id);
+  
+      console.log(memberReferredIds, "member referralids");
 
-    const memberReferredIds = memberRows.map((member) => member.reffer_id);
 
-    console.log(memberReferredIds, "member referralids");
+    }
+
+
 
     let partnerRows = [];
 
