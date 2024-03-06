@@ -1143,11 +1143,11 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
           const franchiseid = franchise.franchiseId;
           let target = franchise.target;
           const userType = franchise.userType;
-          console.log(liquidity, "liquidity test")
+          console.log(liquidity, "liquidity test");
           const afterGstLiquidity = (liquidity * 18) / 100;
           const afterGstAmount = liquidity - afterGstLiquidity;
 
-          const referAmount =(afterGstAmount * 12) / 100
+          const referAmount = (afterGstAmount * 12) / 100;
 
           franchiseWallet += (afterGstAmount * 12) / 100;
           target += liquidity;
@@ -2943,13 +2943,8 @@ exports.blockAndUnblockSho = async (req, res) => {
 
 //adminVerifyMember
 exports.adminVerifyMember = async (req, res) => {
-  let lastExecutionTimestamp = 0;
   try {
     const { m_userid, isVerify, verifyDate } = req.body;
-
-    if (typeof isVerify != "boolean") {
-      return res.status(400).json({ message: "Invalid 'isVerify' value" });
-    }
 
     const upadteMemberQuery =
       "UPDATE create_member SET isVerify =?,verifyDate = ? WHERE m_userid = ?";
@@ -2966,252 +2961,6 @@ exports.adminVerifyMember = async (req, res) => {
         if (result.affectedRows == 0) {
           return res.status(200).json({ message: "Member not found" });
         }
-
-        let fetchVerifyDate =
-          "select verifyDate from create_member where m_userid = ? ";
-        connection.query(fetchVerifyDate, [m_userid], (err, result) => {
-          if (result.length > 0) {
-            lastExecutionTimestamp = result[0]?.verifyDate;
-            console.log(lastExecutionTimestamp, "150");
-          }
-        });
-
-        cron.schedule("* * * * *", () => {
-          const currentTimestamp = Date.now();
-          if (
-            currentTimestamp - lastExecutionTimestamp >=
-            30 * 24 * 3600 * 1000
-          ) {
-            let selectMemberDetails =
-              "select * from create_member where m_userid = ?";
-            connection.query(selectMemberDetails, [m_userid], (err, result) => {
-              if (err) {
-                return res.status(500).json({
-                  message: "Internal server error",
-                });
-              }
-              if (result.length > 0) {
-                const fname = result[0].m_name;
-                const lname = result[0].m_lname;
-                const phone = result[0].m_phone;
-                const address = result[0].m_add;
-                const referralId = result[0].reffer_id;
-                const referredId = result[0].m_refferid;
-                const state = result[0].m_state;
-                const email = result[0].m_email;
-                const gender = result[0].m_gender;
-                const verifydate = new Date();
-                const userid = result[0].m_userid;
-                const password = result[0].m_password;
-                const wallet = result[0]?.member_wallet;
-                let isVerify = result[0].isVerify;
-                const isBlocked = result[0].isBlocked;
-                const aadharFront = result[0].adhar_front_side;
-                const aadharBack = result[0].adhar_back_side;
-                const panCard = result[0].panCard;
-                const designation = result[0].m_designation;
-                const qualification = result[0].m_quali;
-                const experiance = result[0].m_exp;
-                const salary = result[0].m_salary;
-                const dob = result[0].m_dob;
-                let priority = result[0]?.priority;
-                const userType = result[0].userType;
-
-                const target = result[0]?.target;
-                if (target < 1800000 && priority === 1) {
-                  const updateMemberQuery =
-                    "update create_member set target = 0 where m_userid = ?";
-
-                  connection.query(
-                    updateMemberQuery,
-                    [userid],
-                    (err, result) => {
-                      if (err) {
-                        console.error(err.message);
-                        return res
-                          .status(500)
-                          .json({ message: "Internal server error" });
-                      }
-                      if (result.affectedRows > 0) {
-                        console.log("You are still a Member");
-                      }
-                    }
-                  );
-                }
-                if (target >= 1800000 && priority === 1) {
-                  let checkIfThisMemberIsFranchise =
-                    "select * from create_franchise where franchiseId = ?";
-                  connection.query(
-                    checkIfThisMemberIsFranchise,
-                    [userid],
-                    (err, result) => {
-                      if (err) {
-                        console.log(err.message);
-                        return res
-                          .status(500)
-                          .json({ message: "Inetrnal server error" });
-                      } else {
-                        if (result.length > 0) {
-                          let updateFranchiseTableAgainFranchise =
-                            "update create_franchise SET priority = 1 ,franchiseWallet = ? where franchiseId = ?";
-                          connection.query(
-                            updateFranchiseTableAgainFranchise,
-                            [wallet, userid],
-                            (err, result) => {
-                              if (err) {
-                                console.log(err);
-                                return res
-                                  .status(500)
-                                  .json({ message: "internal server error" });
-                              } else {
-                                let updateMemberTable =
-                                  "update create_member SET priority = 0 , target = 0, member_wallet = 0 , isVerify = 0 where m_userid = ?";
-                                connection.query(
-                                  updateMemberTable,
-                                  [userid],
-                                  (err, result) => {
-                                    console.log(err);
-                                    if (err) {
-                                      return res.status(500).json({
-                                        message: "Something went wrong",
-                                      });
-                                    } else {
-                                      console.log(
-                                        "Member Data updated successfully"
-                                      );
-                                    }
-                                  }
-                                );
-                              }
-                            }
-                          );
-                        } else {
-                          const updateMemberToFranchise = `
-                  INSERT INTO create_franchise (fname, lname, phone, email, gender, password, franchiseId, franchiseState, franchiseCity,referredId, adhar_front_side,adhar_back_side, panCard, referralId,franchiseWallet,isVerify,isBlocked,priority,userType)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `;
-                          connection.query(
-                            updateMemberToFranchise,
-                            [
-                              fname,
-                              lname,
-                              phone,
-                              email,
-                              gender,
-                              password,
-                              userid,
-                              state,
-                              address,
-                              referredId,
-                              aadharFront,
-                              aadharBack,
-                              panCard,
-                              referralId,
-                              // verifydate,
-                              wallet,
-                              (isVerify = 0),
-                              isBlocked,
-                              (priority = 1),
-                              userType,
-                            ],
-                            (err, result) => {
-                              if (err) {
-                                console.log(err);
-                                return res.status(500).json({
-                                  mesaage: "Internal Server Error",
-                                });
-                              } else {
-                                const updateMemberTable =
-                                  "UPDATE create_member SET priority = 0 , target = 0,member_wallet = 0, isVerify = 0  WHERE m_userid = ?";
-                                connection.query(
-                                  updateMemberTable,
-                                  [userid],
-                                  (err, result) => {
-                                    if (err) {
-                                      console.log(err);
-                                      return res.status(500).send({
-                                        message: "Something went to wrong",
-                                      });
-                                    } else {
-                                      const foundFranchiseOfUpgradeMember =
-                                        "select * from create_franchise where referralId = ?";
-                                      connection.query(
-                                        foundFranchiseOfUpgradeMember,
-                                        [referredId],
-                                        (err, result) => {
-                                          if (err) {
-                                            console.log(err);
-                                            return res.status(500).json({
-                                              message: "Something went wrong",
-                                            });
-                                          } else {
-                                            const franchiseReferralId =
-                                              result[0]?.referralId;
-
-                                            const franchiseAllDetails =
-                                              "select * from create_franchise where referralId = ?";
-                                            connection.query(
-                                              franchiseAllDetails,
-                                              [franchiseReferralId],
-                                              (err, result) => {
-                                                if (err) {
-                                                  console.log(err);
-                                                  return res.status(500).json({
-                                                    mesaage:
-                                                      "Something went to wrong",
-                                                  });
-                                                } else {
-                                                  const franchiseReferredId =
-                                                    result[0].referredId;
-                                                  // const franchiseId = result[0].franchiseId
-                                                  const updateUpgradeFranchise =
-                                                    "update create_franchise SET referredId = ? where franchiseId = ?";
-                                                  connection.query(
-                                                    updateUpgradeFranchise,
-                                                    [
-                                                      franchiseReferredId,
-                                                      userid,
-                                                    ],
-                                                    (err, result) => {
-                                                      if (err) {
-                                                        console.log(err);
-                                                        return res
-                                                          .status(500)
-                                                          .json({
-                                                            message:
-                                                              "Something went wrong",
-                                                          });
-                                                      } else {
-                                                        console.log(
-                                                          "You have become now Franchise"
-                                                        );
-                                                      }
-                                                    }
-                                                  );
-                                                }
-                                              }
-                                            );
-                                          }
-                                        }
-                                      );
-                                    }
-                                  }
-                                );
-                              }
-                            }
-                          );
-                        }
-                      }
-                    }
-                  );
-                }
-              }
-            });
-          } else {
-            console.log("It's not time to run the logic yet.");
-          }
-          // Your task logic goes here
-        });
 
         return res
           .status(200)
@@ -5550,12 +5299,10 @@ exports.fetchAllVerifedAndUnverifiedBank = async (req, res) => {
       unverified: unverifiedBankList,
     };
 
-    return res
-      .status(200)
-      .json({
-        message: "fetched verified and unverified bank list",
-        data: combinedBankList,
-      });
+    return res.status(200).json({
+      message: "fetched verified and unverified bank list",
+      data: combinedBankList,
+    });
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ message: "Internal server error", data: [] });
@@ -5632,7 +5379,7 @@ exports.fetchBmmLastThreeMonthsTarget = async (req, res) => {
     let oneMonthBeforeDate = new Date(currentDate);
     oneMonthBeforeDate.setMonth(currentDate.getMonth() - 1);
 
-    console.log(oneMonthBeforeDate)
+    console.log(oneMonthBeforeDate);
 
     let secondMonthBeforeDate = new Date(currentDate);
     secondMonthBeforeDate.setMonth(currentDate.getMonth() - 2);
@@ -5644,12 +5391,21 @@ exports.fetchBmmLastThreeMonthsTarget = async (req, res) => {
       // Check if verifyDate is a valid date
       if (partner.verifyDate instanceof Date && !isNaN(partner.verifyDate)) {
         const verifyDate = partner.verifyDate;
-        
-        if (verifyDate >= thirdMonthBeforeDate && verifyDate < secondMonthBeforeDate) {
+
+        if (
+          verifyDate >= thirdMonthBeforeDate &&
+          verifyDate < secondMonthBeforeDate
+        ) {
           lastThreeMonthsLiquidity.thirdLastMonth += partner.p_liquidity;
-        } else if (verifyDate >= secondMonthBeforeDate && verifyDate < oneMonthBeforeDate) {
+        } else if (
+          verifyDate >= secondMonthBeforeDate &&
+          verifyDate < oneMonthBeforeDate
+        ) {
           lastThreeMonthsLiquidity.secondLastMonth += partner.p_liquidity;
-        } else if (verifyDate >= oneMonthBeforeDate && verifyDate <= currentDate) {
+        } else if (
+          verifyDate >= oneMonthBeforeDate &&
+          verifyDate <= currentDate
+        ) {
           lastThreeMonthsLiquidity.lastMonth += partner.p_liquidity;
         }
       }
@@ -5701,13 +5457,15 @@ exports.downgradeBmm = async (req, res) => {
       } = result[0];
 
       if (priority === 1) {
-
-        console.log("first")
-        const checkIfBmmIsMemberBefore = "SELECT * FROM create_member WHERE m_userid = ?";
-        const [memberResult] = await connection.promise().query(checkIfBmmIsMemberBefore, [userid]);
+        console.log("first");
+        const checkIfBmmIsMemberBefore =
+          "SELECT * FROM create_member WHERE m_userid = ?";
+        const [memberResult] = await connection
+          .promise()
+          .query(checkIfBmmIsMemberBefore, [userid]);
 
         if (memberResult.length === 0) {
-          console.log("first first")
+          console.log("first first");
           const downgradeBmmToMember =
             "INSERT INTO create_member(m_name, m_lname, m_phone, m_refferid, m_state, m_email, m_gender, m_userid, m_password, reffer_id, member_wallet, isVerify, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType, verifyDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
           await connection.promise().query(downgradeBmmToMember, [
@@ -5729,22 +5487,23 @@ exports.downgradeBmm = async (req, res) => {
             panCard,
             1, // priority for member
             0, // target for member
-            'BMM', // userType for member
-            verifyDate
+            "BMM", // userType for member
+            verifyDate,
           ]);
 
           const updateBmmTable =
             "UPDATE create_sho SET priority = 0, stateHandlerWallet = 0, target = 0, isVerify = 0 WHERE stateHandlerId = ?";
           await connection.promise().query(updateBmmTable, [userid]);
 
-          return res.status(200).json({ message: "BMM manually downgraded to member successfully" });
+          return res.status(200).json({
+            message: "BMM manually downgraded to member successfully",
+          });
         } else {
-
-          console.log("cehck")
+          console.log("cehck");
           return res.status(400).json({ message: "BMM is already a member" });
         }
       } else {
-        console.log("secomd")
+        console.log("secomd");
         return res.status(400).json({ message: "User is not a BMM" });
       }
     } else {
@@ -5810,7 +5569,7 @@ exports.fetchFranchiseLastThreeMonthsTarget = async (req, res) => {
     let oneMonthBeforeDate = new Date(currentDate);
     oneMonthBeforeDate.setMonth(currentDate.getMonth() - 1);
 
-    console.log(oneMonthBeforeDate)
+    console.log(oneMonthBeforeDate);
 
     let secondMonthBeforeDate = new Date(currentDate);
     secondMonthBeforeDate.setMonth(currentDate.getMonth() - 2);
@@ -5822,12 +5581,21 @@ exports.fetchFranchiseLastThreeMonthsTarget = async (req, res) => {
       // Check if verifyDate is a valid date
       if (partner.verifyDate instanceof Date && !isNaN(partner.verifyDate)) {
         const verifyDate = partner.verifyDate;
-        
-        if (verifyDate >= thirdMonthBeforeDate && verifyDate < secondMonthBeforeDate) {
+
+        if (
+          verifyDate >= thirdMonthBeforeDate &&
+          verifyDate < secondMonthBeforeDate
+        ) {
           lastThreeMonthsLiquidity.thirdLastMonth += partner.p_liquidity;
-        } else if (verifyDate >= secondMonthBeforeDate && verifyDate < oneMonthBeforeDate) {
+        } else if (
+          verifyDate >= secondMonthBeforeDate &&
+          verifyDate < oneMonthBeforeDate
+        ) {
           lastThreeMonthsLiquidity.secondLastMonth += partner.p_liquidity;
-        } else if (verifyDate >= oneMonthBeforeDate && verifyDate <= currentDate) {
+        } else if (
+          verifyDate >= oneMonthBeforeDate &&
+          verifyDate <= currentDate
+        ) {
           lastThreeMonthsLiquidity.lastMonth += partner.p_liquidity;
         }
       }
@@ -5854,8 +5622,11 @@ exports.downgradeFranchise = async (req, res) => {
   try {
     const { userId } = req.body;
 
-    const fetchFranchiseQuery = "SELECT * FROM create_franchise WHERE franchiseId = ?";
-    const [result] = await connection.promise().query(fetchFranchiseQuery, [userId]);
+    const fetchFranchiseQuery =
+      "SELECT * FROM create_franchise WHERE franchiseId = ?";
+    const [result] = await connection
+      .promise()
+      .query(fetchFranchiseQuery, [userId]);
 
     if (result.length > 0) {
       const {
@@ -5879,12 +5650,15 @@ exports.downgradeFranchise = async (req, res) => {
         priority,
         userType,
         target,
-        verifyDate
+        verifyDate,
       } = result[0];
 
       if (priority === 1) {
-        const checkIfFranchiseIsMemberBefore = "SELECT * FROM create_member WHERE m_userid = ?";
-        const [memberResult] = await connection.promise().query(checkIfFranchiseIsMemberBefore, [userId]);
+        const checkIfFranchiseIsMemberBefore =
+          "SELECT * FROM create_member WHERE m_userid = ?";
+        const [memberResult] = await connection
+          .promise()
+          .query(checkIfFranchiseIsMemberBefore, [userId]);
 
         if (memberResult.length === 0) {
           const downgradeFranchiseToMember =
@@ -5908,17 +5682,21 @@ exports.downgradeFranchise = async (req, res) => {
             panCard,
             1, // priority for member
             0, // target for member
-            'FRANCHISE', // userType for member
-            verifyDate
+            "FRANCHISE", // userType for member
+            verifyDate,
           ]);
 
           const updateFranchiseTable =
             "UPDATE create_franchise SET priority = 0, franchiseWallet = 0, target = 0, isVerify = 0 WHERE franchiseId = ?";
           await connection.promise().query(updateFranchiseTable, [userId]);
 
-          return res.status(200).json({ message: "Franchise manually downgraded to member successfully" });
+          return res.status(200).json({
+            message: "Franchise manually downgraded to member successfully",
+          });
         } else {
-          return res.status(400).json({ message: "Franchise is already a member" });
+          return res
+            .status(400)
+            .json({ message: "Franchise is already a member" });
         }
       } else {
         return res.status(400).json({ message: "User is not a Franchise" });
@@ -5938,8 +5716,11 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
     const { userId } = req.body;
 
     // Fetch franchise data
-    const fetchFranchiseQuery = "SELECT * FROM create_franchise WHERE franchiseId = ?";
-    const [franchiseResult] = await connection.promise().query(fetchFranchiseQuery, [userId]);
+    const fetchFranchiseQuery =
+      "SELECT * FROM create_franchise WHERE franchiseId = ?";
+    const [franchiseResult] = await connection
+      .promise()
+      .query(fetchFranchiseQuery, [userId]);
 
     if (franchiseResult.length > 0) {
       const {
@@ -5963,11 +5744,11 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
         priority,
         userType,
         target,
-        verifyDate
+        verifyDate,
       } = franchiseResult[0];
 
       // Check if the franchise is not already a BMM
-      if (userType !== 'BMM') {
+      if (userType !== "BMM") {
         // Insert data into create_sho table
         const upgradeFranchiseToBMM =
           "INSERT INTO create_sho(fname, lname, phone, referralId, referredId, selectedState, email, gender, stateHandlerId, password, stateHandlerWallet, isVerify, verifyDate, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -5991,7 +5772,7 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
           panCard,
           priority,
           target,
-          'FRANCHISE' // Set userType as BMM
+          "FRANCHISE", // Set userType as BMM
         ]);
 
         // Update franchise table after upgrade
@@ -5999,7 +5780,9 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
           "UPDATE create_franchise SET userType = 'BMM' WHERE franchiseId = ?";
         await connection.promise().query(updateFranchiseTable, [userid]);
 
-        return res.status(200).json({ message: "Franchise upgraded to BMM successfully" });
+        return res
+          .status(200)
+          .json({ message: "Franchise upgraded to BMM successfully" });
       } else {
         return res.status(400).json({ message: "Franchise is already a BMM" });
       }
@@ -6020,10 +5803,9 @@ exports.fetchMemberLastThreeMonthsTarget = async (req, res) => {
 
     console.log(referralId, "referral id");
 
-
     let partnerRows = [];
 
-    if (referralId ) {
+    if (referralId) {
       console.log("first condition");
       const partnerQuery =
         "SELECT * FROM mining_partner WHERE p_reffered_id IN (?)";
@@ -6032,7 +5814,6 @@ exports.fetchMemberLastThreeMonthsTarget = async (req, res) => {
         .query(partnerQuery, [referralId]);
       partnerRows = partnerRows.concat(result);
     }
-
 
     if (partnerRows.length === 0) {
       return res
@@ -6051,7 +5832,7 @@ exports.fetchMemberLastThreeMonthsTarget = async (req, res) => {
     let oneMonthBeforeDate = new Date(currentDate);
     oneMonthBeforeDate.setMonth(currentDate.getMonth() - 1);
 
-    console.log(oneMonthBeforeDate)
+    console.log(oneMonthBeforeDate);
 
     let secondMonthBeforeDate = new Date(currentDate);
     secondMonthBeforeDate.setMonth(currentDate.getMonth() - 2);
@@ -6063,12 +5844,21 @@ exports.fetchMemberLastThreeMonthsTarget = async (req, res) => {
       // Check if verifyDate is a valid date
       if (partner.verifyDate instanceof Date && !isNaN(partner.verifyDate)) {
         const verifyDate = partner.verifyDate;
-        
-        if (verifyDate >= thirdMonthBeforeDate && verifyDate < secondMonthBeforeDate) {
+
+        if (
+          verifyDate >= thirdMonthBeforeDate &&
+          verifyDate < secondMonthBeforeDate
+        ) {
           lastThreeMonthsLiquidity.thirdLastMonth += partner.p_liquidity;
-        } else if (verifyDate >= secondMonthBeforeDate && verifyDate < oneMonthBeforeDate) {
+        } else if (
+          verifyDate >= secondMonthBeforeDate &&
+          verifyDate < oneMonthBeforeDate
+        ) {
           lastThreeMonthsLiquidity.secondLastMonth += partner.p_liquidity;
-        } else if (verifyDate >= oneMonthBeforeDate && verifyDate <= currentDate) {
+        } else if (
+          verifyDate >= oneMonthBeforeDate &&
+          verifyDate <= currentDate
+        ) {
           lastThreeMonthsLiquidity.lastMonth += partner.p_liquidity;
         }
       }
@@ -6098,7 +5888,9 @@ exports.upgradeMemberToFranchise = async (req, res) => {
 
     // Fetch member data
     const fetchMemberQuery = "SELECT * FROM create_member WHERE m_userid = ?";
-    const [memberResult] = await connection.promise().query(fetchMemberQuery, [userId]);
+    const [memberResult] = await connection
+      .promise()
+      .query(fetchMemberQuery, [userId]);
 
     if (memberResult.length > 0) {
       const {
@@ -6120,11 +5912,15 @@ exports.upgradeMemberToFranchise = async (req, res) => {
         priority,
         target,
         userType,
-        verifyDate
+        verifyDate,
       } = memberResult[0];
 
+      if (!verifyDate) {
+        return res.status(400).json({ message: "This member is not verified" });
+      }
+
       // Check if the member is not already a BMM
-      if (userType !== 'BMM') {
+      if (userType !== "BMM") {
         // Insert data into create_franchise table
         const insertFranchiseQuery =
           "INSERT INTO create_franchise(fname, lname, phone, referralId, referredId, franchiseState, email, gender, franchiseId, password, franchiseWallet, isVerify, verifyDate, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -6148,7 +5944,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
           panCard,
           priority,
           target,
-          'MEMBER' // Set userType as MEMBER
+          "MEMBER", // Set userType as MEMBER
         ]);
 
         // Update member table after upgrade
@@ -6156,7 +5952,9 @@ exports.upgradeMemberToFranchise = async (req, res) => {
           "UPDATE create_member SET userType = 'BMM' WHERE m_userid = ?";
         await connection.promise().query(updateMemberTable, [userid]);
 
-        return res.status(200).json({ message: "Member upgraded to franchise successfully" });
+        return res
+          .status(200)
+          .json({ message: "Member upgraded to franchise successfully" });
       } else {
         return res.status(400).json({ message: "Member is already a BMM" });
       }
