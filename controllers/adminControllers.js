@@ -5936,7 +5936,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
           userid,
           password,
           wallet,
-          isVerify,
+          isVerify = 0,
           verifyDate,
           isBlocked,
           adhar_front_side,
@@ -5949,7 +5949,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
 
         // Update member table after upgrade
         const updateMemberTable =
-          "UPDATE create_member SET userType = 'BMM' WHERE m_userid = ?";
+          "UPDATE create_member SET isVerify = 0, userType = 'FRANCHISE' WHERE m_userid = ?";
         await connection.promise().query(updateMemberTable, [userid]);
 
         return res
