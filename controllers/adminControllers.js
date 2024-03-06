@@ -5765,7 +5765,6 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
       }
 
       // Check if the franchise is not already a BMM
-      if (userType !== "BMM") {
         // Insert data into create_sho table
         const upgradeFranchiseToBMM =
           "INSERT INTO create_sho(fname, lname, phone, referralId, referredId, selectedState, email, gender, stateHandlerId, password, stateHandlerWallet, isVerify, verifyDate, isBlocked, adhar_front_side, adhar_back_side, panCard, priority, target, userType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -5800,9 +5799,7 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
         return res
           .status(200)
           .json({ message: "Franchise upgraded to BMM successfully" });
-      } else {
-        return res.status(400).json({ message: "Franchise is already a BMM" });
-      }
+      
     } else {
       return res.status(400).json({ message: "Franchise not found" });
     }
