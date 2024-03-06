@@ -5941,7 +5941,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
       }
 
       // Check if the member is not already a BMM
-      if (userType !== "BMM") {
+      
         const [existingFranchiseResult] = await connection
           .promise()
           .query("select * from create_franchise where franchiseId =?", userId);
@@ -5991,9 +5991,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
         return res
           .status(200)
           .json({ message: "Member upgraded to franchise successfully" });
-      } else {
-        return res.status(400).json({ message: "Member is already a BMM" });
-      }
+      
     } else {
       return res.status(400).json({ message: "Member not found" });
     }
