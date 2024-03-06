@@ -5473,6 +5473,7 @@ exports.downgradeBmm = async (req, res) => {
           .promise()
           .query(checkIfBmmIsMemberBefore, [userid]);
 
+
         if (memberResult.length === 0) {
           console.log("first first");
 
@@ -5483,7 +5484,7 @@ exports.downgradeBmm = async (req, res) => {
             fname,
             lname,
             phone,
-            referredId,
+            "FC-FRA9112",
             selectedState,
             email,
             gender,
