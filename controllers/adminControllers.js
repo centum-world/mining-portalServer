@@ -5500,7 +5500,7 @@ exports.downgradeBmm = async (req, res) => {
             panCard,
             1, // priority for member
             0, // target for member
-            "BMM", // userType for member
+            "MEMBER", // userType for member
             verifyDate,
           ]);
 
@@ -5512,7 +5512,6 @@ exports.downgradeBmm = async (req, res) => {
             message: "BMM manually downgraded to member successfully",
           });
         } else {
-          console.log("cehck");
           return res.status(400).json({ message: "BMM is already a member" });
         }
       } else {
@@ -5796,7 +5795,7 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
           panCard,
           1,
           target,
-          "FRANCHISE", // Set userType as BMM
+          "BMM", // Set userType as BMM
         ]);
 
         // Update franchise table after upgrade
@@ -5984,7 +5983,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
           panCard,
           1,
           0,
-          "MEMBER", // Set userType as MEMBER
+          "FRANCHISE", // Set userType as MEMBER
           m_add,
         ]);
 
