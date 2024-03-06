@@ -5767,6 +5767,22 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
           .json({ message: "This franchise is not verified" });
       }
 
+
+        // Check if the member is not already a BMM
+
+        const [existingBMMResult] = await connection
+        .promise()
+        .query("select * from create_sho where stateHandlerId =?", userId);
+
+      if (existingBMMResult.length > 0) {
+        //delete fanchise
+        await connection
+          .promise()
+          .query("DELETE FROM create_sho WHERE stateHandlerId = ?", userId);
+      }
+
+
+
       // Check if the franchise is not already a BMM
       // Insert data into create_sho table
       const upgradeFranchiseToBMM =
@@ -5896,7 +5912,6 @@ exports.fetchMemberLastThreeMonthsTarget = async (req, res) => {
   }
 };
 
-// Upgrade member to franchise
 // Upgrade member to franchise
 exports.upgradeMemberToFranchise = async (req, res) => {
   try {
