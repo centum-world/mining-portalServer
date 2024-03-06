@@ -5790,7 +5790,7 @@ exports.upgradeFranchiseToBMM = async (req, res) => {
 
         // Update franchise table after upgrade
         const updateFranchiseTable =
-          "UPDATE create_franchise SET isVerify =0,priority=0,userType = 'BMM' WHERE franchiseId = ?";
+          "UPDATE create_franchise SET franchiseWallet=0,isVerify =0,priority=0,userType = 'BMM' WHERE franchiseId = ?";
         await connection.promise().query(updateFranchiseTable, [userid]);
 
         return res
@@ -5962,7 +5962,7 @@ exports.upgradeMemberToFranchise = async (req, res) => {
 
         // Update member table after upgrade
         const updateMemberTable =
-          "UPDATE create_member SET priority =0, isVerify = 0, userType = 'FRANCHISE' WHERE m_userid = ?";
+          "UPDATE create_member SET member_wallet =0,priority =0, isVerify = 0, userType = 'FRANCHISE' WHERE m_userid = ?";
         await connection.promise().query(updateMemberTable, [userid]);
 
         return res
