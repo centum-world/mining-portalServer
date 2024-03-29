@@ -30,11 +30,11 @@ exports.memberSignup = (req, res, next) => {
     m_refferid,
     m_state,
     m_email,
-    m_designation,
-    m_quali,
+    // m_designation,
+    // m_quali,
     m_gender,
-    m_exp,
-    m_salary,
+    // m_exp,
+    // m_salary,
     m_dob,
     m_doj,
     m_userid,
@@ -166,7 +166,7 @@ exports.memberSignup = (req, res, next) => {
             );
 
             const insertQuery =
-              "INSERT INTO create_member (m_name, m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_designation, m_quali, m_gender, m_exp, m_salary, m_dob, m_doj, m_userid, m_password, adhar_front_side, adhar_back_side, panCard,reffer_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+              "INSERT INTO create_member (m_name, m_lname, m_phone, m_add, m_refferid, m_state, m_email, m_gender, m_dob, m_doj, m_userid, m_password, adhar_front_side, adhar_back_side, panCard,reffer_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
             connection.query(
               insertQuery,
@@ -178,11 +178,11 @@ exports.memberSignup = (req, res, next) => {
                 m_refferid,
                 m_state,
                 m_email,
-                m_designation,
-                m_quali,
+                // m_designation,
+                // m_quali,
                 m_gender,
-                m_exp,
-                m_salary,
+                // m_exp,
+                // m_salary,
                 m_dob,
                 m_doj,
                 m_userid,
