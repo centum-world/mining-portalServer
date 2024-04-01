@@ -1128,7 +1128,7 @@ exports.createBd = async (req, res) => {
 
 exports.createMultipleRig = async (req, res) => {
   try {
-    const { fname, lname, dob, userId, liquidity, adharNumber, phone } =
+    const { fname, lname, dob, dop, userId, liquidity, adharNumber, phone } =
       req.body;
 
     // Check if the userId has reached the limit of 9 accounts
@@ -1148,7 +1148,7 @@ exports.createMultipleRig = async (req, res) => {
       });
     }
 
-    if (fname && lname && dob && userId && liquidity && adharNumber && phone) {
+    if (fname && lname && dob && dop && userId && liquidity && adharNumber && phone) {
       console.log("2nd cndition");
       const { adhar_front_side, adhar_back_side, panCard } = req.files;
 
@@ -1252,8 +1252,8 @@ exports.createMultipleRig = async (req, res) => {
       // Insert rig data into the database
       const insertQuery = `
         INSERT INTO multiple_rig_partner
-        (rigId, fname, lname, dob,userId, adhar_front_side, adhar_back_side, panCard, liquidity , adharNumber) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (rigId, fname, lname, dob,dop ,userId, adhar_front_side, adhar_back_side, panCard, liquidity , adharNumber) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         
         `;
 
@@ -1263,6 +1263,7 @@ exports.createMultipleRig = async (req, res) => {
         lname,
         dob,
         // doj,
+        dop,
         userId,
         adharFrontSideLocation,
         adharBackSideLocation,
@@ -1287,6 +1288,7 @@ exports.createMultipleRig = async (req, res) => {
         panCard,
         rigId,
         p_dop,
+        p_dob
       } = partner;
 
       console.log(rigId, 1062);
@@ -1352,7 +1354,7 @@ exports.createMultipleRig = async (req, res) => {
 
       console.log(rigId, 1126);
 
-      const insertMultipleRigQuery = `insert into multiple_rig_partner (rigId, fname, lname, dob, userId, adhar_front_side, adhar_back_side,panCard, liquidity, adharNumber) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const insertMultipleRigQuery = `insert into multiple_rig_partner (rigId, fname, lname, dob, dop, userId, adhar_front_side, adhar_back_side,panCard, liquidity, adharNumber) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       await connection
         .promise()
@@ -1360,7 +1362,8 @@ exports.createMultipleRig = async (req, res) => {
           rigId,
           p_name,
           p_lname,
-          p_dop,
+          p_dob,
+          dop,
           userId,
           adhar_front_side,
           adhar_back_side,
