@@ -334,9 +334,9 @@ exports.partnerSignup = async (req, res) => {
       .promise()
       .query(checkPhoneExistQuery, [p_phone]);
 
-    if (phoneResult.length > 0) {
-      return res.status(400).json({ message: "Phone number already exists" });
-    }
+    // if (phoneResult.length > 0) {
+    //   return res.status(400).json({ message: "Phone number already exists" });
+    // }
 
     if (!isValidName(p_name)) {
       return res.status(422).json({
