@@ -1128,8 +1128,23 @@ exports.createBd = async (req, res) => {
 
 exports.createMultipleRig = async (req, res) => {
   try {
-    const { fname, lname, dob, dop, userId, liquidity, adharNumber, phone } =
+    const { fname, lname, dob, dop, userId, liquidity, adharNumber, phone, same } =
       req.body;
+
+      if(same === 'same'){
+        if(!liquidity || !dop){
+          console.log(same)
+          return res.status(422).json({
+            message:"Please fill all details"
+          })
+        }
+      }else{
+        if(!fname || !lname || !dob || !dop ||  !liquidity || !adharNumber || !phone){
+          return res.status(422).json({
+            message:"Please fill all details"
+          })
+        }
+      }
 
     // Check if the userId has reached the limit of 9 accounts
     const userIdLimitQuery =
