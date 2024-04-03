@@ -4852,6 +4852,27 @@ exports.verifyMultipleRigPartner = async (req, res) => {
   try {
     const { rigId } = req.body;
 
+    let latestInvoiceNumber;
+
+    // Fetch the maximum invoice number from both tables
+    const [fetchMiningPartnerLatestData] = await connection
+      .promise()
+      .query("SELECT MAX(invoice_number) AS max_invoice_number FROM mining_partner");
+
+    const partnerInvoiceNumber = fetchMiningPartnerLatestData[0].max_invoice_number || "00000";
+
+    const [fetchMultipleMiningPartnerLatestData] = await connection
+      .promise()
+      .query("SELECT MAX(invoice_number) AS max_invoice_number FROM multiple_rig_partner");
+
+    const multipleInvoiceNumber = fetchMultipleMiningPartnerLatestData[0].max_invoice_number || "00000";
+
+    // Determine the latest invoice number
+    latestInvoiceNumber = Math.max(partnerInvoiceNumber, multipleInvoiceNumber) + 1;
+
+    // Format the invoice number with leading zeros
+    const formattedInvoiceNumber = latestInvoiceNumber.toString().padStart(5, '0');
+
     const selectPartnerQuery =
       "SELECT rigId FROM mining_partner WHERE rigId = ?";
     const [partnerInMiningResult] = await connection
@@ -4862,22 +4883,26 @@ exports.verifyMultipleRigPartner = async (req, res) => {
 
     if (partnerInMiningResult.length > 0) {
       updateQuery =
-        "UPDATE mining_partner  SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
+        "UPDATE mining_partner SET invoice_number=?, isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
     } else {
       updateQuery =
-        "UPDATE multiple_rig_partner SET isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
+        "UPDATE multiple_rig_partner SET invoice_number=?, isVerify = 1, verifyDate = NOW() WHERE rigId = ?";
     }
 
-    await connection.promise().query(updateQuery, [rigId]);
+    // Update the record with the new invoice number
+    await connection.promise().query(updateQuery, [formattedInvoiceNumber, rigId]);
 
     return res
       .status(200)
-      .json({ message: "RIG partner successfully  verified." });
+      .json({ message: "RIG partner successfully verified." });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+
+
 
 exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
   try {
