@@ -916,7 +916,7 @@ exports.doActivatePartnerManualFromAdmin = async (req, res) => {
         console.log("first");
         // Update mining_partner status
         const updateMiningPartnerQuery =
-          "UPDATE mining_partner SET partner_status = 1,  p_dop = CURRENT_DATE  WHERE p_userid = ?";
+          "UPDATE mining_partner SET partner_status = 1  WHERE p_userid = ?";
         await connection.promise().query(updateMiningPartnerQuery, [p_userid]);
 
         const selectPartnerQuery =
