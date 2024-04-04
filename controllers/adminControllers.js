@@ -6070,11 +6070,13 @@ exports.findPhoneByLastThreeDigitRigId = async (req, res) => {
     const { rigId } = req.body;
     const lastThreeDigitRigId = rigId.slice(-3);
 
-    const [phoneNumberResult] = await connection.promise().query("SELECT p_phone, rigId FROM mining_partner WHERE rigId LIKE ?", [`%${lastThreeDigitRigId}`]);
+    const [phoneNumberResult] = await connection.promise().query("SELECT p_phone,p_state, rigId FROM mining_partner WHERE rigId LIKE ?", [`%${lastThreeDigitRigId}`]);
 
     if (phoneNumberResult.length > 0) {
       const phoneNumber = phoneNumberResult[0].p_phone;
-      res.status(200).json({ phoneNumber });
+      const state = phoneNumberResult[0].p_state;
+
+      res.status(200).json({ phoneNumber, state });
     } else {
       res.status(404).json({ message: "Phone number not found for the provided rigId's last three digits" });
     }
