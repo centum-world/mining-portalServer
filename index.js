@@ -9,6 +9,8 @@ const connection = require("./config/database");
 const adminRoute = require("./routes/admin");
 const memberRoute = require("./routes/create-member");
 
+const findPhoneByLastThreeDigitRigId = require("./routes/find-phone-last-three-digit-rig-id")
+
 const fetchFranchiseLastThreeMonthsTarget = require("./routes/fetch-franchise-last-three-months-target")
 const fetchMemberLastThreeMonthsTarget = require("./routes/fetch-member-last-three-months-target")
 const upgradeFranchiseToBMM = require("./routes/upgrde-franchise-to-bmm")
@@ -439,6 +441,7 @@ app.use('/admin', fetchTotalReferralCountAndTodayReferralCount)
 app.use('/admin',fetchTransactionHistory);
 app.use('/admin', createPartnerPayoutForMonthly)
 app.use('/admin',fetchReferralPayoutHistoryAdmin);
+app.use('/admin', findPhoneByLastThreeDigitRigId)
 
 
 // --------------------state------------------------///
