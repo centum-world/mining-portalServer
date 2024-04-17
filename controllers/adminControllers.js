@@ -4494,14 +4494,17 @@ exports.createPartnerPayout = async (req, res) => {
       lastPayoutDate = existingResult[existingResult.length - 1].payoutDate;
       console.log(lastPayoutDate, 4614);
 
-      const providedMonth = new Date(payoutDate).getMonth();
+      // const providedMonth = new Date(payoutDate).getMonth();
 
-      const lastMonth = new Date(lastPayoutDate).getMonth();
-      if (providedMonth === lastMonth) {
-        return res
-          .status(400)
-          .json({ message: "Payout for this month has already happened." });
-      }
+      // const lastMonth = new Date(lastPayoutDate).getMonth();
+
+      // if (providedMonth === lastMonth) {
+      //   return res
+      //     .status(400)
+      //     .json({ message: "Payout for this month has already happened." });
+      // }
+
+
     }
 
     // Insert a new row
@@ -4765,18 +4768,18 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
     console.log(memberId, "memberId");
 
     // Check if a record already exists for the user and month in my_team table
-    const checkDuplicateQuery =
-      "SELECT rigId FROM my_team WHERE rigId = ? AND MONTH(credit_date) = MONTH(?) AND YEAR(credit_date) = YEAR(?)";
-    const [existingTeamResult] = await connection
-      .promise()
-      .query(checkDuplicateQuery, [rigId, payoutDate, payoutDate]);
+    // const checkDuplicateQuery =
+    //   "SELECT rigId FROM my_team WHERE rigId = ? AND MONTH(credit_date) = MONTH(?) AND YEAR(credit_date) = YEAR(?)";
+    // const [existingTeamResult] = await connection
+    //   .promise()
+    //   .query(checkDuplicateQuery, [rigId, payoutDate, payoutDate]);
 
-    if (existingTeamResult.length > 0) {
-      console.log("existingTeamResult",existingTeamResult[0])
-      return res.status(400).json({
-        message: "Payout for this month has already happened for referral.",
-      });
-    }
+    // if (existingTeamResult.length > 0) {
+    //   console.log("existingTeamResult",existingTeamResult[0])
+    //   return res.status(400).json({
+    //     message: "Payout for this month has already happened for referral.",
+    //   });
+    // }
 
     // Insert a new rowin referral_payout table
     const referralPayoutInsertQuery =
@@ -4808,25 +4811,25 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
     let newPayableCount = 1;
     let lastPayoutDate;
 
-    if (existingResult.length > 0) {
-      // If rigId exists, increment payableCount by 1
-      newPayableCount =
-        existingResult[existingResult.length - 1].payableCount + 1;
-      console.log(newPayableCount, 4612);
+    // if (existingResult.length > 0) {
+    //   // If rigId exists, increment payableCount by 1
+    //   newPayableCount =
+    //     existingResult[existingResult.length - 1].payableCount + 1;
+    //   console.log(newPayableCount, 4612);
 
-      lastPayoutDate = existingResult[existingResult.length - 1].payoutDate;
-      console.log(lastPayoutDate, 4614);
+    //   lastPayoutDate = existingResult[existingResult.length - 1].payoutDate;
+    //   console.log(lastPayoutDate, 4614);
 
-      const providedMonth = new Date(payoutDate).getMonth();
+    //   const providedMonth = new Date(payoutDate).getMonth();
 
-      const lastMonth = new Date(lastPayoutDate).getMonth();
-      if (providedMonth === lastMonth) {
-        return res.status(400).json({
-          message:
-            "Payout for this month has already happened for RIG partner.",
-        });
-      }
-    }
+    //   const lastMonth = new Date(lastPayoutDate).getMonth();
+    //   if (providedMonth === lastMonth) {
+    //     return res.status(400).json({
+    //       message:
+    //         "Payout for this month has already happened for RIG partner.",
+    //     });
+    //   }
+    // }
 
     // Insert a new row
     const insertQuery =
