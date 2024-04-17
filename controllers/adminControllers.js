@@ -4764,7 +4764,19 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
 
     console.log(memberId, "memberId");
 
- 
+    // Check if a record already exists for the user and month in my_team table
+    const checkDuplicateQuery =
+      "SELECT rigId FROM my_team WHERE rigId = ? AND MONTH(credit_date) = MONTH(?) AND YEAR(credit_date) = YEAR(?)";
+    const [existingTeamResult] = await connection
+      .promise()
+      .query(checkDuplicateQuery, [rigId, payoutDate, payoutDate]);
+
+    if (existingTeamResult.length > 0) {
+      console.log("existingTeamResult",existingTeamResult[0])
+      return res.status(400).json({
+        message: "Payout for this month has already happened for referral.",
+      });
+    }
 
     // Insert a new rowin referral_payout table
     const referralPayoutInsertQuery =
@@ -4784,20 +4796,6 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
         .status(400)
         .json({ message: "Payable amount and Payout Date are required." });
     }
-
-       // Check if a record already exists for the user and month in my_team table
-       const checkDuplicateQuery =
-       "SELECT rigId FROM my_team WHERE rigId = ? AND MONTH(credit_date) = MONTH(?) AND YEAR(credit_date) = YEAR(?)";
-     const [existingTeamResult] = await connection
-       .promise()
-       .query(checkDuplicateQuery, [rigId, payoutDate, payoutDate]);
- 
-     if (existingTeamResult.length > 0) {
-       console.log("existingTeamResult",existingTeamResult[0])
-       return res.status(400).json({
-         message: "Payout for this month has already happened for referral.",
-       });
-     }
 
     // Check if rigId already exists in the table
     const [existingResult] = await connection
