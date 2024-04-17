@@ -4742,6 +4742,7 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
       partnerId,
       referralAmount,
     } = req.body;
+    console.log("rigid" , rigId)
 
     findPartnerReferralQuery =
       "select p_reffered_id from mining_partner where p_userid = ?";
@@ -4779,7 +4780,7 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
 
     // Insert a new rowin referral_payout table
     const referralPayoutInsertQuery =
-      "INSERT INTO my_team (userid, amount, credit_date, partnerid, userType) VALUES (?, ?, ?, ?, 'MEMBER')";
+      "INSERT INTO my_team (userid, amount, credit_date, partnerid,rigId, userType) VALUES (?, ?, ?, ?,?, 'MEMBER')";
     await connection
       .promise()
       .query(referralPayoutInsertQuery, [
@@ -4787,6 +4788,7 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
         referralAmount,
         payoutDate,
         partnerId,
+        rigId,
       ]);
 
     if (!payableAmount || !payoutDate) {
