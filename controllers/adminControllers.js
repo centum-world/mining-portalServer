@@ -6091,3 +6091,35 @@ exports.findPhoneByLastThreeDigitRigId = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.fetchNamesWithRigId = async (req, res) => {
+  try {
+    const { rigIds } = req.body;
+    console.log(rigIds);
+    
+    // Slicing last 3 characters from each element in rigIds array
+    const slicedRigIds = rigIds.map((rigId) => rigId.slice(-3));
+    console.log(slicedRigIds);
+
+    // Query the database to fetch rows that match the last 3 characters of rigId
+    const [rows] = await connection.promise().query(
+      `SELECT rigId, p_name, p_lname FROM mining_partner WHERE RIGHT(rigId, 3) IN (?)`,
+      [slicedRigIds]
+    );
+
+    // Modify query result to concatenate p_name and p_lname and include rigId
+    const result = rows.map(({ rigId, p_name, p_lname }) => ({
+      rigId,
+      name: `${p_name} ${p_lname}`
+    }));
+
+    // Send the result as a response
+    res.status(200).json(result);
+
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+

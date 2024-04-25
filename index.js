@@ -9,6 +9,7 @@ const connection = require("./config/database");
 const adminRoute = require("./routes/admin");
 const memberRoute = require("./routes/create-member");
 
+const fetchNamesWithRigId = require("./routes/fetch-names-with-rig-ids")
 const findPhoneByLastThreeDigitRigId = require("./routes/find-phone-last-three-digit-rig-id")
 
 const fetchFranchiseLastThreeMonthsTarget = require("./routes/fetch-franchise-last-three-months-target")
@@ -442,6 +443,7 @@ app.use('/admin',fetchTransactionHistory);
 app.use('/admin', createPartnerPayoutForMonthly)
 app.use('/admin',fetchReferralPayoutHistoryAdmin);
 app.use('/admin', findPhoneByLastThreeDigitRigId)
+app.use('/admin', fetchNamesWithRigId)
 
 
 // --------------------state------------------------///
