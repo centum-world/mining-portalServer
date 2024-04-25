@@ -52,7 +52,7 @@ require("dotenv").config();
 exports.miningPartnerLogin = (req, res) => {
   const mining = req.body;
   let query =
-    "select p_userid, p_password,p_refferal_id,p_liquidity,partner_wallet,partner_status from mining_partner where p_userid=?";
+    "select p_userid, p_password,p_refferal_id,p_liquidity,partner_wallet,partner_status,rigId from mining_partner where p_userid=?";
   connection.query(query, [mining.p_userid], (err, results) => {
     if (!err) {
       if (results.length > 0) {
@@ -1511,4 +1511,31 @@ exports.fetchReferralPayoutTransactionTotal = async (req,res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 }
+
+exports.myPayoutCount = async (req, res) => {
+  try {
+    const { rigId } = req.body;
+
+    if (!rigId) {
+      return res.status(400).json({ message: "Rig ID is required." });
+    }
+
+    // Extract last three digits of rigId
+    // const lastThreeDigits = rigId.substring(Math.max(0, rigId.length - 3));
+
+    // Fetch partner payouts for a specific rigId based on last three digits
+    const [partnerPayouts] = await connection
+      .promise()
+      .query("SELECT * FROM partner_payout WHERE SUBSTRING(rigId, -3) = ?", [rigId]);
+
+    return res.status(200).json({
+      message: "My Payout count fetched successfully",
+      data: partnerPayouts,
+    });
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
 
