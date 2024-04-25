@@ -6095,11 +6095,9 @@ exports.findPhoneByLastThreeDigitRigId = async (req, res) => {
 exports.fetchNamesWithRigId = async (req, res) => {
   try {
     const { rigIds } = req.body;
-    console.log(rigIds);
     
     // Slicing last 3 characters from each element in rigIds array
     const slicedRigIds = rigIds.map((rigId) => rigId.slice(-3));
-    console.log(slicedRigIds);
 
     // Query the database to fetch rows that match the last 3 characters of rigId
     const [rows] = await connection.promise().query(
