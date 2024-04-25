@@ -6097,27 +6097,46 @@ exports.fetchNamesWithRigId = async (req, res) => {
     const { rigIds } = req.body;
     
     // Slicing last 3 characters from each element in rigIds array
-    const slicedRigIds = rigIds.map((rigId) => rigId.slice(-3));
+    const slicedRigIds1 = rigIds.map((rigId) => rigId.slice(-3));
+    const slicedRigIds2 = rigIds.map((rigId) => rigId.slice(-4));
 
-    // Query the database to fetch rows that match the last 3 characters of rigId
-    const [rows] = await connection.promise().query(
+
+
+    // Query the first database table to fetch rows that match the last 3 characters of rigId
+    const [rows1] = await connection.promise().query(
       `SELECT rigId, p_name, p_lname FROM mining_partner WHERE RIGHT(rigId, 3) IN (?)`,
-      [slicedRigIds]
+      [slicedRigIds1]
+    );
+
+    // Query the second database table to fetch rows that match the last 3 characters of rigId
+    const [rows2] = await connection.promise().query(
+      `SELECT rigId, fname, lname FROM multiple_rig_partner WHERE RIGHT(rigId, 4) IN (?)`,
+      [slicedRigIds2]
     );
 
     // Modify query result to concatenate p_name and p_lname and include rigId
-    const result = rows.map(({ rigId, p_name, p_lname }) => ({
+    const result1 = rows1.map(({ rigId, p_name, p_lname }) => ({
       rigId,
       name: `${p_name} ${p_lname}`
     }));
 
-    // Send the result as a response
-    res.status(200).json(result);
+    // Modify query result to concatenate fname and lname and include rigId
+    const result2 = rows2.map(({ rigId, fname, lname }) => ({
+      rigId,
+      name: `${fname} ${lname}`
+    }));
+
+    // Combine the results from both tables
+    const combinedResult = [...result1, ...result2];
+
+    // Send the combined result as a response
+    res.status(200).json(combinedResult);
 
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 
