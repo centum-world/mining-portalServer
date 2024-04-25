@@ -6096,11 +6096,26 @@ exports.fetchNamesWithRigId = async (req, res) => {
   try {
     const { rigIds } = req.body;
 
+    // Initialize an array to store the combined result
+    let combinedResult = [];
+
     // Query the first database table to fetch rows that match 
     const [rows1] = await connection.promise().query(
       `SELECT rigId, p_name, p_lname FROM mining_partner WHERE rigId IN (?)`,
       [rigIds]
     );
+
+    // Push results from the first query into the combined result
+    rows1.forEach(row => {
+      rigIds.forEach(id => {
+        if (row.rigId === id) {
+          combinedResult.push({
+            rigId: row.rigId,
+            name: `${row.p_name} ${row.p_lname}`
+          });
+        }
+      });
+    });
 
     // Query the second database table to fetch rows that match
     const [rows2] = await connection.promise().query(
@@ -6108,29 +6123,34 @@ exports.fetchNamesWithRigId = async (req, res) => {
       [rigIds]
     );
 
-    // Modify query result to concatenate p_name and p_lname and include rigId
-    const result1 = rows1.map(({ rigId, p_name, p_lname }) => ({
-      rigId,
-      name: `${p_name} ${p_lname}`
-    }));
-
-    // Modify query result to concatenate fname and lname and include rigId
-    const result2 = rows2.map(({ rigId, fname, lname }) => ({
-      rigId,
-      name: `${fname} ${lname}`
-    }));
-
-    // Combine the results from both tables
-    const combinedResult = [...result1, ...result2];
+    // Push results from the second query into the combined result
+    rows2.forEach(row => {
+      rigIds.forEach(id => {
+        if (row.rigId === id) {
+          combinedResult.push({
+            rigId: row.rigId,
+            name: `${row.fname} ${row.lname}`
+          });
+        }
+      });
+    });
 
     // Send the combined result as a response
-    res.status(200).json({message: "All name fetched successfully", data:combinedResult});
+    res.status(200).json({ message: "All names fetched successfully", data: combinedResult });
 
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
+
+
+
+
+
 
 
 
