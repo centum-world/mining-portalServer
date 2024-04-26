@@ -6160,15 +6160,31 @@ exports.fetchAllPartnerPayoutCount = async (req, res) => {
     const queryString = "SELECT * FROM partner_payout WHERE rigId IN (?)";
     const [partnerPayouts] = await connection.promise().query(queryString, [rigId]);
 
+    let maxPayableCounts = [];
+
+    // Initialize max payable counts for each rigId
+    rigId.forEach(id => {
+      maxPayableCounts.push({ rigId: id, maxPayableCount: 0 });
+    });
+
+    // Find max payable count for each rigId
+    partnerPayouts.forEach(payout => {
+      const index = maxPayableCounts.findIndex(item => item.rigId === payout.rigId);
+      if (index !== -1 && payout.payableCount > maxPayableCounts[index].maxPayableCount) {
+        maxPayableCounts[index].maxPayableCount = payout.payableCount;
+      }
+    });
+
     return res.status(200).json({
       message: "Partner payouts fetched successfully",
-      data: partnerPayouts,
+      maxPayableCounts: maxPayableCounts,
     });
   } catch (error) {
     console.error(error.message);
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
 
 
 
