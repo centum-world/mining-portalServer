@@ -4697,10 +4697,9 @@ exports.fetchTotalReferralCountAndTodayReferralCount = async (req, res) => {
 
 exports.fetchTransactionHistory = async (req, res) => {
   try {
-    const { currentDate, currentMonth, currentYear } = req.body; // currentDate, currentMonth, and currentYear should be sent from the client side
+    const { currentDate, currentMonth, currentYear } = req.body;
 
-    let fetchTransactionQuery = "SELECT * FROM partner_payout WHERE 1=1"; // Initial query with always true condition
-
+    let fetchTransactionQuery = "SELECT * FROM partner_payout WHERE 1=1";
     const queryParams = [];
 
     if (currentDate) {
@@ -4725,6 +4724,21 @@ exports.fetchTransactionHistory = async (req, res) => {
       });
     }
 
+    // Fetch names from mining_partner for each partnerId
+    for (const transaction of transactionHistory) {
+      const [partnerNames] = await connection
+        .promise()
+        .query("SELECT p_name, p_lname FROM mining_partner WHERE p_userid = ?", [transaction.partnerId]);
+
+      if (partnerNames.length > 0) {
+        transaction.p_name = partnerNames[0].p_name;
+        transaction.p_lname = partnerNames[0].p_lname;
+      } else {
+        transaction.p_name = null;
+        transaction.p_lname = null;
+      }
+    }
+
     return res.status(200).json({
       message: "Transaction history fetched successfully",
       data: transactionHistory,
@@ -4734,6 +4748,7 @@ exports.fetchTransactionHistory = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
 
 exports.createPartnerPayoutForMonthly = async (req, res) => {
   try {
@@ -4910,6 +4925,41 @@ exports.verifyMultipleRigPartner = async (req, res) => {
 
 
 
+// exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
+//   try {
+//     const { currentDate, currentMonth, currentYear } = req.body;
+
+//     let fetchTransactionQueryTeam = "SELECT * FROM my_team WHERE 1=1";
+
+//     const queryParamsTeam = [];
+
+//     if (currentDate) {
+//       fetchTransactionQueryTeam += " AND DATE(credit_date) = ?";
+//       queryParamsTeam.push(currentDate);
+//     }
+
+//     if (currentMonth && currentYear) {
+//       fetchTransactionQueryTeam +=
+//         " AND MONTH(transactionDate) = ? AND YEAR(credit_date) = ?";
+//       queryParamsTeam.push(currentMonth, currentYear);
+//     }
+
+//     const [transactionHistoryTeam] = await connection
+//       .promise()
+//       .query(fetchTransactionQueryTeam, queryParamsTeam);
+
+//     return res.status(200).json({
+//       message: "Referral Payout History fetched successfully",
+//       data: transactionHistoryTeam,
+//     });
+//   } catch (error) {
+//     console.error("Error:", error);
+//     return res.status(500).json({ message: "Internal server error." });
+//   }
+// };
+
+// ------------------new way to get the liquidity and ----------
+
 exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
   try {
     const { currentDate, currentMonth, currentYear } = req.body;
@@ -4933,6 +4983,23 @@ exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
       .promise()
       .query(fetchTransactionQueryTeam, queryParamsTeam);
 
+    // Fetch names from mining_partner for each partnerid
+    for (const transaction of transactionHistoryTeam) {
+      const [miningPartner] = await connection
+        .promise()
+        .query("SELECT p_name, p_lname FROM mining_partner WHERE p_userid = ?", [
+          transaction.partnerid,
+        ]);
+
+      if (miningPartner.length > 0) {
+        transaction.p_name = miningPartner[0].p_name;
+        transaction.p_lname = miningPartner[0].p_lname;
+      } else {
+        transaction.p_name = null;
+        transaction.p_lname = null;
+      }
+    }
+
     return res.status(200).json({
       message: "Referral Payout History fetched successfully",
       data: transactionHistoryTeam,
@@ -4942,6 +5009,14 @@ exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
+
+
+
+// ----------------------------------------------------------------//
+
+
+
 
 // exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
 //   try {
