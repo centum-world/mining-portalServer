@@ -6152,7 +6152,6 @@ exports.fetchNamesWithRigId = async (req, res) => {
 exports.fetchAllPartnerPayoutCount = async (req, res) => {
   try {
     const { rigId } = req.body;
-    console.log(rigId.length)
     if (!rigId || rigId.length === 0) {
       return res.status(400).json({ message: "Rig IDs are required." });
     }
