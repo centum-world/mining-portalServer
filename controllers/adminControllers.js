@@ -6096,6 +6096,10 @@ exports.fetchNamesWithRigId = async (req, res) => {
   try {
     const { rigIds } = req.body;
 
+    if(rigIds.length ===0){
+      return res.status(404).json({message: "Data not availbale."})
+    }
+
     // Initialize an array to store the combined result
     let combinedResult = [];
 
