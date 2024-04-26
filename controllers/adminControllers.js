@@ -6095,6 +6095,7 @@ exports.findPhoneByLastThreeDigitRigId = async (req, res) => {
 exports.fetchNamesWithRigId = async (req, res) => {
   try {
     const { rigIds } = req.body;
+    console.log(rigIds, 6098)
 
     if(rigIds.length ===0){
       return res.status(404).json({message: "Data not availbale."})
@@ -6147,6 +6148,29 @@ exports.fetchNamesWithRigId = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.fetchAllPartnerPayoutCount = async (req, res) => {
+  try {
+    const { rigId } = req.body;
+    console.log(rigId.length)
+    if (!rigId || rigId.length === 0) {
+      return res.status(400).json({ message: "Rig IDs are required." });
+    }
+
+    const queryString = "SELECT * FROM partner_payout WHERE rigId IN (?)";
+    const [partnerPayouts] = await connection.promise().query(queryString, [rigId]);
+
+    return res.status(200).json({
+      message: "Partner payouts fetched successfully",
+      data: partnerPayouts,
+    });
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+
 
 
 

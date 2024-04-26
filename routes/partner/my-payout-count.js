@@ -12,7 +12,7 @@ const {
 router.post(
   "/partner/my-payout-count",
   isAuthenticated,
-  authorizeRole(["partner"]),
+  authorizeRole(["partner","admin"]),
   myPayoutCount
 );
 
