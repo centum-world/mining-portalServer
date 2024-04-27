@@ -4989,7 +4989,7 @@ exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
 
     if (currentMonth && currentYear) {
       fetchTransactionQueryTeam +=
-        " AND MONTH(transactionDate) = ? AND YEAR(credit_date) = ?";
+        " AND MONTH(credit_date) = ? AND YEAR(credit_date) = ?";
       queryParamsTeam.push(currentMonth, currentYear);
     }
 
@@ -5013,6 +5013,21 @@ exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
         transaction.p_name = null;
         transaction.p_lname = null;
       }
+
+      // Fetch names from create_member for each userid
+      const [createMember] = await connection
+        .promise()
+        .query("SELECT m_name, m_lname FROM create_member WHERE m_userid = ?", [
+          transaction.userid,
+        ]);
+
+      if (createMember.length > 0) {
+        transaction.m_name = createMember[0].m_name;
+        transaction.m_lname = createMember[0].m_lname;
+      } else {
+        transaction.m_name = null;
+        transaction.m_lname = null;
+      }
     }
 
     return res.status(200).json({
@@ -5024,6 +5039,10 @@ exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
+
+
+
 
 // ----------------------------------------------------------------//
 
