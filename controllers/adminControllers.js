@@ -17,6 +17,7 @@ const bcrypt = require("bcrypt");
 const { queryAsync } = require("../utils/utility");
 const { log } = require("console");
 const moment = require("moment");
+const internal = require("stream");
 
 // admin Login
 
@@ -495,20 +496,25 @@ exports.fetchSumOfAllPartnerLiquidity = (req, res) => {
 
 // fetch-all-active-partner-only
 
-exports.fetchAllActivePartnerOnly = (req, res) => {
-  //const partnerId = req.body;
-  let query =
-    "select p_userid,p_name,p_lname,p_phone,p_reffered_id,p_dop,p_liquidity,partner_status,month_count from mining_partner where (partner_status = '1' OR month_count='11') OR (partner_status = '0' AND month_count = '12')";
-  connection.query(query, (err, results) => {
-    if (!err) {
-      return res.status(200).json({
-        message: "Fetched All Active Partner Only successfully",
-        data: results,
-      });
-    } else {
-      return res.status(500).json(err);
-    }
-  });
+exports.fetchAllActivePartnerOnly = async (req, res) => {
+  try {
+    let query =
+      "select rigId,p_userid,p_name,p_lname,p_phone,p_reffered_id,p_dop,p_liquidity,partner_status,month_count from mining_partner where (partner_status = '1' OR month_count='11') OR (partner_status = '0' AND month_count = '12')";
+
+    const [results] = await connection.promise().query(query);
+
+    const partnerUserIds = results.map((result) => result.p_userid);
+    console.log(partnerUserIds)
+
+    const multiplePartners = await connection
+  .promise()
+  .query("SELECT * FROM multiple_rig_partner WHERE userId IN (?)", [partnerUserIds]);
+
+    res.json({ results, multiplePartners });
+  } catch (error) {
+    console.log(error.messsage);
+    return res.status(500).json({ message : "internal server error"});
+  }
 };
 
 // fetch-partner-withdrawal-request-to-admin
@@ -6167,12 +6173,10 @@ exports.findPhoneByLastThreeDigitRigId = async (req, res) => {
 
       res.status(200).json({ phoneNumber, state });
     } else {
-      res
-        .status(404)
-        .json({
-          message:
-            "Phone number not found for the provided rigId's last three digits",
-        });
+      res.status(404).json({
+        message:
+          "Phone number not found for the provided rigId's last three digits",
+      });
     }
   } catch (error) {
     console.error("Error:", error);
@@ -6233,12 +6237,10 @@ exports.fetchNamesWithRigId = async (req, res) => {
     });
 
     // Send the combined result as a response
-    res
-      .status(200)
-      .json({
-        message: "All names fetched successfully",
-        data: combinedResult,
-      });
+    res.status(200).json({
+      message: "All names fetched successfully",
+      data: combinedResult,
+    });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Internal server error" });
