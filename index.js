@@ -200,6 +200,7 @@ const fetchTransactionHistory = require('./routes/fetch-transaction-history');
 const createPartnerPayoutForMonthly = require('./routes/create-partner-payout-for-monthly')
 const fetchReferralPayoutHistoryAdmin = require('./routes/fetch-referral-payout-history-admin');
 const fetchAllPartnerPayoutCount = require('./routes/fetch-All-partner-payout-count');
+const partnersRigInsideReferralInAdmin = require('./routes/partners-rig-inside-referral-in-admin');
 
 // -------------------State ----------------------------------///
 const totalcountFranchiseMemberPartner = require('./routes/state/total-count-franchise-member-partner')
@@ -447,6 +448,7 @@ app.use('/admin',fetchReferralPayoutHistoryAdmin);
 app.use('/admin', findPhoneByLastThreeDigitRigId)
 app.use('/admin', fetchNamesWithRigId)
 app.use('/admin',fetchAllPartnerPayoutCount);
+app.use('/admin',partnersRigInsideReferralInAdmin);
 
 
 

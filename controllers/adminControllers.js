@@ -6259,6 +6259,35 @@ exports.fetchAllPartnerPayoutCount = async (req, res) => {
   }
 };
 
+// partnersRigInsideReferralInAdmin
+exports.partnersRigInsideReferralInAdmin = async (req,res) => {
+  try {
+    const { referralId } = req.body;
+
+    if (!referralId) {
+      return res.status(400).json({ message: "Referral ID is required" });
+    }
+
+    // Step 1: Fetch all records from mining_partner where p_referred_id matches the given referralId
+    const queryString = "SELECT * FROM mining_partner WHERE p_referred_id = ?";
+    const [partners] = await connection.promise().query(queryString, [referralId])
+
+    if (partners.length === 0) {
+      return res.status(404).json({ message: "No partners found for the provided referral ID" });
+    }
+
+    // Return the results
+    res.json({
+      message: "Data retrieved successfully",
+      partnerData: partners
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 
 
 
