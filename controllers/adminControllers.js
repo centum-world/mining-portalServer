@@ -4503,8 +4503,6 @@ exports.createPartnerPayout = async (req, res) => {
       //     .status(400)
       //     .json({ message: "Payout for this month has already happened." });
       // }
-
-
     }
 
     // Insert a new row
@@ -4728,7 +4726,10 @@ exports.fetchTransactionHistory = async (req, res) => {
     for (const transaction of transactionHistory) {
       const [partnerNames] = await connection
         .promise()
-        .query("SELECT p_name, p_lname FROM mining_partner WHERE p_userid = ?", [transaction.partnerId]);
+        .query(
+          "SELECT p_name, p_lname FROM mining_partner WHERE p_userid = ?",
+          [transaction.partnerId]
+        );
 
       if (partnerNames.length > 0) {
         transaction.p_name = partnerNames[0].p_name;
@@ -4749,7 +4750,6 @@ exports.fetchTransactionHistory = async (req, res) => {
   }
 };
 
-
 exports.createPartnerPayoutForMonthly = async (req, res) => {
   try {
     const {
@@ -4760,7 +4760,7 @@ exports.createPartnerPayoutForMonthly = async (req, res) => {
       partnerId,
       referralAmount,
     } = req.body;
-    console.log("rigid" , rigId)
+    console.log("rigid", rigId);
 
     findPartnerReferralQuery =
       "select p_reffered_id from mining_partner where p_userid = ?";
@@ -4878,21 +4878,30 @@ exports.verifyMultipleRigPartner = async (req, res) => {
     // Fetch the maximum invoice number from both tables
     const [fetchMiningPartnerLatestData] = await connection
       .promise()
-      .query("SELECT MAX(invoice_number) AS max_invoice_number FROM mining_partner");
+      .query(
+        "SELECT MAX(invoice_number) AS max_invoice_number FROM mining_partner"
+      );
 
-    const partnerInvoiceNumber = fetchMiningPartnerLatestData[0].max_invoice_number || "00000";
+    const partnerInvoiceNumber =
+      fetchMiningPartnerLatestData[0].max_invoice_number || "00000";
 
     const [fetchMultipleMiningPartnerLatestData] = await connection
       .promise()
-      .query("SELECT MAX(invoice_number) AS max_invoice_number FROM multiple_rig_partner");
+      .query(
+        "SELECT MAX(invoice_number) AS max_invoice_number FROM multiple_rig_partner"
+      );
 
-    const multipleInvoiceNumber = fetchMultipleMiningPartnerLatestData[0].max_invoice_number || "00000";
+    const multipleInvoiceNumber =
+      fetchMultipleMiningPartnerLatestData[0].max_invoice_number || "00000";
 
     // Determine the latest invoice number
-    latestInvoiceNumber = Math.max(partnerInvoiceNumber, multipleInvoiceNumber) + 1;
+    latestInvoiceNumber =
+      Math.max(partnerInvoiceNumber, multipleInvoiceNumber) + 1;
 
     // Format the invoice number with leading zeros
-    const formattedInvoiceNumber = latestInvoiceNumber.toString().padStart(5, '0');
+    const formattedInvoiceNumber = latestInvoiceNumber
+      .toString()
+      .padStart(5, "0");
 
     const selectPartnerQuery =
       "SELECT rigId FROM mining_partner WHERE rigId = ?";
@@ -4911,7 +4920,9 @@ exports.verifyMultipleRigPartner = async (req, res) => {
     }
 
     // Update the record with the new invoice number
-    await connection.promise().query(updateQuery, [formattedInvoiceNumber, rigId]);
+    await connection
+      .promise()
+      .query(updateQuery, [formattedInvoiceNumber, rigId]);
 
     return res
       .status(200)
@@ -4921,9 +4932,6 @@ exports.verifyMultipleRigPartner = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
-
-
 
 // exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
 //   try {
@@ -4987,9 +4995,10 @@ exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
     for (const transaction of transactionHistoryTeam) {
       const [miningPartner] = await connection
         .promise()
-        .query("SELECT p_name, p_lname FROM mining_partner WHERE p_userid = ?", [
-          transaction.partnerid,
-        ]);
+        .query(
+          "SELECT p_name, p_lname FROM mining_partner WHERE p_userid = ?",
+          [transaction.partnerid]
+        );
 
       if (miningPartner.length > 0) {
         transaction.p_name = miningPartner[0].p_name;
@@ -5010,13 +5019,7 @@ exports.fetchReferralPayoutHistoryAdmin = async (req, res) => {
   }
 };
 
-
-
-
 // ----------------------------------------------------------------//
-
-
-
 
 // exports.fliterPayoutTotalAndMonthlyWise = async (req, res) => {
 //   try {
@@ -6151,7 +6154,12 @@ exports.findPhoneByLastThreeDigitRigId = async (req, res) => {
     const { rigId } = req.body;
     const lastThreeDigitRigId = rigId.slice(-3);
 
-    const [phoneNumberResult] = await connection.promise().query("SELECT p_phone,p_state, rigId FROM mining_partner WHERE rigId LIKE ?", [`%${lastThreeDigitRigId}`]);
+    const [phoneNumberResult] = await connection
+      .promise()
+      .query(
+        "SELECT p_phone,p_state, rigId FROM mining_partner WHERE rigId LIKE ?",
+        [`%${lastThreeDigitRigId}`]
+      );
 
     if (phoneNumberResult.length > 0) {
       const phoneNumber = phoneNumberResult[0].p_phone;
@@ -6159,7 +6167,12 @@ exports.findPhoneByLastThreeDigitRigId = async (req, res) => {
 
       res.status(200).json({ phoneNumber, state });
     } else {
-      res.status(404).json({ message: "Phone number not found for the provided rigId's last three digits" });
+      res
+        .status(404)
+        .json({
+          message:
+            "Phone number not found for the provided rigId's last three digits",
+        });
     }
   } catch (error) {
     console.error("Error:", error);
@@ -6170,54 +6183,62 @@ exports.findPhoneByLastThreeDigitRigId = async (req, res) => {
 exports.fetchNamesWithRigId = async (req, res) => {
   try {
     const { rigIds } = req.body;
-    console.log(rigIds, 6098)
+    console.log(rigIds, 6098);
 
-    if(rigIds.length ===0){
-      return res.status(404).json({message: "Data not availbale."})
+    if (rigIds.length === 0) {
+      return res.status(404).json({ message: "Data not availbale." });
     }
 
     // Initialize an array to store the combined result
     let combinedResult = [];
 
-    // Query the first database table to fetch rows that match 
-    const [rows1] = await connection.promise().query(
-      `SELECT rigId, p_name, p_lname FROM mining_partner WHERE rigId IN (?)`,
-      [rigIds]
-    );
+    // Query the first database table to fetch rows that match
+    const [rows1] = await connection
+      .promise()
+      .query(
+        `SELECT rigId, p_name, p_lname FROM mining_partner WHERE rigId IN (?)`,
+        [rigIds]
+      );
 
     // Push results from the first query into the combined result
-    rows1.forEach(row => {
-      rigIds.forEach(id => {
+    rows1.forEach((row) => {
+      rigIds.forEach((id) => {
         if (row.rigId === id) {
           combinedResult.push({
             rigId: row.rigId,
-            name: `${row.p_name} ${row.p_lname}`
+            name: `${row.p_name} ${row.p_lname}`,
           });
         }
       });
     });
 
     // Query the second database table to fetch rows that match
-    const [rows2] = await connection.promise().query(
-      `SELECT rigId, fname, lname FROM multiple_rig_partner WHERE rigId IN (?)`,
-      [rigIds]
-    );
+    const [rows2] = await connection
+      .promise()
+      .query(
+        `SELECT rigId, fname, lname FROM multiple_rig_partner WHERE rigId IN (?)`,
+        [rigIds]
+      );
 
     // Push results from the second query into the combined result
-    rows2.forEach(row => {
-      rigIds.forEach(id => {
+    rows2.forEach((row) => {
+      rigIds.forEach((id) => {
         if (row.rigId === id) {
           combinedResult.push({
             rigId: row.rigId,
-            name: `${row.fname} ${row.lname}`
+            name: `${row.fname} ${row.lname}`,
           });
         }
       });
     });
 
     // Send the combined result as a response
-    res.status(200).json({ message: "All names fetched successfully", data: combinedResult });
-
+    res
+      .status(200)
+      .json({
+        message: "All names fetched successfully",
+        data: combinedResult,
+      });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -6232,19 +6253,26 @@ exports.fetchAllPartnerPayoutCount = async (req, res) => {
     }
 
     const queryString = "SELECT * FROM partner_payout WHERE rigId IN (?)";
-    const [partnerPayouts] = await connection.promise().query(queryString, [rigId]);
+    const [partnerPayouts] = await connection
+      .promise()
+      .query(queryString, [rigId]);
 
     let maxPayableCounts = [];
 
     // Initialize max payable counts for each rigId
-    rigId.forEach(id => {
+    rigId.forEach((id) => {
       maxPayableCounts.push({ rigId: id, maxPayableCount: 0 });
     });
 
     // Find max payable count for each rigId
-    partnerPayouts.forEach(payout => {
-      const index = maxPayableCounts.findIndex(item => item.rigId === payout.rigId);
-      if (index !== -1 && payout.payableCount > maxPayableCounts[index].maxPayableCount) {
+    partnerPayouts.forEach((payout) => {
+      const index = maxPayableCounts.findIndex(
+        (item) => item.rigId === payout.rigId
+      );
+      if (
+        index !== -1 &&
+        payout.payableCount > maxPayableCounts[index].maxPayableCount
+      ) {
         maxPayableCounts[index].maxPayableCount = payout.payableCount;
       }
     });
@@ -6270,45 +6298,34 @@ exports.partnersRigInsideReferralInAdmin = async (req, res) => {
 
     // Step 1: Fetch all records from mining_partner where p_referred_id matches the given referralId
     const queryString1 = "SELECT * FROM mining_partner WHERE p_reffered_id = ?";
-    const [partners] = await connection.promise().query(queryString1, [referralId]);
+    const [partners] = await connection
+      .promise()
+      .query(queryString1, [referralId]);
 
     if (partners.length === 0) {
-      return res.status(404).json({ message: "No partners found for the provided referral ID" });
+      return res
+        .status(404)
+        .json({ message: "No partners found for the provided referral ID" });
     }
 
     // Extract partner user ids using map
-    const partnerUserIds = partners.map(partner => partner.p_userid);
+    const partnerUserIds = partners.map((partner) => partner.p_userid);
 
     // Step 2: Find multiple rig partners based on the partner user ids
-    const queryString2 = "SELECT * FROM multiple_rig_partner WHERE userId IN (?)";
-    const [multiplePartners] = await connection.promise().query(queryString2, [partnerUserIds]);
-
-    // Merge the arrays into a single array
-    const data = [...partners, ...multiplePartners];
+    const queryString2 =
+      "SELECT * FROM multiple_rig_partner WHERE userId IN (?)";
+    const [multiplePartners] = await connection
+      .promise()
+      .query(queryString2, [partnerUserIds]);
 
     // Return the results
     res.json({
       message: "Data retrieved successfully",
-      partnerData: data
+      partners,
+      multiplePartners,
     });
-
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+};
