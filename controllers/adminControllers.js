@@ -496,26 +496,40 @@ exports.fetchSumOfAllPartnerLiquidity = (req, res) => {
 
 // fetch-all-active-partner-only
 
-exports.fetchAllActivePartnerOnly = async (req, res) => {
-  try {
-    let query =
-      "select rigId,p_userid,p_name,p_lname,p_phone,p_reffered_id,p_dop,p_liquidity,partner_status,month_count from mining_partner where (partner_status = '1' OR month_count='11') OR (partner_status = '0' AND month_count = '12')";
+exports.fetchAllActivePartnerOnly = (req, res) => {
+  let query =
+    "SELECT p_userid, p_name, p_lname, p_phone, p_reffered_id, p_dop, p_liquidity, partner_status, month_count FROM mining_partner WHERE (partner_status = '1' OR month_count='11') OR (partner_status = '0' AND month_count = '12')";
 
-    const [results] = await connection.promise().query(query);
+  connection.query(query, async (err, results) => {
+    if (err) {
+      console.error("Error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
 
-    const partnerUserIds = results.map((result) => result.p_userid);
-    console.log(partnerUserIds)
+    try {
+      for (const partner of results) {
+        const userId = partner.p_userid;
+        const multipleRigPartnerQuery = "SELECT liquidity FROM multiple_rig_partner WHERE userId = ?";
+        const [rigResults] = await connection.promise().query(multipleRigPartnerQuery, [userId]);
 
-    const multiplePartners = await connection
-  .promise()
-  .query("SELECT * FROM multiple_rig_partner WHERE userId IN (?)", [partnerUserIds]);
+        // Calculate total liquidity for the partner
+        const totalLiquidity = rigResults.reduce((total, rig) => total + rig.liquidity, 0) + partner.p_liquidity;
 
-    res.json({ results, multiplePartners });
-  } catch (error) {
-    console.log(error.messsage);
-    return res.status(500).json({ message : "internal server error"});
-  }
+        // Add total liquidity to the partner object
+        partner.total_liquidity = totalLiquidity;
+      }
+
+      return res.status(200).json({
+        message: "Fetched All Active Partners Only successfully",
+        data: results,
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
 };
+
 
 // fetch-partner-withdrawal-request-to-admin
 
@@ -6350,3 +6364,35 @@ exports.partnersRigInsideReferralInAdmin = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// adminFetchLiquidityDetailsForActivePartners
+exports.adminFetchLiquidityDetailsForActivePartners = async (req, res) => {
+  try {
+    const { userid } = req.body;
+    
+    if (!userid) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    // Fetch data from mining_partner table
+    const miningPartnerQuery = "SELECT * FROM mining_partner WHERE p_userid = ?";
+    const [miningPartnerResults] = await connection.promise().query(miningPartnerQuery, [userid]);
+
+    // Fetch data from multiple_rig_partner table
+    const multipleRigPartnerQuery = "SELECT * FROM multiple_rig_partner WHERE userId = ?";
+    const [multipleRigPartnerResults] = await connection.promise().query(multipleRigPartnerQuery, [userid]);
+
+    // Concatenate the results into a single array
+    const combinedResults = miningPartnerResults.concat(multipleRigPartnerResults);
+
+    return res.status(200).json({
+      message: "Liquidity details for active partners fetched successfully",
+      combined_data: combinedResults
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
