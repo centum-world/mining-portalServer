@@ -6260,7 +6260,7 @@ exports.fetchAllPartnerPayoutCount = async (req, res) => {
 };
 
 // partnersRigInsideReferralInAdmin
-exports.partnersRigInsideReferralInAdmin = async (req,res) => {
+exports.partnersRigInsideReferralInAdmin = async (req, res) => {
   try {
     const { referralId } = req.body;
 
@@ -6269,17 +6269,27 @@ exports.partnersRigInsideReferralInAdmin = async (req,res) => {
     }
 
     // Step 1: Fetch all records from mining_partner where p_referred_id matches the given referralId
-    const queryString = "SELECT * FROM mining_partner WHERE p_referred_id = ?";
-    const [partners] = await connection.promise().query(queryString, [referralId])
+    const queryString1 = "SELECT * FROM mining_partner WHERE p_reffered_id = ?";
+    const [partners] = await connection.promise().query(queryString1, [referralId]);
 
     if (partners.length === 0) {
       return res.status(404).json({ message: "No partners found for the provided referral ID" });
     }
 
+    // Extract partner user ids using map
+    const partnerUserIds = partners.map(partner => partner.p_userid);
+
+    // Step 2: Find multiple rig partners based on the partner user ids
+    const queryString2 = "SELECT * FROM multiple_rig_partner WHERE userId IN (?)";
+    const [multiplePartners] = await connection.promise().query(queryString2, [partnerUserIds]);
+
+    // Merge the arrays into a single array
+    const data = [...partners, ...multiplePartners];
+
     // Return the results
     res.json({
       message: "Data retrieved successfully",
-      partnerData: partners
+      partnerData: data
     });
 
   } catch (error) {
