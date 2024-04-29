@@ -6398,16 +6398,16 @@ exports.adminFetchLiquidityDetailsForActivePartners = async (req, res) => {
 
 exports.createReferralWallet = async (req, res) => {
   try {
-    const { name, userId, rigId, liquidity, doj, amount, referralId } = req.body;
+    const { name, userId, rigId, liquidity, doj, amount, referralId , dateOfPayment} = req.body;
 
-    if (!name || !userId || !rigId || !liquidity || !doj || !amount || !referralId) {
+    if (!name || !userId || !rigId || !liquidity || !doj || !amount || !referralId ) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     // Insert data into the referral_wallet table
     const createReferralWalletQuery = `
-      INSERT INTO referral_wallet (name, userId, rigId, liquidity, doj, amount, referralId)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO referral_wallet (name, userId, rigId, liquidity, doj, amount, referralId, dateOfPayment)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const [insertResult] = await connection.promise().query(createReferralWalletQuery, [
       name,
@@ -6416,7 +6416,8 @@ exports.createReferralWallet = async (req, res) => {
       liquidity,
       doj,
       amount,
-      referralId
+      referralId, 
+      dateOfPayment
     ]);
 
     // Check if the insertion was successful
