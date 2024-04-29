@@ -6431,3 +6431,23 @@ exports.createReferralWallet = async (req, res) => {
   }
 };
 
+
+exports.fetchReferralWalletWithRigId = async (req, res) => {
+  try {
+    const { rigId } = req.params;
+
+    const query = "SELECT * FROM referral_wallet WHERE rigId = ?";
+    
+    // Execute the query asynchronously
+    const [results] = await connection.promise().query(query, [rigId]);
+
+    // Send the results as JSON response
+    return res.status(200).json({message: "fetched referral wallet successfully.", data:results});
+
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+

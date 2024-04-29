@@ -10,6 +10,7 @@ const adminRoute = require("./routes/admin");
 const memberRoute = require("./routes/create-member");
 
 const createReferralWallet = require("./routes/create-referral-wallet")
+const fetchReferralWalletWithRigId = require("./routes/fetch-referral-wallet-with-rig-id")
 
 const fetchNamesWithRigId = require("./routes/fetch-names-with-rig-ids")
 const findPhoneByLastThreeDigitRigId = require("./routes/find-phone-last-three-digit-rig-id")
@@ -391,6 +392,7 @@ app.use("/mining", fetchPartnerAndMultipleRig)
 
 // --------------------------admin-------------------//4
 app.use("/admin",createReferralWallet )
+app.use("/admin", fetchReferralWalletWithRigId)
 app.use("/admin", upgradeMemberToFranchise)
 app.use("/admin", fetchMemberLastThreeMonthsTarget)
 app.use("/admin", upgradeFranchiseToBMM)
