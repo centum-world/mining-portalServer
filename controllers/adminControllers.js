@@ -6396,3 +6396,38 @@ exports.adminFetchLiquidityDetailsForActivePartners = async (req, res) => {
 };
 
 
+exports.createReferralWallet = async (req, res) => {
+  try {
+    const { name, userId, rigId, liquidity, doj, amount, referralId } = req.body;
+
+    if (!name || !userId || !rigId || !liquidity || !doj || !amount || !referralId) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Insert data into the referral_wallet table
+    const createReferralWalletQuery = `
+      INSERT INTO referral_wallet (name, userId, rigId, liquidity, doj, amount, referralId)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    const [insertResult] = await connection.promise().query(createReferralWalletQuery, [
+      name,
+      userId,
+      rigId,
+      liquidity,
+      doj,
+      amount,
+      referralId
+    ]);
+
+    // Check if the insertion was successful
+    if (insertResult.affectedRows === 1) {
+      return res.status(200).json({ message: "Referral wallet created successfully" });
+    } else {
+      return res.status(500).json({ message: "Failed to create referral wallet" });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
